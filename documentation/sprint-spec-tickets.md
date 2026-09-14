@@ -8,7 +8,7 @@ Objectif du sprint : rédiger la spécification normative du format (prose + dra
 
 | ID | Ticket | Issue |
 |----|--------|-------|
-| SPEC-01 | Scaffold `documentation/specification` + conventions d'écriture | [#1](https://github.com/naanouff/OpenCAD/issues/1) |
+| SPEC-01 | Scaffold `documentation/specification` + EN writing conventions | [#1](https://github.com/naanouff/OpenCAD/issues/1) |
 | SPEC-02 | Identité, objectifs et non-objectifs | [#2](https://github.com/naanouff/OpenCAD/issues/2) |
 | SPEC-03 | Unités, axes et transforms (mat4) | [#3](https://github.com/naanouff/OpenCAD/issues/3) |
 | SPEC-04 | Modèle de nœuds — DAG plat à UUID | [#4](https://github.com/naanouff/OpenCAD/issues/4) |
