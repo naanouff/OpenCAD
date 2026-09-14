@@ -11,7 +11,7 @@ This directory is the **source of truth** for the CADOM format specification.
 - **Language:** English for all normative specification text.
 - **Keywords:** RFC 2119 — `MUST`, `MUST NOT`, `SHOULD`, `SHOULD NOT`, `MAY` (see [cadom-v0.1.md](cadom-v0.1.md#conventions)).
 - Spec changes go through an issue + `feature/…` branch + PR into `develop`.
-- The normative Protobuf schema will live here by reference and/or under `packages/cadom-proto/` once the monorepo exists.
+- The normative Protobuf schema is [`packages/cadom-proto/cadom.proto`](../../packages/cadom-proto/cadom.proto) (see §8 of the spec).
 - Documented examples / fixtures: see `fixtures/` (SPEC-10).
 
 ## Sprint

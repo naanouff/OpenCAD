@@ -1,0 +1,77 @@
+syntax = "proto3";
+
+package cadom.v0_1;
+
+option java_package = "dev.opencad.cadom.v0_1";
+option csharp_namespace = "OpenCad.Cadom.V0_1";
+
+// CADOM v0.1 — normative on-disk schema for .cadom documents.
+// Field numbers are stable; do not reuse numbers.
+
+enum LengthUnit {
+  LENGTH_UNIT_UNSPECIFIED = 0;
+  LENGTH_UNIT_METRES = 1;
+}
+
+enum UpAxis {
+  UP_AXIS_UNSPECIFIED = 0;
+  UP_AXIS_Y = 1;
+  UP_AXIS_Z = 2;
+}
+
+enum AssetKind {
+  ASSET_KIND_UNSPECIFIED = 0;
+  ASSET_KIND_STEP = 1;
+  ASSET_KIND_GLTF = 2;
+  ASSET_KIND_GLB = 3;
+  ASSET_KIND_OTHER = 4;
+}
+
+message CadomFile {
+  uint32 version_major = 1;
+  uint32 version_minor = 2;
+  LengthUnit units = 3;
+  UpAxis up_axis = 4;
+  repeated string root_ids = 5;
+  repeated Node nodes = 6;
+  repeated Asset assets = 7;
+  repeated Override overrides = 8;
+  repeated Extension extensions = 9;
+}
+
+message Node {
+  string id = 1;
+  // Empty string means no parent (root candidate).
+  string parent_id = 2;
+  string name = 3;
+  // Column-major 4x4; must be empty or length 16.
+  repeated float local_transform = 4 [packed = true];
+  // Empty string means no asset reference.
+  string asset_id = 5;
+  bool visible = 6;
+  // Optional semantic tag: assembly | part | body | other | custom
+  string semantic_type = 7;
+}
+
+message Asset {
+  string id = 1;
+  string uri = 2;
+  AssetKind kind = 3;
+  string mime = 4;
+}
+
+message Override {
+  string node_id = 1;
+  string layer = 2;
+  // Presence wrappers: only set fields are applied (see spec §5).
+  optional bool visible = 3;
+  optional string material_ref = 4;
+  // Empty = not applied; otherwise length 16.
+  repeated float local_transform = 5 [packed = true];
+}
+
+message Extension {
+  string vendor = 1;
+  string type = 2;
+  bytes payload = 3;
+}
