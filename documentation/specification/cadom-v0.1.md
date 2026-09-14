@@ -1,6 +1,6 @@
-# CADOM Specification v0.2
+# CADOM Specification v0.3
 
-**Status:** draft (v0.2) — extends frozen v0.1  
+**Status:** draft (v0.3) — extends v0.2  
 **File extension:** `.cadom`  
 **Serialization:** Protocol Buffers — [`packages/cadom-proto/cadom.proto`](../../packages/cadom-proto/cadom.proto)  
 **Language:** English (normative)
@@ -39,6 +39,8 @@ The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**, **
 | **cadomesh** | Native CADOM tessellated mesh asset (`.cadomesh`) |
 | **cadompart** | Native CADOM parametric part-definition asset (`.cadompart`) |
 | **cadomat** | Native CADOM PBR material asset (`.cadomat`), Khronos-aligned |
+| **cadometa** | Native CADOM metadata asset (`.cadometa`) |
+| **Asset binding** | Role-typed link from a Node to an Asset (mesh / parametric / material / metadata) |
 
 ## Table of contents
 
@@ -201,9 +203,35 @@ A node **MUST** include the following conceptual fields (exact Protobuf encoding
 | `parent_id` | no | UUID of the parent; omit or null for a root candidate |
 | `name` | no | Human-readable label; empty string if unknown |
 | `local_transform` | no | 16 × float32 column-major mat4 (§2); identity if omitted |
-| `asset_id` | no | Reference to an Asset (§4); omit if the node is structural only |
+| `asset_bindings` | no | Zero or more role-typed asset links (§3.3.1); preferred in v0.3+ |
+| `asset_id` | no | **Deprecated.** Legacy single reference; see §3.3.2 |
 | `visible` | no | Default **SHOULD** be `true` when omitted |
 | `semantic_type` | no | Optional coarse semantic tag (see §3.6) |
+
+#### 3.3.1 Asset bindings (multi-asset)
+
+A node **MAY** reference **multiple** assets, **at most one per role**:
+
+| Role | Typical `Asset.kind` | Purpose |
+|------|----------------------|---------|
+| `MESH` | `CADOMESH`, `GLB`, `GLTF`, `STEP` | Display / tessellated or exact geometry for visualization |
+| `PARAMETRIC` | `CADOMPART` | Parametric part definition |
+| `MATERIAL` | `CADOMAT` | PBR material |
+| `METADATA` | `CADOMETA`, `OTHER` | Structured or opaque metadata payload |
+
+Rules:
+
+1. Each `asset_bindings[].asset_id` **MUST** refer to an existing Asset.
+2. `AssetRole` **MUST NOT** be `UNSPECIFIED` on a written binding.
+3. A node **MUST NOT** contain two bindings with the same `role`.
+4. Kind/role pairing **SHOULD** follow the table above; readers **MAY** warn on mismatched pairs but **MUST** still round-trip the binding.
+5. Structural nodes (e.g. pure assemblies) **MAY** omit all bindings.
+
+#### 3.3.2 Legacy `asset_id`
+
+If `asset_id` is non-empty and the node has **no** `MESH` binding, readers **MUST** treat `asset_id` as a `MESH` binding.
+
+Writers targeting v0.3+ **SHOULD** emit `asset_bindings` only and leave `asset_id` empty. Writers **MUST NOT** set both `asset_id` and a `MESH` binding to different asset ids.
 
 ### 3.4 Roots and parent links
 
@@ -242,6 +270,9 @@ A conforming reader **MUST** reject (or refuse to present as valid) a document t
 - `parent_id` or `root_ids` entry referencing a missing node;
 - a cycle in the parent relation;
 - a `local_transform` that violates §2.3;
+- duplicate `asset_bindings` roles on the same node;
+- `asset_bindings[].asset_id` or legacy `asset_id` referencing a missing Asset;
+- both legacy `asset_id` and a `MESH` binding set to different ids;
 - an empty `root_ids` list when `nodes` is non-empty (**SHOULD** reject; empty document with no nodes **MAY** use empty `root_ids`).
 
 ### 3.8 Informative example
@@ -265,7 +296,7 @@ Serialized as four flat nodes: Root (`parent_id` unset, in `root_ids`), Subassem
 
 ### 4.1 Role
 
-CADOM **MUST NOT** embed primary CAD solid geometry. Geometry is referenced through **Asset** records. Nodes **MAY** point to an asset via `asset_id` (§3).
+CADOM **MUST NOT** embed primary CAD solid geometry. Geometry and companion data are referenced through **Asset** records. Nodes **MAY** bind assets via `asset_bindings` (§3.3.1), at most one asset per role (mesh, parametric, material, metadata).
 
 ### 4.2 Asset fields
 
@@ -296,9 +327,10 @@ Duplicate asset `id` values **MUST** be rejected.
 | `CADOMESH` | `.cadomesh` | Native CADOM **tessellated mesh** (§4.8) |
 | `CADOMPART` | `.cadompart` | Native CADOM **parametric** part definition (§4.9) |
 | `CADOMAT` | `.cadomat` | Native CADOM **PBR material** (Khronos-aligned) (§4.10) |
+| `CADOMETA` | `.cadometa` | Native CADOM **metadata** document (§4.11) |
 | `OTHER` | — | Any other payload; consumers that do not recognize it **MAY** ignore load while still round-tripping the Asset record |
 
-Parsing STEP, glTF/GLB, or native companion formats **MUST NOT** be required of a minimal CADOM graph library; loaders **MAY** live in companion packages (e.g. w3dts). A **complete** CADOM toolchain **SHOULD** understand `CADOMESH`, `CADOMPART`, and `CADOMAT` in addition to referencing industry formats when needed.
+Parsing STEP, glTF/GLB, or native companion formats **MUST NOT** be required of a minimal CADOM graph library; loaders **MAY** live in companion packages (e.g. w3dts). A **complete** CADOM toolchain **SHOULD** understand `CADOMESH`, `CADOMPART`, `CADOMAT`, and `CADOMETA` in addition to referencing industry formats when needed.
 
 ### 4.5 Late loading
 
@@ -316,10 +348,10 @@ If an asset URI cannot be resolved or loaded:
 
 ### 4.7 Node–asset relationship
 
-- `asset_id` on a node, when set, **MUST** refer to an existing Asset `id`.
-- Multiple nodes **MAY** reference the same asset (instancing / shared geometry or shared parametric definition).
-- A node without `asset_id` is structural or metadata-only.
-- `Override.material_ref` **SHOULD** contain an Asset `id` of kind `CADOMAT` when native materials are used; consumers **MAY** also accept other material URI schemes.
+- Nodes bind assets through `asset_bindings` (§3.3.1), not through a single exclusive link.
+- Multiple nodes **MAY** share the same Asset id (instancing).
+- A node without bindings (and without legacy `asset_id`) is structural or metadata-only at the graph level.
+- `Override.material_ref` **SHOULD** contain an Asset `id` of kind `CADOMAT` (and typically matches the node’s `MATERIAL` binding when both are used). When both an override material and a `MATERIAL` binding exist, the override **MUST** win for the active layer (§5).
 
 ### 4.8 Native format: cadomesh (tessellated mesh)
 
@@ -351,6 +383,16 @@ A **cadomat** asset is a CADOM-native **physically based material** description.
 - Material model **MUST** align with the Khronos **glTF 2.0 metallic-roughness PBR** material model ([glTF 2.0 materials](https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#materials)), including base color, metallic, roughness, and optional textures as defined by that specification (and applicable Khronos extensions when explicitly versioned in the cadomat header)
 
 *Normative `.cadomat` container encoding is forthcoming; semantic field names **SHOULD** match glTF material properties to ease tooling.*
+
+### 4.11 Native format: cadometa (metadata)
+
+A **cadometa** asset carries **structured or opaque metadata** associated with a node occurrence (PLM attributes, custom JSON/Protobuf blobs, etc.).
+
+- Conventional file extension: `.cadometa`
+- `Asset.kind` **MUST** be `CADOMETA`
+- Bound with role `METADATA`
+
+*Normative `.cadometa` schema is forthcoming. Until then, producers **MAY** use `OTHER` with role `METADATA` for experimentation, with no interchange guarantee.*
 
 ## 5. Non-destructive overrides
 
@@ -454,7 +496,11 @@ A CADOM document **MUST** declare format version integers in the header:
 | `version_major` | Incompatible / breaking revisions |
 | `version_minor` | Backward-compatible additions within a major |
 
-For this specification revision, writers producing v0.2 documents **MUST** set `version_major = 0` and `version_minor = 2`. Writers producing legacy v0.1 documents **MUST** set `version_minor = 1` and **MUST NOT** emit native `CADOMESH` / `CADOMPART` / `CADOMAT` asset kinds.
+For this specification revision, writers producing v0.3 documents **MUST** set `version_major = 0` and `version_minor = 3`.
+
+- v0.2 writers: `version_minor = 2` (native kinds without multi-role bindings requirement).
+- v0.1 writers: `version_minor = 1` and **MUST NOT** emit native kinds `CADOMESH` / `CADOMPART` / `CADOMAT` / `CADOMETA`.
+
 
 A patch/third component is **not** required in the document header for v0.1; editorial patch notes appear in this document’s changelog only.
 
@@ -503,6 +549,7 @@ Writers **MUST** emit a serialized `cadom.v0_1.CadomFile` message as the content
 |--------------|----------------------|
 | Document | `CadomFile` |
 | Node (§3) | `Node` |
+| Asset binding (§3.3.1) | `NodeAssetBinding` + `AssetRole` |
 | Asset (§4) | `Asset` + `AssetKind` |
 | Override (§5) | `Override` |
 | Extension (§6) | `Extension` |
@@ -512,7 +559,8 @@ Writers **MUST** emit a serialized `cadom.v0_1.CadomFile` message as the content
 ### 8.2 Encoding notes
 
 - `Node.local_transform` and `Override.local_transform` **MUST** be either empty (omitted / not applied) or contain **exactly 16** floats (column-major).
-- `Node.parent_id` or `Node.asset_id` equal to the empty string means “unset”.
+- `Node.parent_id` equal to the empty string means “unset”.
+- `Node.asset_bindings` is the v0.3+ multi-asset model; `Node.asset_id` is legacy (§3.3.2).
 - For `Override`, `optional` scalar fields encode presence: an unset `visible` / `material_ref` **MUST NOT** patch that property (§5.3). An empty `local_transform` list means “do not patch transform”.
 - For `Node.visible`, unset **MUST** be interpreted as `true` by readers (§3.3).
 - Extension `payload` **MUST** be preserved bit-for-bit on pass-through (§6).
@@ -570,3 +618,4 @@ Prefer live node matrices (GLB-style) over baking placements into mesh vertices.
 | 0.1-draft | 2026-09-14 | §9 Examples + fixtures A/B/C; §10 w3dts notes (SPEC-10) |
 | 0.1 | 2026-09-14 | Draft frozen (SPEC-11); `Node.visible` optional in proto |
 | 0.2 | 2026-09-14 | Native assets: CADOMESH, CADOMPART, CADOMAT (#27) |
+| 0.3 | 2026-09-14 | Multi-asset bindings per node + CADOMETA (#29) |

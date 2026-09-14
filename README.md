@@ -6,8 +6,8 @@ It does **not** reinvent B-Rep/NURBS. Geometry stays in external standards (STEP
 
 ## Status
 
-- **CADOM Spec:** v0.2 draft (extends frozen v0.1) — [documentation/specification/cadom-v0.1.md](documentation/specification/cadom-v0.1.md) ([v0.2 amendment](documentation/specification/v0.2-amendment.md))
-- **Next:** TypeScript SDK (read/write) with TDD; native asset schemas (cadomesh / cadompart / cadomat) as follow-ups. Visual validation later via w3dts.
+- **CADOM Spec:** v0.3 draft — [documentation/specification/cadom-v0.1.md](documentation/specification/cadom-v0.1.md) ([v0.3 amendment](documentation/specification/v0.3-amendment.md))
+- **Next:** TypeScript SDK (TDD); native asset schemas (cadomesh / cadompart / cadomat / cadometa). Visual validation later via w3dts.
 - Implementation plan: [documentation/plan-mvp-a-cadom.md](documentation/plan-mvp-a-cadom.md)
 
 ## Goals
