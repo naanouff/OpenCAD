@@ -362,7 +362,7 @@ A **cadomesh** asset is a CADOM-native **triangle (or indexed) mesh** for displa
 - Payload **MUST** provide at least positions and indices suitable for GPU upload; normals and UVs **SHOULD** be included when available
 - Units and up-axis of mesh data **MUST** match the referencing `.cadom` document (§2) unless the cadomesh header declares otherwise (detailed header TBD)
 
-*Normative binary layout of `.cadomesh` is specified in a dedicated companion document (forthcoming). Until published, producers **MUST NOT** rely on an unofficial layout for interchange.*
+*Normative binary layout of `.cadomesh` **v0** is defined in [`cadomesh-v0.md`](cadomesh-v0.md) and [`packages/cadomesh-proto/cadomesh.proto`](../../packages/cadomesh-proto/cadomesh.proto).*
 
 ### 4.9 Native format: cadompart (parametric data)
 
