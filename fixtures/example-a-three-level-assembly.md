@@ -42,14 +42,17 @@ nodes:
     parent_id: "22222222-2222-2222-2222-222222222222"
     name: "Part A"
     semantic_type: part
-    asset_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+    asset_bindings:
+      - role: MESH
+        asset_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
     visible: true
-    # identity mat4 omitted
   - id: "44444444-4444-4444-4444-444444444444"
     parent_id: "22222222-2222-2222-2222-222222222222"
     name: "Part B"
     semantic_type: part
-    asset_id: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+    asset_bindings:
+      - role: MESH
+        asset_id: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
     visible: true
 overrides: []
 extensions: []
