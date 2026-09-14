@@ -7,6 +7,7 @@ This directory is the **source of truth** for the CADOM format specification.
 | [cadom-v0.1.md](cadom-v0.1.md) | **v0.3 draft** | Normative specification (filename historical; content is v0.3) |
 | [v0.1-freeze.md](v0.1-freeze.md) | Frozen record | v0.1 freeze checklist |
 | [v0.2-amendment.md](v0.2-amendment.md) | Amendment | Native cadomesh / cadompart / cadomat |
+| [cadomesh-v0.md](cadomesh-v0.md) | **v0 draft** | Tessellated mesh companion |
 | [v0.3-amendment.md](v0.3-amendment.md) | Amendment | Multi-asset bindings + cadometa |
 
 ## Writing conventions
