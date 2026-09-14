@@ -1,6 +1,6 @@
-# CADOM Specification v0.1
+# CADOM Specification v0.2
 
-**Status:** draft frozen (v0.1)  
+**Status:** draft (v0.2) — extends frozen v0.1  
 **File extension:** `.cadom`  
 **Serialization:** Protocol Buffers — [`packages/cadom-proto/cadom.proto`](../../packages/cadom-proto/cadom.proto)  
 **Language:** English (normative)
@@ -36,6 +36,9 @@ The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**, **
 | **Extension** | Vendor payload (`vendor` + `type` + opaque `bytes`) preserved on round-trip |
 | **Pass-through** | Preserve and rewrite unknown extension bytes unchanged |
 | **Late tessellation** | Load the graph first; fetch / tessellate geometry asynchronously |
+| **cadomesh** | Native CADOM tessellated mesh asset (`.cadomesh`) |
+| **cadompart** | Native CADOM parametric part-definition asset (`.cadompart`) |
+| **cadomat** | Native CADOM PBR material asset (`.cadomat`), Khronos-aligned |
 
 ## Table of contents
 
@@ -285,14 +288,17 @@ Duplicate asset `id` values **MUST** be rejected.
 
 ### 4.4 Kind semantics
 
-| Kind | Meaning |
-|------|---------|
-| `STEP` | ISO 10303 product data (exact geometry / structure external to CADOM) |
-| `GLTF` | glTF JSON (`.gltf`) and its companion resources as defined by glTF |
-| `GLB` | Binary glTF container (`.glb`) |
-| `OTHER` | Any other payload; consumers that do not recognize it **MAY** ignore geometry load while still round-tripping the Asset record |
+| Kind | Conventional extension | Meaning |
+|------|------------------------|---------|
+| `STEP` | `.step` / `.stp` | ISO 10303 product data (exact geometry external to CADOM) |
+| `GLTF` | `.gltf` | glTF JSON and companion resources |
+| `GLB` | `.glb` | Binary glTF container |
+| `CADOMESH` | `.cadomesh` | Native CADOM **tessellated mesh** (§4.8) |
+| `CADOMPART` | `.cadompart` | Native CADOM **parametric** part definition (§4.9) |
+| `CADOMAT` | `.cadomat` | Native CADOM **PBR material** (Khronos-aligned) (§4.10) |
+| `OTHER` | — | Any other payload; consumers that do not recognize it **MAY** ignore load while still round-tripping the Asset record |
 
-Parsing STEP or glTF/GLB **MUST NOT** be required of a CADOM core library; it is the responsibility of the consumer or a dedicated loader (e.g. w3dts).
+Parsing STEP, glTF/GLB, or native companion formats **MUST NOT** be required of a minimal CADOM graph library; loaders **MAY** live in companion packages (e.g. w3dts). A **complete** CADOM toolchain **SHOULD** understand `CADOMESH`, `CADOMPART`, and `CADOMAT` in addition to referencing industry formats when needed.
 
 ### 4.5 Late loading
 
@@ -311,8 +317,40 @@ If an asset URI cannot be resolved or loaded:
 ### 4.7 Node–asset relationship
 
 - `asset_id` on a node, when set, **MUST** refer to an existing Asset `id`.
-- Multiple nodes **MAY** reference the same asset (instancing / shared geometry).
+- Multiple nodes **MAY** reference the same asset (instancing / shared geometry or shared parametric definition).
 - A node without `asset_id` is structural or metadata-only.
+- `Override.material_ref` **SHOULD** contain an Asset `id` of kind `CADOMAT` when native materials are used; consumers **MAY** also accept other material URI schemes.
+
+### 4.8 Native format: cadomesh (tessellated mesh)
+
+A **cadomesh** asset is a CADOM-native **triangle (or indexed) mesh** for display and interchange after tessellation.
+
+- Conventional file extension: `.cadomesh`
+- `Asset.kind` **MUST** be `CADOMESH`
+- Payload **MUST** provide at least positions and indices suitable for GPU upload; normals and UVs **SHOULD** be included when available
+- Units and up-axis of mesh data **MUST** match the referencing `.cadom` document (§2) unless the cadomesh header declares otherwise (detailed header TBD)
+
+*Normative binary layout of `.cadomesh` is specified in a dedicated companion document (forthcoming). Until published, producers **MUST NOT** rely on an unofficial layout for interchange.*
+
+### 4.9 Native format: cadompart (parametric data)
+
+A **cadompart** asset holds **parametric** part definition data (construction / feature-oriented parameters), not the assembly occurrence graph (that remains in `.cadom` nodes).
+
+- Conventional file extension: `.cadompart`
+- `Asset.kind` **MUST** be `CADOMPART`
+- A part occurrence node **MAY** reference a cadompart for authoring/rebuild workflows while also referencing a cadomesh (or STEP/glTF) for visualization via a separate node or future multi-asset links
+
+*Normative parametric schema of `.cadompart` is forthcoming. v0.2 only reserves the asset kind and role.*
+
+### 4.10 Native format: cadomat (PBR material)
+
+A **cadomat** asset is a CADOM-native **physically based material** description.
+
+- Conventional file extension: `.cadomat`
+- `Asset.kind` **MUST** be `CADOMAT`
+- Material model **MUST** align with the Khronos **glTF 2.0 metallic-roughness PBR** material model ([glTF 2.0 materials](https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#materials)), including base color, metallic, roughness, and optional textures as defined by that specification (and applicable Khronos extensions when explicitly versioned in the cadomat header)
+
+*Normative `.cadomat` container encoding is forthcoming; semantic field names **SHOULD** match glTF material properties to ease tooling.*
 
 ## 5. Non-destructive overrides
 
@@ -416,7 +454,7 @@ A CADOM document **MUST** declare format version integers in the header:
 | `version_major` | Incompatible / breaking revisions |
 | `version_minor` | Backward-compatible additions within a major |
 
-For this specification revision, writers producing v0.1 documents **MUST** set `version_major = 0` and `version_minor = 1`.
+For this specification revision, writers producing v0.2 documents **MUST** set `version_major = 0` and `version_minor = 2`. Writers producing legacy v0.1 documents **MUST** set `version_minor = 1` and **MUST NOT** emit native `CADOMESH` / `CADOMPART` / `CADOMAT` asset kinds.
 
 A patch/third component is **not** required in the document header for v0.1; editorial patch notes appear in this document’s changelog only.
 
@@ -531,3 +569,4 @@ Prefer live node matrices (GLB-style) over baking placements into mesh vertices.
 | 0.1-draft | 2026-09-14 | §8 Normative Protobuf schema + cadom.proto (SPEC-09) |
 | 0.1-draft | 2026-09-14 | §9 Examples + fixtures A/B/C; §10 w3dts notes (SPEC-10) |
 | 0.1 | 2026-09-14 | Draft frozen (SPEC-11); `Node.visible` optional in proto |
+| 0.2 | 2026-09-14 | Native assets: CADOMESH, CADOMPART, CADOMAT (#27) |

@@ -5,8 +5,9 @@ package cadom.v0_1;
 option java_package = "dev.opencad.cadom.v0_1";
 option csharp_namespace = "OpenCad.Cadom.V0_1";
 
-// CADOM v0.1 — normative on-disk schema for .cadom documents.
+// CADOM v0.2 — normative on-disk schema for .cadom documents.
 // Field numbers are stable; do not reuse numbers.
+// Package name remains v0_1 for protobuf compatibility; document version_minor tracks 2.
 
 enum LengthUnit {
   LENGTH_UNIT_UNSPECIFIED = 0;
@@ -25,6 +26,10 @@ enum AssetKind {
   ASSET_KIND_GLTF = 2;
   ASSET_KIND_GLB = 3;
   ASSET_KIND_OTHER = 4;
+  // Native CADOM companion formats (spec v0.2+)
+  ASSET_KIND_CADOMESH = 5;
+  ASSET_KIND_CADOMPART = 6;
+  ASSET_KIND_CADOMAT = 7;
 }
 
 message CadomFile {
