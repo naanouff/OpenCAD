@@ -453,7 +453,35 @@ See the [Changelog](#changelog) at the end of this document. Freeze of v0.1 is t
 
 ## 8. Normative Protobuf schema
 
-_TBD — SPEC-09_
+The normative on-disk schema for CADOM v0.1 **MUST** be the Protocol Buffers definition in:
+
+[`packages/cadom-proto/cadom.proto`](../../packages/cadom-proto/cadom.proto)
+
+Writers **MUST** emit a serialized `cadom.v0_1.CadomFile` message as the contents of a `.cadom` file (no additional framing in v0.1).
+
+### 8.1 Message map
+
+| Spec concept | Proto message / enum |
+|--------------|----------------------|
+| Document | `CadomFile` |
+| Node (§3) | `Node` |
+| Asset (§4) | `Asset` + `AssetKind` |
+| Override (§5) | `Override` |
+| Extension (§6) | `Extension` |
+| Units / up axis (§2) | `LengthUnit`, `UpAxis` |
+| Version (§7) | `version_major`, `version_minor` |
+
+### 8.2 Encoding notes
+
+- `Node.local_transform` and `Override.local_transform` **MUST** be either empty (omitted / not applied) or contain **exactly 16** floats (column-major).
+- `Node.parent_id` or `Node.asset_id` equal to the empty string means “unset”.
+- For `Override`, `optional` scalar fields encode presence: an unset `visible` / `material_ref` **MUST NOT** patch that property (§5.3). An empty `local_transform` list means “do not patch transform”.
+- Extension `payload` **MUST** be preserved bit-for-bit on pass-through (§6).
+- Field numbers in `cadom.proto` are stable; renumbering **MUST** bump the format major version (§7).
+
+### 8.3 Informative minimal hex
+
+*Informative.* An empty-ish valid document still requires version, units, up axis, and typically at least one root node. Concrete fixtures are provided under SPEC-10.
 
 ## 9. Examples
 
@@ -478,3 +506,4 @@ _TBD — notes for future adapter (`TransformComponent`, `SceneNode`). Not norma
 | 0.1-draft | 2026-09-14 | §5 Non-destructive overrides (SPEC-06) |
 | 0.1-draft | 2026-09-14 | §6 Pass-through extensions (SPEC-07) |
 | 0.1-draft | 2026-09-14 | §7 Versioning and compatibility (SPEC-08) |
+| 0.1-draft | 2026-09-14 | §8 Normative Protobuf schema + cadom.proto (SPEC-09) |
