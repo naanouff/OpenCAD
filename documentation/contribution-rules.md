@@ -136,9 +136,27 @@ Réf. #12
 - Base : `main`, head : `develop`
 - Uniquement pour figer une release ; notes de version dans la description
 
+## Spec-complete gate (before any SDK code)
+
+Until **each** CADOM companion format has an **initial v0** specification published under `documentation/specification/`, contributors **MUST NOT** merge SDK, loader, or application implementation code.
+
+| Artifact | Initial v0 required |
+|----------|---------------------|
+| `.cadom` | yes (assembly document — already at v0.3 draft) |
+| `.cadomesh` | yes |
+| `.cadompart` | yes |
+| `.cadomat` | yes |
+| `.cadometa` | yes |
+
+**Allowed** before the gate lifts: normative specs, Protocol Buffer schemas, logical fixtures, contribution/process docs.
+
+**Forbidden** before the gate lifts: TypeScript SDK packages, encode/decode runtime beyond pure schema stubs if any, w3dts adapters, viewers.
+
+Tracking: [`sprint-native-assets.md`](sprint-native-assets.md).
+
 ## Principes de développement (obligatoires dès le code)
 
-S’appliquent au **code** (SDK, tooling, tests). La prose de spécification n’est pas soumise au TDD.
+S’appliquent au **code** (SDK, tooling, tests) **seulement après** levée de la gate ci-dessus. La prose de spécification n’est pas soumise au TDD.
 
 ### TDD (Test-Driven Development) — obligatoire
 
@@ -175,4 +193,5 @@ Source de vérité du format : [`documentation/specification/`](specification/).
 3. Commits atomiques liés à l’issue (message + description).
 4. Ouvrir une PR vers `develop` ; merger uniquement via PR.
 5. Ne jamais committer sur `main` / `develop`.
-6. Dès qu’il y a du code : **TDD** + DRY / KISS / YAGNI.
+6. **Spec gate:** no SDK/app code until `.cadomesh`, `.cadompart`, `.cadomat`, and `.cadometa` each have an initial v0 spec (see `documentation/sprint-native-assets.md`).
+7. Once coding is allowed: **TDD** + DRY / KISS / YAGNI.

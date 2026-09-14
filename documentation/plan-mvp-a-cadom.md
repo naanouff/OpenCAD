@@ -89,12 +89,16 @@ Couvrir : identité du format, unités/axes, modèle de nœuds plat, assets exte
 - Application d’overrides sans mutation des nœuds source
 - Intégrité mat4 (16 floats) et résolution parent→enfant
 
-## Hors scope MVP A
+## Hors scope MVP A (code)
 
 - Viewer / package adapter w3dts
 - Conteneur zip multi-fichiers
 - Tessellation STEP, conversion géométrie
 - Bindings C++/Python (le `.proto` les permettra plus tard)
+
+## Gate specs (avant tout développement)
+
+Pas de sprint SDK tant que les specs v0 de `.cadomesh`, `.cadompart`, `.cadomat`, `.cadometa` ne sont pas publiées. Voir [sprint-native-assets.md](sprint-native-assets.md).
 
 ## Ordre d’implémentation
 
