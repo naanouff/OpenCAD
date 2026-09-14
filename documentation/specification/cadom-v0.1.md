@@ -54,9 +54,54 @@ The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**, **
 
 ## 1. Introduction
 
-_TBD — SPEC-02_
+### 1.1 Identity
 
-Identity, goals, non-goals. CADOM orchestrates assemblies; it does not define B-Rep/NURBS geometry.
+**CADOM** (CAD Object Model) is a web-native **assembly orchestration** format.
+
+A CADOM document:
+
+- Describes an assembly as a **flat directed acyclic graph (DAG)** of nodes identified by UUIDs.
+- References **external geometry** assets (for example STEP, glTF, or GLB).
+- Carries **metadata**, **non-destructive overrides**, and **vendor extensions**.
+- Is serialized as a **binary Protocol Buffers** payload.
+
+The conventional file extension for a CADOM document **MUST** be `.cadom`.
+
+CADOM **MUST NOT** be treated as a boundary-representation (B-Rep) or NURBS geometry kernel. Exact solid/surface mathematics **MUST** remain in external files or systems; CADOM orchestrates structure and metadata around them.
+
+### 1.2 Goals
+
+A conforming CADOM implementation **SHOULD** support the following goals:
+
+1. **Interoperability** — Strongly typed, multi-language serialization via Protocol Buffers so CAD, web, and tooling stacks can exchange the same assembly description.
+2. **Scalable structure** — Represent large assemblies as a flat UUID-addressed DAG to avoid deep recursive nesting in the on-disk form and to allow O(1) node lookup after deserialize.
+3. **Web-native consumption** — Expose transforms in a layout suitable for direct use by WebGL/WebGPU clients (column-major 4×4 matrices; see §2).
+4. **Late tessellation / lazy loading** — Allow consumers to load and traverse the assembly graph before asynchronously resolving external geometry.
+5. **Non-destructive editing** — Express presentation and placement changes as **overrides** layered on source nodes without mutating referenced geometry files.
+6. **Lossless extensibility** — Allow vendors to attach opaque extension payloads that unknown readers **MUST** preserve and rewrite unchanged (**pass-through**).
+
+### 1.3 Non-goals
+
+The following are **out of scope** for CADOM v0.1 (and **MUST NOT** be required of a v0.1-conformant reader or writer):
+
+1. **Exact geometry definition** — Embedding or defining B-Rep, NURBS, or mesh tessellation payloads as the primary geometry model inside `.cadom`.
+2. **Tessellation algorithms** — How STEP (or other CAD) data is converted to triangles; that remains the responsibility of the consumer or a dedicated pipeline (for example a future w3dts-based validator).
+3. **Multi-file archive container** — A zip-like packaging of `.cadom` plus assets as a single compound file (may be specified in a later revision).
+4. **Authoring UI or viewer runtime** — Application chrome, ECS engines, or renderers; CADOM is a document format and data contract only.
+5. **Parametric feature history** — CAD feature trees, sketches, or rebuild recipes.
+
+### 1.4 Informative comparison
+
+*Informative.* CADOM is intentionally narrower than general 3D scene or film pipelines:
+
+| Format | Primary focus | Relation to CADOM |
+|--------|---------------|-------------------|
+| **glTF** | Runtime mesh/scene delivery for real-time engines | CADOM **MAY** reference glTF/GLB as an **Asset**; CADOM does not replace glTF’s mesh/material model. |
+| **USD** | Broad composed scenes, layers, and film/VFX pipelines | CADOM shares the idea of non-destructive layering but targets **CAD assembly orchestration** with Protobuf and external STEP/glTF, not a full USD-compatible scene graph. |
+| **STEP (ISO 10303)** | Exact product geometry and manufacturing data | CADOM **MAY** reference STEP files as assets; it does not redefine STEP semantics. |
+
+CADOM’s role is the **assembly graph + metadata + overrides + extensions** layer that binds those external standards for web and tooling workflows.
+
 
 ## 2. Units, axes, and transforms
 
@@ -112,3 +157,4 @@ _TBD — notes for future adapter (`TransformComponent`, `SceneNode`). Not norma
 |---------|------|-------|
 | 0.1-draft | 2026-09-14 | Scaffold TOC only |
 | 0.1-draft | 2026-09-14 | Conventions: English + RFC 2119; initial glossary (SPEC-01) |
+| 0.1-draft | 2026-09-14 | §1 Introduction: identity, goals, non-goals (SPEC-02) |
