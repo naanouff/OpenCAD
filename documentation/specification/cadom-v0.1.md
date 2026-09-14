@@ -407,7 +407,49 @@ A public registry is optional and not required for v0.1 conformance.
 
 ## 7. Versioning and compatibility
 
-_TBD — SPEC-08_
+### 7.1 Version fields
+
+A CADOM document **MUST** declare format version integers in the header:
+
+| Field | Meaning |
+|-------|---------|
+| `version_major` | Incompatible / breaking revisions |
+| `version_minor` | Backward-compatible additions within a major |
+
+For this specification revision, writers producing v0.1 documents **MUST** set `version_major = 0` and `version_minor = 1`.
+
+A patch/third component is **not** required in the document header for v0.1; editorial patch notes appear in this document’s changelog only.
+
+### 7.2 Reader compatibility
+
+Given a document `(maj, min)` and a reader that implements specification major `Rmaj` with highest minor `Rmin`:
+
+1. If `maj != Rmaj`, the reader **MUST** either reject the document with an explicit unsupported-version error **or** open it only behind an explicit compatibility mode that documents risk. Silent best-effort opens across major versions **MUST NOT** be the default.
+2. If `maj == Rmaj` and `min <= Rmin`, the reader **MUST** accept the document (subject to other validation rules).
+3. If `maj == Rmaj` and `min > Rmin`, the reader **SHOULD** accept the document when possible, ignoring unknown additive fields per §7.3, and **MAY** warn that the file is newer.
+
+While major is `0`, breaking changes **MAY** occur with minor bumps; producers and consumers **SHOULD** treat `0.x` as unstable.
+
+### 7.3 Unknown Protobuf fields
+
+CADOM serialization uses Protocol Buffers. Unknown fields encountered when parsing with an older schema:
+
+- **MUST** be preserved on round-trip when using a parser/runtime that supports unknown-field retention (aligns with extension pass-through intent);
+- **MUST NOT** cause a hard failure solely for being unknown, unless the reader is running in a strict mode that the API documents.
+
+Core libraries **SHOULD** enable unknown-field preservation by default.
+
+### 7.4 When to bump
+
+| Change | Bump |
+|--------|------|
+| Incompatible field renumbering, removed required field, changed semantics of existing field | `version_major` (+ reset minor to 0, except during `0.x` instability) |
+| New optional field, new enum value with safe default, new optional message | `version_minor` |
+| Spec wording / examples only | Document changelog only (no file version bump required) |
+
+### 7.5 Spec changelog (v0.1)
+
+See the [Changelog](#changelog) at the end of this document. Freeze of v0.1 is tracked by SPEC-11.
 
 ## 8. Normative Protobuf schema
 
@@ -435,3 +477,4 @@ _TBD — notes for future adapter (`TransformComponent`, `SceneNode`). Not norma
 | 0.1-draft | 2026-09-14 | §4 External assets (SPEC-05) |
 | 0.1-draft | 2026-09-14 | §5 Non-destructive overrides (SPEC-06) |
 | 0.1-draft | 2026-09-14 | §6 Pass-through extensions (SPEC-07) |
+| 0.1-draft | 2026-09-14 | §7 Versioning and compatibility (SPEC-08) |
