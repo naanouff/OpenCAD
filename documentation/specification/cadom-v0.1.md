@@ -358,9 +358,52 @@ When multiple overrides share the same `node_id` and `layer`, later document ord
 
 ## 6. Pass-through extensions
 
-_TBD — SPEC-07_
+### 6.1 Purpose
 
-Opaque `vendor` + `type` + `payload` bytes; unknown extensions MUST round-trip unchanged.
+Extensions allow any vendor to attach domain data (kinematics, PMI links, R&D metadata, etc.) without requiring every reader to understand it. Unknown extensions **MUST** survive edit/save cycles (**pass-through**).
+
+### 6.2 Extension fields
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `vendor` | yes | Non-empty reverse-DNS or org id (e.g. `com.example`) |
+| `type` | yes | Non-empty type id within the vendor namespace |
+| `payload` | yes | Opaque bytes (may be empty only if the type defines empty as valid; writers **SHOULD** omit useless empty extensions) |
+
+The pair `(vendor, type)` identifies the extension schema for parties that understand it. CADOM core **MUST NOT** interpret `payload`.
+
+### 6.3 Pass-through rules (normative)
+
+A conforming reader/writer that does not understand an extension:
+
+1. **MUST** retain the extension in memory for the lifetime of the document session (unless the user explicitly deletes it through an API that targets that extension);
+2. **MUST** write the extension back with identical `vendor`, `type`, and `payload` byte sequence on encode;
+3. **MUST NOT** strip, reorder destructively relative to other unknown extensions of different identity, or re-encode payload contents;
+4. **MUST NOT** fail document open solely because an extension is unknown.
+
+Document order of extensions **SHOULD** be preserved on round-trip.
+
+### 6.4 Naming recommendations
+
+*Informative / RECOMMENDED.*
+
+- Prefer `vendor` as reverse DNS (`com.company`).
+- Prefer `type` as a stable, versioned token (`kinematics.v1`).
+- Avoid colliding with other vendors’ namespaces.
+
+A public registry is optional and not required for v0.1 conformance.
+
+### 6.5 SDK compliance checklist
+
+*Informative.* A CADOM SDK is pass-through compliant if:
+
+- [ ] Unknown extensions are exposed as opaque blobs (or equivalent) in the object model;
+- [ ] `encode(decode(bytes))` preserves unknown extension payloads bit-for-bit when the application did not mutate them;
+- [ ] No core API silently drops extensions on load.
+
+### 6.6 Example
+
+*Informative.* Extension `vendor=com.example`, `type=kinematics.v1`, `payload=<binary joint data>`. A material-only editor opens the file, changes an override, and saves: the kinematics payload is unchanged.
 
 ## 7. Versioning and compatibility
 
@@ -391,3 +434,4 @@ _TBD — notes for future adapter (`TransformComponent`, `SceneNode`). Not norma
 | 0.1-draft | 2026-09-14 | §3 Flat node model / UUID DAG (SPEC-04) |
 | 0.1-draft | 2026-09-14 | §4 External assets (SPEC-05) |
 | 0.1-draft | 2026-09-14 | §5 Non-destructive overrides (SPEC-06) |
+| 0.1-draft | 2026-09-14 | §6 Pass-through extensions (SPEC-07) |
