@@ -372,7 +372,7 @@ A **cadompart** asset holds **parametric** part definition data (construction / 
 - `Asset.kind` **MUST** be `CADOMPART`
 - A part occurrence node **MAY** reference a cadompart for authoring/rebuild workflows while also referencing a cadomesh (or STEP/glTF) for visualization via a separate node or future multi-asset links
 
-*Normative parametric schema of `.cadompart` is forthcoming. v0.2 only reserves the asset kind and role.*
+*Normative parametric schema of `.cadompart` **v0** is defined in [`cadompart-v0.md`](cadompart-v0.md) and [`packages/cadompart-proto/cadompart.proto`](../../packages/cadompart-proto/cadompart.proto).*
 
 ### 4.10 Native format: cadomat (PBR material)
 
