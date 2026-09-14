@@ -170,9 +170,93 @@ stored column-major as
 
 ## 3. Flat node model (UUID DAG)
 
-_TBD — SPEC-04_
+### 3.1 Storage model
 
-Flat list of nodes addressed by UUID; children reconstructed via parent map (O(1)).
+A CADOM document **MUST** store assembly structure as a **flat list** of nodes. Nested child arrays **MUST NOT** appear in the serialized form.
+
+After deserialization, an implementation **SHOULD** build:
+
+- a map `id → node` for O(1) lookup;
+- an adjacency structure `parent_id → children[]` derived from `parent_id` fields.
+
+### 3.2 Node identifiers
+
+Each node **MUST** have an `id` that is a UUID string in canonical textual form (8-4-4-4-12 hexadecimal, lowercase **RECOMMENDED**).
+
+Within a single document:
+
+- every `id` **MUST** be unique;
+- duplicate `id` values **MUST** cause the document to be rejected.
+
+### 3.3 Node fields
+
+A node **MUST** include the following conceptual fields (exact Protobuf encoding in §8):
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `id` | yes | UUID of the node |
+| `parent_id` | no | UUID of the parent; omit or null for a root candidate |
+| `name` | no | Human-readable label; empty string if unknown |
+| `local_transform` | no | 16 × float32 column-major mat4 (§2); identity if omitted |
+| `asset_id` | no | Reference to an Asset (§4); omit if the node is structural only |
+| `visible` | no | Default **SHOULD** be `true` when omitted |
+| `semantic_type` | no | Optional coarse semantic tag (see §3.6) |
+
+### 3.4 Roots and parent links
+
+The document **MUST** provide `root_ids`: an ordered list of node ids that are assembly roots for traversal and default presentation.
+
+Rules:
+
+1. Every id in `root_ids` **MUST** refer to an existing node.
+2. A node listed in `root_ids` **SHOULD** have no `parent_id` (or a null parent). Writers **MUST NOT** set a non-null `parent_id` on a root listed in `root_ids`.
+3. If a node has a `parent_id`, that id **MUST** refer to an existing node in the same document.
+4. The parent relation **MUST** form a **DAG**: cycles **MUST** be rejected.
+5. Nodes unreachable from any `root_ids` entry via parent/child links **MAY** exist; conforming readers **SHOULD** still retain them on round-trip and **MAY** warn.
+
+### 3.5 Children reconstruction
+
+Children are not stored on the parent. A consumer **MUST** derive children as all nodes whose `parent_id` equals a given node’s `id`. Order among siblings is **not** defined in v0.1 unless a future extension specifies it; readers **MAY** sort by `name` or `id` for stable UI.
+
+### 3.6 Semantic types
+
+`semantic_type` is optional. When present in v0.1, writers **SHOULD** use one of:
+
+| Value | Meaning |
+|-------|---------|
+| `assembly` | Grouping / product structure node |
+| `part` | Leaf or part occurrence |
+| `body` | Geometric body placeholder |
+| `other` | Unspecified |
+
+Unknown values **MUST** be preserved on round-trip (treat as opaque string).
+
+### 3.7 Validation errors
+
+A conforming reader **MUST** reject (or refuse to present as valid) a document that exhibits any of:
+
+- duplicate node `id`;
+- `parent_id` or `root_ids` entry referencing a missing node;
+- a cycle in the parent relation;
+- a `local_transform` that violates §2.3;
+- an empty `root_ids` list when `nodes` is non-empty (**SHOULD** reject; empty document with no nodes **MAY** use empty `root_ids`).
+
+### 3.8 Informative example
+
+*Informative.*
+
+```mermaid
+flowchart TD
+  root[Root assembly]
+  sub[Subassembly]
+  p1[Part A]
+  p2[Part B]
+  root --> sub
+  sub --> p1
+  sub --> p2
+```
+
+Serialized as four flat nodes: Root (`parent_id` unset, in `root_ids`), Subassembly (`parent_id` = Root), Part A and Part B (`parent_id` = Subassembly).
 
 ## 4. External assets
 
@@ -218,3 +302,4 @@ _TBD — notes for future adapter (`TransformComponent`, `SceneNode`). Not norma
 | 0.1-draft | 2026-09-14 | Conventions: English + RFC 2119; initial glossary (SPEC-01) |
 | 0.1-draft | 2026-09-14 | §1 Introduction: identity, goals, non-goals (SPEC-02) |
 | 0.1-draft | 2026-09-14 | §2 Units, axes, and transforms (SPEC-03) |
+| 0.1-draft | 2026-09-14 | §3 Flat node model / UUID DAG (SPEC-04) |
