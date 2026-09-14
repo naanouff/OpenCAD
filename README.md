@@ -8,7 +8,8 @@ It does **not** reinvent B-Rep/NURBS. Geometry stays in external standards (STEP
 
 MVP A in progress: Protobuf schema + TypeScript SDK (read/write). Visual validation will use the w3dts engine later.
 
-See [documentation/plan-mvp-a-cadom.md](documentation/plan-mvp-a-cadom.md) for the implementation plan.
+- Spec (draft): [documentation/specification/cadom-v0.1.md](documentation/specification/cadom-v0.1.md)
+- Implementation plan: [documentation/plan-mvp-a-cadom.md](documentation/plan-mvp-a-cadom.md)
 
 ## Goals
 
@@ -27,7 +28,7 @@ See [documentation/plan-mvp-a-cadom.md](documentation/plan-mvp-a-cadom.md) for t
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) and [documentation/contribution-rules.md](documentation/contribution-rules.md).
 
-Summary: no direct commits on `main` / `develop`; work on `feature/*` or `fix/*`; PR into `develop`; release via PR `develop` → `main`. Commits are atomic and linked to an issue (message + description). Issues must state **DOR** and **DOD**.
+Summary: no direct commits on `main` / `develop`; work on `feature/*` or `fix/*`; PR into `develop`; release via PR `develop` → `main`. Commits are atomic and linked to an issue (message + description). Issues must state **DOR** and **DOD**. When coding: **TDD** mandatory; **DRY**, **KISS**, **YAGNI**.
 
 ## License
 

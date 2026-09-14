@@ -1,0 +1,34 @@
+---
+description: Engineering principles — TDD, DRY, KISS, YAGNI
+alwaysApply: true
+---
+
+# Engineering principles (OpenCAD)
+
+Apply when writing or changing **code** (SDK, tooling, tests). Spec prose is exempt from TDD.
+
+## TDD (mandatory for development)
+
+1. Write or update a **failing test** first.
+2. Write the **minimal** code to pass.
+3. Refactor while keeping tests green.
+4. Do not merge production code without tests covering the change.
+5. Prefer focused unit tests; add integration tests for encode/decode and pass-through.
+
+## DRY
+
+- Deduplicate only when duplication is real and stable (not speculative).
+- Share via small pure helpers — avoid premature abstractions.
+
+## KISS
+
+- Prefer the simplest design that meets the current issue.
+- No cleverness without a clear need in the ticket.
+
+## YAGNI
+
+- Do not build features, options, or layers “for later”.
+- Stay inside the issue périmètre / hors scope.
+- Viewer/w3dts adapter, zip containers, extra language bindings: out of scope until scheduled.
+
+Canonical doc: `documentation/contribution-rules.md` (section Principes de développement).

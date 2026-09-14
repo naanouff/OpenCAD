@@ -11,6 +11,11 @@ OpenCAD is open source (MIT). Please follow the workflow below.
 3. **`main`** only advances via **PR from `develop`** (release).
 4. Every **commit** must be **atomic**, linked to an **issue**, with a **message and description**.
 5. Every **issue** must spell out **DOR** and **DOD**.
+6. When writing **code**: **TDD is mandatory**; follow **DRY**, **KISS**, and **YAGNI** (see [contribution-rules](documentation/contribution-rules.md)).
+
+## Specs
+
+Normative format docs live in [`documentation/specification/`](documentation/specification/).
 
 ## Start work
 
