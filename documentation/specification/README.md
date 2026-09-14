@@ -1,18 +1,20 @@
-# Spécifications CADOM
+# CADOM Specifications
 
-Ce dossier est la **source de vérité** pour la spécification du format CADOM.
+This directory is the **source of truth** for the CADOM format specification.
 
-| Document | Statut | Description |
+| Document | Status | Description |
 |----------|--------|-------------|
-| [cadom-v0.1.md](cadom-v0.1.md) | Draft | Spécification normative v0.1 (sprint en cours) |
+| [cadom-v0.1.md](cadom-v0.1.md) | Draft | Normative specification v0.1 (sprint in progress) |
 
-## Conventions
+## Writing conventions
 
-- Les changements de spec passent par une issue + branche `feature/…` + PR vers `develop`.
-- Le schéma Protobuf normatif (annexe) vivra aussi ici ou sera référencé depuis `packages/cadom-proto/` une fois le monorepo bootstrappé.
-- Exemples / fixtures documentés : voir aussi `fixtures/` (créé au SPEC-10).
+- **Language:** English for all normative specification text.
+- **Keywords:** RFC 2119 — `MUST`, `MUST NOT`, `SHOULD`, `SHOULD NOT`, `MAY` (see [cadom-v0.1.md](cadom-v0.1.md#conventions)).
+- Spec changes go through an issue + `feature/…` branch + PR into `develop`.
+- The normative Protobuf schema will live here by reference and/or under `packages/cadom-proto/` once the monorepo exists.
+- Documented examples / fixtures: see `fixtures/` (SPEC-10).
 
 ## Sprint
 
-Backlog : [../sprint-spec-tickets.md](../sprint-spec-tickets.md)  
-Milestone : [Sprint Spec CADOM v0.1](https://github.com/naanouff/OpenCAD/milestone/1)
+Backlog: [../sprint-spec-tickets.md](../sprint-spec-tickets.md)  
+Milestone: [Sprint Spec CADOM v0.1](https://github.com/naanouff/OpenCAD/milestone/1)

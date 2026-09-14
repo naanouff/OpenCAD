@@ -2,9 +2,40 @@
 
 **Status:** draft  
 **File extension:** `.cadom`  
-**Serialization:** Protocol Buffers (normative schema TBD — SPEC-09)
+**Serialization:** Protocol Buffers (normative schema TBD — SPEC-09)  
+**Language:** English (normative)
 
-> Sections below are stubs filled during the Sprint Spec. Normative language (MUST / SHOULD / MAY vs FR equivalents) is decided in SPEC-01.
+## Conventions
+
+The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **RECOMMENDED**, **MAY**, and **OPTIONAL** in this document are to be interpreted as described in [RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119).
+
+| Keyword | Meaning |
+|---------|---------|
+| **MUST** / **REQUIRED** / **SHALL** | Absolute requirement |
+| **MUST NOT** / **SHALL NOT** | Absolute prohibition |
+| **SHOULD** / **RECOMMENDED** | There may be valid reasons to ignore, but the full implications must be understood |
+| **SHOULD NOT** | Discouraged; valid exceptions exist with care |
+| **MAY** / **OPTIONAL** | Truly optional |
+
+### Document rules
+
+- Normative specification text **MUST** be written in **English**.
+- Non-normative notes **MAY** appear in English and **MUST** be marked *Informative* (or placed under an Informative section).
+- Project process docs (contribution rules, sprint notes) **MAY** remain in French; they are not part of the format contract.
+- Keywords above **MUST** appear in uppercase when used with normative force.
+- Examples, diagrams, and rationales are *Informative* unless explicitly labeled normative.
+
+### Glossary (initial)
+
+| Term | Definition |
+|------|------------|
+| **CADOM** | CAD Object Model — assembly orchestration document / format |
+| **Node** | Flat-list entry in the assembly DAG, identified by UUID |
+| **Asset** | External geometry reference (e.g. STEP, glTF, GLB) |
+| **Override** | Non-destructive patch applied to a node via a named layer |
+| **Extension** | Vendor payload (`vendor` + `type` + opaque `bytes`) preserved on round-trip |
+| **Pass-through** | Preserve and rewrite unknown extension bytes unchanged |
+| **Late tessellation** | Load the graph first; fetch / tessellate geometry asynchronously |
 
 ## Table of contents
 
@@ -80,3 +111,4 @@ _TBD — notes for future adapter (`TransformComponent`, `SceneNode`). Not norma
 | Version | Date | Notes |
 |---------|------|-------|
 | 0.1-draft | 2026-09-14 | Scaffold TOC only |
+| 0.1-draft | 2026-09-14 | Conventions: English + RFC 2119; initial glossary (SPEC-01) |
