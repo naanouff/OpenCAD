@@ -105,9 +105,68 @@ CADOM’s role is the **assembly graph + metadata + overrides + extensions** lay
 
 ## 2. Units, axes, and transforms
 
-_TBD — SPEC-03_
+### 2.1 Units
 
-Default units: metres. Up-axis: Y-up. `local_transform`: column-major mat4, 16 × float32 (gl-matrix / w3dts layout).
+A CADOM document **MUST** declare a length unit for spatial data in the document header (see §8).
+
+The default and **RECOMMENDED** unit for v0.1 **MUST** be interpreted as **metres** when the document uses the standard metres enumeration value.
+
+Writers **SHOULD** store all linear quantities (including translation components of transforms) in the document’s declared unit. Readers that display or simulate in another unit **MUST** convert explicitly; they **MUST NOT** assume a silent unit change inside the `.cadom` payload.
+
+### 2.2 Up axis
+
+A CADOM document **MUST** declare an up axis in the document header.
+
+For v0.1, conforming documents **SHOULD** use **Y-up** (positive Y points up). Readers **MUST** honor the declared `up_axis` when mapping into a runtime scene. If a reader only supports Y-up, it **MUST** either transform the scene into Y-up or fail with an explicit error; it **MUST NOT** silently ignore a non-Y-up declaration.
+
+Right-handed coordinates are **RECOMMENDED** and assumed by the transform conventions below unless a future revision states otherwise.
+
+### 2.3 Local transform representation
+
+Each node **MAY** carry a local transform relative to its parent.
+
+When present, `local_transform` **MUST** be a **4×4 matrix** stored as **exactly sixteen** IEEE-754 binary32 values (`float`), in **column-major** order:
+
+```text
+Index:  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
+Matrix: m00 m10 m20 m30 m01 m11 m21 m31 m02 m12 m22 m32 m03 m13 m23 m33
+```
+
+This layout **MUST** match the common WebGL / gl-matrix `mat4` / `Float32Array(16)` convention (and thus w3dts `TransformComponent.localTransform`).
+
+- Translation is in column 3: indices `12`, `13`, `14` (X, Y, Z) when using affine transforms with `m30=m31=m32=0` and `m33=1`.
+- If `local_transform` is omitted, readers **MUST** treat the local transform as the **identity** matrix.
+
+Writers **MUST NOT** emit a `local_transform` with a length other than 16. All sixteen values **MUST** be finite (not NaN or ±Infinity). Readers that encounter an invalid length or non-finite value **MUST** reject the document or the offending node with an explicit error.
+
+### 2.4 World transform composition
+
+Let `L(n)` be the local matrix of node `n`, and `P(n)` its parent (or null for a root).
+
+The world matrix `W(n)` **MUST** be defined as:
+
+- If `P(n)` is null: `W(n) = L(n)`
+- Otherwise: `W(n) = W(P(n)) × L(n)` (parent world, then local), using standard column-vector matrix multiplication consistent with column-major storage.
+
+Consumers **SHOULD** cache world matrices after a graph change. Evaluation order **MUST** be parent-before-child (topological order of the DAG).
+
+### 2.5 Identity matrix
+
+The identity local transform **MUST** be equivalent to:
+
+```text
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+```
+
+stored column-major as  
+`[1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]`.
+
+### 2.6 Informative: w3dts mapping
+
+*Informative.* A future w3dts adapter **SHOULD** copy `local_transform` into `TransformComponent.localTransform` with `mat4.copy` (or equivalent) and let the engine’s transform system derive world matrices, matching glTF-style matrix ingestion rather than baking placements into mesh vertices.
 
 ## 3. Flat node model (UUID DAG)
 
@@ -158,3 +217,4 @@ _TBD — notes for future adapter (`TransformComponent`, `SceneNode`). Not norma
 | 0.1-draft | 2026-09-14 | Scaffold TOC only |
 | 0.1-draft | 2026-09-14 | Conventions: English + RFC 2119; initial glossary (SPEC-01) |
 | 0.1-draft | 2026-09-14 | §1 Introduction: identity, goals, non-goals (SPEC-02) |
+| 0.1-draft | 2026-09-14 | §2 Units, axes, and transforms (SPEC-03) |
