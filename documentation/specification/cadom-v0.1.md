@@ -260,9 +260,59 @@ Serialized as four flat nodes: Root (`parent_id` unset, in `root_ids`), Subassem
 
 ## 4. External assets
 
-_TBD — SPEC-05_
+### 4.1 Role
 
-References to STEP / glTF / GLB (and OTHER). Lazy geometry loading; graph loads first.
+CADOM **MUST NOT** embed primary CAD solid geometry. Geometry is referenced through **Asset** records. Nodes **MAY** point to an asset via `asset_id` (§3).
+
+### 4.2 Asset fields
+
+Each asset **MUST** include:
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `id` | yes | UUID unique within the document |
+| `uri` | yes | Location of the external resource |
+| `kind` | yes | One of `STEP`, `GLTF`, `GLB`, `OTHER` |
+| `mime` | no | Optional MIME type hint (e.g. `model/gltf-binary`) |
+
+Duplicate asset `id` values **MUST** be rejected.
+
+### 4.3 URI resolution
+
+- Absolute URIs (e.g. `https://…`, `file://…`) **MAY** be used.
+- Relative URIs **MUST** be resolved against the directory containing the `.cadom` file (same rules as resolving a relative URL against a base file URL).
+- Writers **SHOULD** prefer portable relative URIs for assets co-located with the document.
+
+### 4.4 Kind semantics
+
+| Kind | Meaning |
+|------|---------|
+| `STEP` | ISO 10303 product data (exact geometry / structure external to CADOM) |
+| `GLTF` | glTF JSON (`.gltf`) and its companion resources as defined by glTF |
+| `GLB` | Binary glTF container (`.glb`) |
+| `OTHER` | Any other payload; consumers that do not recognize it **MAY** ignore geometry load while still round-tripping the Asset record |
+
+Parsing STEP or glTF/GLB **MUST NOT** be required of a CADOM core library; it is the responsibility of the consumer or a dedicated loader (e.g. w3dts).
+
+### 4.5 Late loading
+
+A conforming reader **MUST** be able to decode and validate the assembly graph **without** fetching asset bytes.
+
+Geometry resolution **SHOULD** be asynchronous (**late tessellation** / lazy loading). Presentation of missing or pending assets is application-defined, but the graph structure **MUST** remain available.
+
+### 4.6 Missing or unloadable assets
+
+If an asset URI cannot be resolved or loaded:
+
+- the reader **MUST NOT** corrupt or drop the Asset record or referencing nodes on a subsequent save (round-trip of metadata **MUST** remain intact);
+- the reader **SHOULD** surface an explicit error or warning to the user or API caller;
+- failing to render geometry **MUST NOT** by itself invalidate an otherwise conforming `.cadom` document.
+
+### 4.7 Node–asset relationship
+
+- `asset_id` on a node, when set, **MUST** refer to an existing Asset `id`.
+- Multiple nodes **MAY** reference the same asset (instancing / shared geometry).
+- A node without `asset_id` is structural or metadata-only.
 
 ## 5. Non-destructive overrides
 
@@ -303,3 +353,4 @@ _TBD — notes for future adapter (`TransformComponent`, `SceneNode`). Not norma
 | 0.1-draft | 2026-09-14 | §1 Introduction: identity, goals, non-goals (SPEC-02) |
 | 0.1-draft | 2026-09-14 | §2 Units, axes, and transforms (SPEC-03) |
 | 0.1-draft | 2026-09-14 | §3 Flat node model / UUID DAG (SPEC-04) |
+| 0.1-draft | 2026-09-14 | §4 External assets (SPEC-05) |
