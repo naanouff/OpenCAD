@@ -1,0 +1,26 @@
+---
+description: Git workflow — branches, commits liés aux issues, DOR/DOD
+alwaysApply: true
+---
+
+# Git & issues (OpenCAD)
+
+## Branches
+
+- **Never** commit or push directly to `main` or `develop`.
+- `main` = releases only, via PR **from `develop`**.
+- `develop` = integration only, via PR **from `feature/*` or `fix/*`**.
+- Work only on `feature/<kebab-title>` or `fix/<kebab-title>`, branched from `develop`.
+
+## Commits
+
+- Every commit **must** reference an issue (`(#123)` / `Fixes #123`).
+- Every commit has a **subject + body** (message and description).
+- Commits are **atomic** (one coherent, revertable change).
+- Prefer: `type: summary (#N)` then blank line then description.
+
+## Issues
+
+- Issues must state explicit **DOR** (Definition of Ready) and **DOD** (Definition of Done).
+- Do not start work on an issue missing DOR/DOD — add them first.
+- Canonical doc: `documentation/contribution-rules.md`
