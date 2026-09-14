@@ -382,7 +382,7 @@ A **cadomat** asset is a CADOM-native **physically based material** description.
 - `Asset.kind` **MUST** be `CADOMAT`
 - Material model **MUST** align with the Khronos **glTF 2.0 metallic-roughness PBR** material model ([glTF 2.0 materials](https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#materials)), including base color, metallic, roughness, and optional textures as defined by that specification (and applicable Khronos extensions when explicitly versioned in the cadomat header)
 
-*Normative `.cadomat` container encoding is forthcoming; semantic field names **SHOULD** match glTF material properties to ease tooling.*
+*Normative `.cadomat` **v0** encoding is defined in [`cadomat-v0.md`](cadomat-v0.md) and [`packages/cadomat-proto/cadomat.proto`](../../packages/cadomat-proto/cadomat.proto). Semantics follow Khronos glTF 2.0 metallic-roughness.*
 
 ### 4.11 Native format: cadometa (metadata)
 

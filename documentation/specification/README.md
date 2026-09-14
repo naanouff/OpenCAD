@@ -8,6 +8,7 @@ This directory is the **source of truth** for the CADOM format specification.
 | [v0.1-freeze.md](v0.1-freeze.md) | Frozen record | v0.1 freeze checklist |
 | [v0.2-amendment.md](v0.2-amendment.md) | Amendment | Native cadomesh / cadompart / cadomat |
 | [cadomesh-v0.md](cadomesh-v0.md) | **v0 draft** | Tessellated mesh companion |
+| [cadomat-v0.md](cadomat-v0.md) | **v0 draft** | PBR material (Khronos / glTF MR) |
 | [v0.3-amendment.md](v0.3-amendment.md) | Amendment | Multi-asset bindings + cadometa |
 
 ## Writing conventions
