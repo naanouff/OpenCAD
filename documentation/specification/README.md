@@ -11,6 +11,7 @@ This directory is the **source of truth** for the CADOM format specification.
 | [cadomat-v0.md](cadomat-v0.md) | **v0 draft** | PBR material (Khronos / glTF MR) |
 | [cadompart-v0.md](cadompart-v0.md) | **v0 draft** | Parametric part definition |
 | [cadometa-v0.md](cadometa-v0.md) | **v0 draft** | Metadata companion |
+| [native-assets-v0-freeze.md](native-assets-v0-freeze.md) | **Frozen** | Gate lifted — SDK allowed |
 | [v0.3-amendment.md](v0.3-amendment.md) | Amendment | Multi-asset bindings + cadometa |
 
 ## Writing conventions

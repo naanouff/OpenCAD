@@ -1,23 +1,15 @@
 ---
-description: Engineering principles — TDD, DRY, KISS, YAGNI, spec gate
+description: Engineering principles — TDD, DRY, KISS, YAGNI
 alwaysApply: true
 ---
 
 # Engineering principles (OpenCAD)
 
-## Spec-complete gate
+## Spec gate
 
-Do **not** implement SDK, loaders, or app code until initial v0 specs exist for:
+Native asset v0 specs are **complete** (gate lifted). See `documentation/specification/native-assets-v0-freeze.md`.
 
-- `.cadom` (done)
-- `.cadomesh`
-- `.cadompart`
-- `.cadomat`
-- `.cadometa`
-
-See `documentation/sprint-native-assets.md`. Spec prose / `.proto` / fixtures are allowed.
-
-## TDD (mandatory once development is allowed)
+## TDD (mandatory for development)
 
 1. Write or update a **failing test** first.
 2. Write the **minimal** code to pass.
