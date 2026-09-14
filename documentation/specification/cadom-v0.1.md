@@ -316,9 +316,45 @@ If an asset URI cannot be resolved or loaded:
 
 ## 5. Non-destructive overrides
 
-_TBD — SPEC-06_
+### 5.1 Principle
 
-Layered patches (visibility, material, optional transform) without mutating source nodes.
+Source nodes in the flat list are the **base** state. Presentation and placement changes **MUST** be expressible as **Override** records that do not mutate the base node fields in place when applying a view.
+
+Writers that “bake” overrides into base nodes **MAY** do so as an authoring choice, but a conforming editor that supports layers **SHOULD** keep base nodes stable and store deltas as overrides.
+
+### 5.2 Override fields
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `node_id` | yes | Target node UUID (MUST exist) |
+| `layer` | yes | Layer name (non-empty string) |
+| `visible` | no | If set, replaces base visibility when the layer is active |
+| `material_ref` | no | Opaque material identifier or URI string for the consumer |
+| `local_transform` | no | If set, replaces base local transform when the layer is active (same §2 rules) |
+
+An override that sets none of the optional patch fields is a no-op and **SHOULD NOT** be written.
+
+### 5.3 Resolved view
+
+Let `B(n)` be the base node `n`. For an ordered list of active layer names `L1…Lk`, the **resolved** node `R(n)` is computed as:
+
+1. Start with `R ← B(n)`.
+2. For each active layer name in order `L1…Lk`, apply every Override with `node_id = n` and `layer = Li`, in document order among those overrides.
+3. For each applied override, each present optional field **replaces** the corresponding field in `R`.
+
+Absent optional fields on an override **MUST NOT** clear existing values in `R` (no implicit nulling).
+
+If no overrides apply, `R(n) = B(n)`.
+
+### 5.4 Layer activation
+
+Which layers are active is **not** stored inside the v0.1 document (application / session concern). Documents **MAY** define many layers; consumers **MAY** activate a subset.
+
+When multiple overrides share the same `node_id` and `layer`, later document order **MUST** win for conflicting fields.
+
+### 5.5 Example
+
+*Informative.* Base node Part A is visible. An override on layer `review` sets `visible = false`. With `review` active, the resolved view hides Part A; the base node and the STEP/glTF asset files remain unchanged.
 
 ## 6. Pass-through extensions
 
@@ -354,3 +390,4 @@ _TBD — notes for future adapter (`TransformComponent`, `SceneNode`). Not norma
 | 0.1-draft | 2026-09-14 | §2 Units, axes, and transforms (SPEC-03) |
 | 0.1-draft | 2026-09-14 | §3 Flat node model / UUID DAG (SPEC-04) |
 | 0.1-draft | 2026-09-14 | §4 External assets (SPEC-05) |
+| 0.1-draft | 2026-09-14 | §5 Non-destructive overrides (SPEC-06) |
