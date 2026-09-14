@@ -12,7 +12,7 @@ Milestone: [Sprint Native Asset Specs v0](https://github.com/naanouff/OpenCAD/mi
 | `.cadomesh` | [cadomesh-v0.md](specification/cadomesh-v0.md) | [#31](https://github.com/naanouff/OpenCAD/issues/31) — **done** |
 | `.cadompart` | [cadompart-v0.md](specification/cadompart-v0.md) | [#32](https://github.com/naanouff/OpenCAD/issues/32) — **done** |
 | `.cadomat` | [cadomat-v0.md](specification/cadomat-v0.md) | [#33](https://github.com/naanouff/OpenCAD/issues/33) — **done** |
-| `.cadometa` | `cadometa-v0.md` | [#34](https://github.com/naanouff/OpenCAD/issues/34) |
+| `.cadometa` | [cadometa-v0.md](specification/cadometa-v0.md) | [#34](https://github.com/naanouff/OpenCAD/issues/34) — **done** |
 
 Gate documentation: [#35](https://github.com/naanouff/OpenCAD/issues/35).  
 Final freeze before SDK: create/close checklist after NATIVE-01…04 (issue title NATIVE-05 if opened later).

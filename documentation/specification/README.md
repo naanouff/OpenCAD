@@ -10,6 +10,7 @@ This directory is the **source of truth** for the CADOM format specification.
 | [cadomesh-v0.md](cadomesh-v0.md) | **v0 draft** | Tessellated mesh companion |
 | [cadomat-v0.md](cadomat-v0.md) | **v0 draft** | PBR material (Khronos / glTF MR) |
 | [cadompart-v0.md](cadompart-v0.md) | **v0 draft** | Parametric part definition |
+| [cadometa-v0.md](cadometa-v0.md) | **v0 draft** | Metadata companion |
 | [v0.3-amendment.md](v0.3-amendment.md) | Amendment | Multi-asset bindings + cadometa |
 
 ## Writing conventions
