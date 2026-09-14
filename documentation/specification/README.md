@@ -4,7 +4,8 @@ This directory is the **source of truth** for the CADOM format specification.
 
 | Document | Status | Description |
 |----------|--------|-------------|
-| [cadom-v0.1.md](cadom-v0.1.md) | Draft | Normative specification v0.1 (sprint in progress) |
+| [cadom-v0.1.md](cadom-v0.1.md) | **Draft frozen** | Normative specification v0.1 |
+| [v0.1-freeze.md](v0.1-freeze.md) | Freeze record | Consistency checklist + deferred items |
 
 ## Writing conventions
 
