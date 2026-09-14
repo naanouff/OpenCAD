@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package cadomesh.v0;
+
+option java_package = "dev.opencad.cadomesh.v0";
+option csharp_namespace = "OpenCad.Cadomesh.V0";
+
+// CADOMESH v0 — tessellated triangle mesh companion file (.cadomesh).
+// Entire file body MUST be a serialized CadomeshFile message.
+
+enum PrimitiveTopology {
+  PRIMITIVE_TOPOLOGY_UNSPECIFIED = 0;
+  PRIMITIVE_TOPOLOGY_TRIANGLES = 1;
+}
+
+enum LengthUnit {
+  LENGTH_UNIT_UNSPECIFIED = 0;
+  LENGTH_UNIT_METRES = 1;
+}
+
+enum UpAxis {
+  UP_AXIS_UNSPECIFIED = 0;
+  UP_AXIS_Y = 1;
+  UP_AXIS_Z = 2;
+}
+
+message CadomeshFile {
+  uint32 version_major = 1; // v0 writers MUST set 0
+  uint32 version_minor = 2; // v0 writers MUST set 0
+  string name = 3;
+  LengthUnit units = 4; // UNSPECIFIED = inherit from referencing .cadom
+  UpAxis up_axis = 5;   // UNSPECIFIED = inherit from referencing .cadom
+  PrimitiveTopology topology = 6;
+  // Packed XYZ float32. Length MUST be 3 * vertex_count.
+  repeated float positions = 7 [packed = true];
+  // Optional packed XYZ float32. If present, length MUST equal positions length.
+  repeated float normals = 8 [packed = true];
+  // Optional packed UV float32. If present, length MUST be 2 * vertex_count.
+  repeated float uvs = 9 [packed = true];
+  // Triangle indices. If empty, positions are a non-indexed triangle list
+  // (vertex_count MUST be a multiple of 3). If non-empty, length MUST be a
+  // multiple of 3 and each index MUST be < vertex_count.
+  repeated uint32 indices = 10 [packed = true];
+}
