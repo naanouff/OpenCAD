@@ -136,6 +136,38 @@ Réf. #12
 - Base : `main`, head : `develop`
 - Uniquement pour figer une release ; notes de version dans la description
 
+## Principes de développement (obligatoires dès le code)
+
+S’appliquent au **code** (SDK, tooling, tests). La prose de spécification n’est pas soumise au TDD.
+
+### TDD (Test-Driven Development) — obligatoire
+
+1. Écrire ou mettre à jour un **test qui échoue**.
+2. Écrire le **minimum** de code pour le faire passer.
+3. Refactorer en gardant les tests verts.
+4. Pas de merge de code de production sans tests couvrant le changement.
+5. Privilégier des tests unitaires ciblés ; ajouter des tests d’intégration pour encode/decode et pass-through.
+
+### DRY (Don’t Repeat Yourself)
+
+- Factoriser seulement une duplication réelle et stable (pas spéculative).
+- Préférer de petits helpers purs à des abstractions prématurées.
+
+### KISS (Keep It Simple, Stupid)
+
+- Choisir le design le plus simple qui satisfait l’issue en cours.
+- Pas de « cleverness » sans besoin explicite dans le ticket.
+
+### YAGNI (You Aren’t Gonna Need It)
+
+- Ne pas ajouter de features, options ou couches « pour plus tard ».
+- Rester dans le périmètre / hors scope de l’issue.
+- Adapter w3dts, conteneur zip, bindings multi-langues : hors scope tant que non planifiés.
+
+## Spécifications
+
+Source de vérité du format : [`documentation/specification/`](specification/).
+
 ## Récap agent / contributeur
 
 1. Créer ou prendre une issue **avec DOR/DOD**.
@@ -143,3 +175,4 @@ Réf. #12
 3. Commits atomiques liés à l’issue (message + description).
 4. Ouvrir une PR vers `develop` ; merger uniquement via PR.
 5. Ne jamais committer sur `main` / `develop`.
+6. Dès qu’il y a du code : **TDD** + DRY / KISS / YAGNI.

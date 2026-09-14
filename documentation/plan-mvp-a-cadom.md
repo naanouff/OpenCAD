@@ -47,7 +47,7 @@ Monorepo npm/pnpm minimal :
 
 - `packages/cadom-proto` — `cadom.proto` + génération TS (`protobufjs` ou `@bufbuild/protobuf`)
 - `packages/cadom` — SDK runtime (API publique)
-- `docs/spec` — spécification Markdown (v0.1)
+- `documentation/specification` — spécification Markdown (v0.1)
 - `fixtures` — petits `.cadom` de test + assets glTF factices
 - Root : `package.json`, `pnpm-workspace.yaml`, `tsconfig`, `README`
 
@@ -78,7 +78,7 @@ Package `@opencad/cadom` (ou `cadom`) avec :
 
 Pas de dépendance à w3dts dans le SDK. Un type/export `CadomResolvedNode` documenté pour l’adapter futur (id, parentId, localTransform, geometryUri, visible, material…).
 
-## Spec v0.1 (`docs/spec/cadom-v0.1.md`)
+## Spec v0.1 (`documentation/specification/cadom-v0.1.md`)
 
 Couvrir : identité du format, unités/axes, modèle de nœuds plat, assets externes, overrides, extensions pass-through, versioning (`major.minor`), règles de compatibilité, et notes d’intégration w3dts (mapping vers `TransformComponent` / `SceneNode`).
 
