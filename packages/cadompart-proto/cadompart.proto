@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+package cadompart.v0;
+
+option java_package = "dev.opencad.cadompart.v0";
+option csharp_namespace = "OpenCad.Cadompart.V0";
+
+// CADOMPART v0 — parametric part-definition companion (.cadompart).
+// Entire file body MUST be a serialized CadompartFile message.
+
+enum ParamType {
+  PARAM_TYPE_UNSPECIFIED = 0;
+  PARAM_TYPE_FLOAT = 1;
+  PARAM_TYPE_INT = 2;
+  PARAM_TYPE_BOOL = 3;
+  PARAM_TYPE_STRING = 4;
+  PARAM_TYPE_VEC3 = 5;
+}
+
+message Vec3 {
+  float x = 1;
+  float y = 2;
+  float z = 3;
+}
+
+message Parameter {
+  string id = 1;   // stable id within the file (UUID or slug)
+  string name = 2; // human-readable
+  ParamType type = 3;
+  // Exactly one value field SHOULD be set matching type.
+  optional double float_value = 4;
+  optional int64 int_value = 5;
+  optional bool bool_value = 6;
+  optional string string_value = 7;
+  optional Vec3 vec3_value = 8;
+  // Optional length unit hint for FLOAT (e.g. "m", "mm"); empty = inherit/none.
+  string unit = 9;
+  // Optional unevaluated expression (authoring hint); empty if unused.
+  string expression = 10;
+}
+
+// Minimal feature stub — opaque type token + parameter id refs.
+message Feature {
+  string id = 1;
+  string type = 2; // e.g. "extrude", "hole", "sketch" — vocabulary not fixed in v0
+  string name = 3;
+  repeated string parameter_ids = 4;
+}
+
+message CadompartFile {
+  uint32 version_major = 1; // v0 writers MUST set 0
+  uint32 version_minor = 2; // v0 writers MUST set 0
+  string name = 3;
+  repeated Parameter parameters = 4;
+  repeated Feature features = 5;
+}
