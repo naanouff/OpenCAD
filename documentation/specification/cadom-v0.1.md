@@ -485,11 +485,32 @@ Writers **MUST** emit a serialized `cadom.v0_1.CadomFile` message as the content
 
 ## 9. Examples
 
-_TBD — SPEC-10_
+*Informative.* Worked examples live under [`fixtures/`](../../fixtures/):
+
+| ID | File | Covers |
+|----|------|--------|
+| A | [`example-a-three-level-assembly.md`](../../fixtures/example-a-three-level-assembly.md) | Flat DAG, assets, roots |
+| B | [`example-b-visibility-override.md`](../../fixtures/example-b-visibility-override.md) | Override resolution (§5) |
+| C | [`example-c-passthrough-extension.md`](../../fixtures/example-c-passthrough-extension.md) | Extension pass-through (§6) |
+
+Binary `.cadom` encodings of these examples **SHOULD** be added when the TypeScript SDK can encode them.
 
 ## 10. Informative: w3dts mapping
 
-_TBD — notes for future adapter (`TransformComponent`, `SceneNode`). Not normative for the format itself.
+*Informative.* Suggested mapping for a future adapter (not required for format conformance):
+
+| CADOM | w3dts |
+|-------|--------|
+| Node id | External map `CadomNodeId → Entity` / `SceneNode` |
+| parent_id / children | `HierarchyComponent` / `SceneNode.add` |
+| `local_transform` | `mat4.copy` into `TransformComponent.localTransform` |
+| Asset URI (GLB/glTF) | `CompositeModelLoader` / GLB loader under that node |
+| Asset URI (STEP) | STEP tessellation pipeline, then mesh upload |
+| `visible` / layer | `RenderableComponent.visible` / `.layer` |
+| `semantic_type` | `CadMetadataComponent` when applicable |
+| Overrides | Apply resolved view before or while syncing ECS |
+
+Prefer live node matrices (GLB-style) over baking placements into mesh vertices.
 
 ---
 
@@ -507,3 +528,4 @@ _TBD — notes for future adapter (`TransformComponent`, `SceneNode`). Not norma
 | 0.1-draft | 2026-09-14 | §6 Pass-through extensions (SPEC-07) |
 | 0.1-draft | 2026-09-14 | §7 Versioning and compatibility (SPEC-08) |
 | 0.1-draft | 2026-09-14 | §8 Normative Protobuf schema + cadom.proto (SPEC-09) |
+| 0.1-draft | 2026-09-14 | §9 Examples + fixtures A/B/C; §10 w3dts notes (SPEC-10) |
