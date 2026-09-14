@@ -392,7 +392,7 @@ A **cadometa** asset carries **structured or opaque metadata** associated with a
 - `Asset.kind` **MUST** be `CADOMETA`
 - Bound with role `METADATA`
 
-*Normative `.cadometa` schema is forthcoming. Until then, producers **MAY** use `OTHER` with role `METADATA` for experimentation, with no interchange guarantee.*
+*Normative `.cadometa` **v0** schema is defined in [`cadometa-v0.md`](cadometa-v0.md) and [`packages/cadometa-proto/cadometa.proto`](../../packages/cadometa-proto/cadometa.proto).*
 
 ## 5. Non-destructive overrides
 

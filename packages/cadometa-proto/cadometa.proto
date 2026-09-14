@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package cadometa.v0;
+
+option java_package = "dev.opencad.cadometa.v0";
+option csharp_namespace = "OpenCad.Cadometa.V0";
+
+// CADOMETA v0 — metadata companion file (.cadometa).
+// Entire file body MUST be a serialized CadometaFile message.
+
+enum EntryValueType {
+  ENTRY_VALUE_TYPE_UNSPECIFIED = 0; // treat as STRING
+  ENTRY_VALUE_TYPE_STRING = 1;
+  ENTRY_VALUE_TYPE_NUMBER = 2; // decimal string in value
+  ENTRY_VALUE_TYPE_BOOL = 3;   // "true" / "false" in value
+  ENTRY_VALUE_TYPE_JSON = 4;   // JSON text in value
+}
+
+message MetaEntry {
+  string key = 1; // non-empty; unique within the file RECOMMENDED
+  string value = 2;
+  EntryValueType value_type = 3;
+}
+
+message CadometaFile {
+  uint32 version_major = 1; // v0 writers MUST set 0
+  uint32 version_minor = 2; // v0 writers MUST set 0
+  string name = 3;
+  repeated MetaEntry entries = 4;
+  // Optional opaque blob for vendor-specific structured data.
+  bytes opaque_payload = 5;
+  string opaque_content_type = 6; // e.g. "application/json", "application/x-protobuf"
+}
