@@ -136,23 +136,13 @@ Réf. #12
 - Base : `main`, head : `develop`
 - Uniquement pour figer une release ; notes de version dans la description
 
-## Spec-complete gate (before any SDK code)
+## Spec-complete gate
 
-Until **each** CADOM companion format has an **initial v0** specification published under `documentation/specification/`, contributors **MUST NOT** merge SDK, loader, or application implementation code.
+**Status: lifted** (2026-09-14). Initial v0 specs exist for `.cadom`, `.cadomesh`, `.cadompart`, `.cadomat`, and `.cadometa`.
 
-| Artifact | Initial v0 required |
-|----------|---------------------|
-| `.cadom` | yes (assembly document — already at v0.3 draft) |
-| `.cadomesh` | yes |
-| `.cadompart` | yes |
-| `.cadomat` | yes |
-| `.cadometa` | yes |
+See [`sprint-native-assets.md`](sprint-native-assets.md) and [`specification/native-assets-v0-freeze.md`](specification/native-assets-v0-freeze.md).
 
-**Allowed** before the gate lifts: normative specs, Protocol Buffer schemas, logical fixtures, contribution/process docs.
-
-**Forbidden** before the gate lifts: TypeScript SDK packages, encode/decode runtime beyond pure schema stubs if any, w3dts adapters, viewers.
-
-Tracking: [`sprint-native-assets.md`](sprint-native-assets.md).
+SDK and application code **MAY** now be merged under the usual branch/PR and TDD rules.
 
 ## Principes de développement (obligatoires dès le code)
 
@@ -193,5 +183,5 @@ Source de vérité du format : [`documentation/specification/`](specification/).
 3. Commits atomiques liés à l’issue (message + description).
 4. Ouvrir une PR vers `develop` ; merger uniquement via PR.
 5. Ne jamais committer sur `main` / `develop`.
-6. **Spec gate:** no SDK/app code until `.cadomesh`, `.cadompart`, `.cadomat`, and `.cadometa` each have an initial v0 spec (see `documentation/sprint-native-assets.md`).
-7. Once coding is allowed: **TDD** + DRY / KISS / YAGNI.
+6. Spec gate is **lifted** — SDK work allowed; still use feature branches + PRs to `develop`.
+7. When writing code: **TDD** + DRY / KISS / YAGNI.

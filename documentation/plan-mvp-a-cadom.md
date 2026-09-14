@@ -96,9 +96,9 @@ Couvrir : identité du format, unités/axes, modèle de nœuds plat, assets exte
 - Tessellation STEP, conversion géométrie
 - Bindings C++/Python (le `.proto` les permettra plus tard)
 
-## Gate specs (avant tout développement)
+## Gate specs
 
-Pas de sprint SDK tant que les specs v0 de `.cadomesh`, `.cadompart`, `.cadomat`, `.cadometa` ne sont pas publiées. Voir [sprint-native-assets.md](sprint-native-assets.md).
+Native asset specs v0 are **frozen** — see [native-assets-v0-freeze.md](specification/native-assets-v0-freeze.md). SDK sprint may proceed.
 
 ## Ordre d’implémentation
 
