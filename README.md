@@ -6,8 +6,9 @@ It does **not** reinvent B-Rep/NURBS. Geometry stays in external standards (STEP
 
 ## Status
 
-- **CADOM Spec:** v0.3 draft — [documentation/specification/cadom-v0.1.md](documentation/specification/cadom-v0.1.md) ([v0.3 amendment](documentation/specification/v0.3-amendment.md))
-- **Next:** TypeScript SDK (TDD); native asset schemas (cadomesh / cadompart / cadomat / cadometa). Visual validation later via w3dts.
+- **CADOM Spec:** v0.3 draft — [documentation/specification/cadom-v0.1.md](documentation/specification/cadom-v0.1.md)
+- **Gate:** no SDK until native asset specs v0 are done — [documentation/sprint-native-assets.md](documentation/sprint-native-assets.md)
+- **Next:** specify `.cadomesh` → `.cadomat` → `.cadompart` → `.cadometa`, then SDK (TDD)
 - Implementation plan: [documentation/plan-mvp-a-cadom.md](documentation/plan-mvp-a-cadom.md)
 
 ## Goals
