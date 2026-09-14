@@ -6,9 +6,8 @@ It does **not** reinvent B-Rep/NURBS. Geometry stays in external standards (STEP
 
 ## Status
 
-MVP A in progress: Protobuf schema + TypeScript SDK (read/write). Visual validation will use the w3dts engine later.
-
-- Spec (draft): [documentation/specification/cadom-v0.1.md](documentation/specification/cadom-v0.1.md)
+- **CADOM Spec v0.1:** draft frozen — [documentation/specification/cadom-v0.1.md](documentation/specification/cadom-v0.1.md) ([freeze notes](documentation/specification/v0.1-freeze.md))
+- **Next:** TypeScript SDK (read/write) with TDD. Visual validation later via w3dts.
 - Implementation plan: [documentation/plan-mvp-a-cadom.md](documentation/plan-mvp-a-cadom.md)
 
 ## Goals
