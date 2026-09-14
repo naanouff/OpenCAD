@@ -4,6 +4,8 @@ Milestone GitHub : [Sprint Spec CADOM v0.1](https://github.com/naanouff/OpenCAD/
 
 Objectif du sprint : rédiger la spécification normative du format (prose + draft protobuf), **sans** implémenter le SDK.
 
+**Statut :** prose + `cadom.proto` **draft frozen** (voir [specification/v0.1-freeze.md](specification/v0.1-freeze.md)).
+
 ## Backlog
 
 | ID | Ticket | Issue |

@@ -48,7 +48,8 @@ message Node {
   repeated float local_transform = 4 [packed = true];
   // Empty string means no asset reference.
   string asset_id = 5;
-  bool visible = 6;
+  // Unset = default visible true at read time (see spec §3.3).
+  optional bool visible = 6;
   // Optional semantic tag: assembly | part | body | other | custom
   string semantic_type = 7;
 }

@@ -1,8 +1,8 @@
 # CADOM Specification v0.1
 
-**Status:** draft  
+**Status:** draft frozen (v0.1)  
 **File extension:** `.cadom`  
-**Serialization:** Protocol Buffers (normative schema TBD — SPEC-09)  
+**Serialization:** Protocol Buffers — [`packages/cadom-proto/cadom.proto`](../../packages/cadom-proto/cadom.proto)  
 **Language:** English (normative)
 
 ## Conventions
@@ -476,6 +476,7 @@ Writers **MUST** emit a serialized `cadom.v0_1.CadomFile` message as the content
 - `Node.local_transform` and `Override.local_transform` **MUST** be either empty (omitted / not applied) or contain **exactly 16** floats (column-major).
 - `Node.parent_id` or `Node.asset_id` equal to the empty string means “unset”.
 - For `Override`, `optional` scalar fields encode presence: an unset `visible` / `material_ref` **MUST NOT** patch that property (§5.3). An empty `local_transform` list means “do not patch transform”.
+- For `Node.visible`, unset **MUST** be interpreted as `true` by readers (§3.3).
 - Extension `payload` **MUST** be preserved bit-for-bit on pass-through (§6).
 - Field numbers in `cadom.proto` are stable; renumbering **MUST** bump the format major version (§7).
 
@@ -529,3 +530,4 @@ Prefer live node matrices (GLB-style) over baking placements into mesh vertices.
 | 0.1-draft | 2026-09-14 | §7 Versioning and compatibility (SPEC-08) |
 | 0.1-draft | 2026-09-14 | §8 Normative Protobuf schema + cadom.proto (SPEC-09) |
 | 0.1-draft | 2026-09-14 | §9 Examples + fixtures A/B/C; §10 w3dts notes (SPEC-10) |
+| 0.1 | 2026-09-14 | Draft frozen (SPEC-11); `Node.visible` optional in proto |
