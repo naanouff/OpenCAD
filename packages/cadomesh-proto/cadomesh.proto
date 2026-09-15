@@ -16,6 +16,8 @@ enum PrimitiveTopology {
 enum LengthUnit {
   LENGTH_UNIT_UNSPECIFIED = 0;
   LENGTH_UNIT_METRES = 1;
+  LENGTH_UNIT_MILLIMETRES = 2;
+  LENGTH_UNIT_INCHES = 3;
 }
 
 enum UpAxis {
@@ -25,8 +27,8 @@ enum UpAxis {
 }
 
 message CadomeshFile {
-  uint32 version_major = 1; // v0 writers MUST set 0
-  uint32 version_minor = 2; // v0 writers MUST set 0
+  uint32 version_major = 1; // field 1; v0 writers MUST set value 0
+  uint32 version_minor = 2; // field 2; v0 writers MUST set value 0
   string name = 3;
   LengthUnit units = 4; // UNSPECIFIED = inherit from referencing .cadom
   UpAxis up_axis = 5;   // UNSPECIFIED = inherit from referencing .cadom

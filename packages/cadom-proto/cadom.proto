@@ -5,13 +5,15 @@ package cadom.v0_1;
 option java_package = "dev.opencad.cadom.v0_1";
 option csharp_namespace = "OpenCad.Cadom.V0_1";
 
-// CADOM v0.3 — normative on-disk schema for .cadom documents.
+// CADOM document schema (protobuf package name frozen as v0_1).
+// Document/file version_minor: 4 => specification v0.3.1 (SWOT hygiene).
 // Field numbers are stable; do not reuse numbers.
-// Package name remains v0_1 for protobuf compatibility; document version_minor tracks 3.
 
 enum LengthUnit {
   LENGTH_UNIT_UNSPECIFIED = 0;
   LENGTH_UNIT_METRES = 1;
+  LENGTH_UNIT_MILLIMETRES = 2;
+  LENGTH_UNIT_INCHES = 3;
 }
 
 enum UpAxis {
@@ -26,20 +28,20 @@ enum AssetKind {
   ASSET_KIND_GLTF = 2;
   ASSET_KIND_GLB = 3;
   ASSET_KIND_OTHER = 4;
-  // Native CADOM companion formats (spec v0.2+)
   ASSET_KIND_CADOMESH = 5;
   ASSET_KIND_CADOMPART = 6;
   ASSET_KIND_CADOMAT = 7;
   ASSET_KIND_CADOMETA = 8;
 }
 
-// Role of an asset binding on a node (at most one binding per role).
+// Role of an asset binding on a node (at most one binding per role in v0.3.1).
 enum AssetRole {
   ASSET_ROLE_UNSPECIFIED = 0;
-  ASSET_ROLE_MESH = 1;
-  ASSET_ROLE_PARAMETRIC = 2;
-  ASSET_ROLE_MATERIAL = 3;
-  ASSET_ROLE_METADATA = 4;
+  ASSET_ROLE_MESH = 1;       // display tessellation: CADOMESH / GLTF / GLB
+  ASSET_ROLE_PARAMETRIC = 2; // CADOMPART (optional intent)
+  ASSET_ROLE_MATERIAL = 3;   // CADOMAT
+  ASSET_ROLE_METADATA = 4;   // CADOMETA / OTHER
+  ASSET_ROLE_EXACT = 5;      // exact B-Rep / STEP (not a GPU mesh)
 }
 
 message CadomFile {
@@ -52,6 +54,8 @@ message CadomFile {
   repeated Asset assets = 7;
   repeated Override overrides = 8;
   repeated Extension extensions = 9;
+  // Default active override layer names (same semantics as session activation).
+  repeated string default_active_layers = 10;
 }
 
 message NodeAssetBinding {
@@ -61,19 +65,14 @@ message NodeAssetBinding {
 
 message Node {
   string id = 1;
-  // Empty string means no parent (root candidate).
   string parent_id = 2;
   string name = 3;
-  // Column-major 4x4; must be empty or length 16.
+  // Column-major 4x4 float32 (GPU-friendly). See spec precision policy.
   repeated float local_transform = 4 [packed = true];
-  // Deprecated (v0.1–v0.2): single mesh-like reference.
-  // If non-empty and asset_bindings has no MESH entry, readers MUST treat this as MESH.
+  // Deprecated: if non-empty and no MESH binding, treat as MESH.
   string asset_id = 5;
-  // Unset = default visible true at read time (see spec §3.3).
   optional bool visible = 6;
-  // Optional semantic tag: assembly | part | body | other | custom
   string semantic_type = 7;
-  // Preferred (v0.3+): at most one binding per AssetRole.
   repeated NodeAssetBinding asset_bindings = 8;
 }
 
@@ -82,16 +81,16 @@ message Asset {
   string uri = 2;
   AssetKind kind = 3;
   string mime = 4;
+  // Optional integrity metadata (hex-encoded SHA-256 of asset bytes).
+  string content_sha256 = 5;
+  optional uint64 byte_length = 6;
 }
 
 message Override {
   string node_id = 1;
   string layer = 2;
-  // Presence wrappers: only set fields are applied (see spec §5).
   optional bool visible = 3;
-  // SHOULD be an Asset id with MATERIAL role / CADOMAT kind when using native materials.
   optional string material_ref = 4;
-  // Empty = not applied; otherwise length 16.
   repeated float local_transform = 5 [packed = true];
 }
 

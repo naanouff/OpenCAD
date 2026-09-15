@@ -14,8 +14,11 @@ CADOMESH is the CADOM-native **tessellated triangle mesh** format for display an
 
 A complete CADOM part occurrence typically binds:
 
-- `MESH` → `.cadomesh` (this format)
+- `MESH` → `.cadomesh` (this format) and/or glTF/GLB
+- `EXACT` → STEP (exact B-Rep; not this format)
 - optionally `PARAMETRIC` / `MATERIAL` / `METADATA` → other companion files
+
+Supported length units when set on the mesh: `METRES`, `MILLIMETRES`, `INCHES` (aligned with CADOM assembly). `UNSPECIFIED` still means inherit from `.cadom`.
 
 ## 2. File layout
 
