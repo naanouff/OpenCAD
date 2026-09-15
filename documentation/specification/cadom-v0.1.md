@@ -1,7 +1,9 @@
-# CADOM Specification v0.3
+# CADOM Specification v0.3.1
 
-**Status:** draft (v0.3) — extends v0.2  
+**Status:** draft (v0.3.1) — SWOT hygiene (identity, EXACT role, units, sibling order)  
+**Filename note:** `cadom-v0.1.md` is **historical**; the document version is **v0.3.1** and writers set `version_minor = 4`. The Protobuf package name `cadom.v0_1` is **frozen** for compatibility.  
 **File extension:** `.cadom`  
+**Media type:** `application/vnd.opencad.cadom`  
 **Serialization:** Protocol Buffers — [`packages/cadom-proto/cadom.proto`](../../packages/cadom-proto/cadom.proto)  
 **Language:** English (normative)
 
@@ -40,7 +42,9 @@ The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**, **
 | **cadompart** | Native CADOM parametric part definition with exhaustive normative feature history (`.cadompart`) |
 | **cadomat** | Native CADOM PBR material asset (`.cadomat`), Khronos-aligned |
 | **cadometa** | Native CADOM metadata asset (`.cadometa`) |
-| **Asset binding** | Role-typed link from a Node to an Asset (mesh / parametric / material / metadata) |
+| **Asset binding** | Role-typed link from a Node to an Asset (`MESH`, `EXACT`, `PARAMETRIC`, `MATERIAL`, `METADATA`) |
+| **EXACT** | Asset role for exact geometry (typically STEP / B-Rep snapshot), distinct from GPU mesh |
+| **Core document** | A valid `.cadom` product graph + viz + meta **without** requiring cadompart rebuild |
 
 ## Table of contents
 
@@ -59,62 +63,86 @@ The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**, **
 
 ## 1. Introduction
 
-### 1.1 Identity
+### 1.1 Identity — two layers
 
-**CADOM** (CAD Object Model) is a web-native **assembly orchestration** format.
+**CADOM** (CAD Object Model) is a web-native **assembly orchestration** format in the same industrial niche as **JT structure** and **3DXML manifests**: a product graph that references geometry, rather than a proprietary CAD kernel.
+
+There are **two layers**:
+
+| Layer | What it is | Required for a valid product? |
+|-------|------------|-------------------------------|
+| **Core** (`.cadom`) | Flat UUID DAG, asset refs, overrides, extensions, late-loaded viz | **Yes** |
+| **Native family** (optional companions) | `.cadomesh`, `.cadomat`, `.cadometa`, `.cadompart` | **No** |
 
 A CADOM document:
 
 - Describes an assembly as a **flat directed acyclic graph (DAG)** of nodes identified by UUIDs.
-- References **external geometry** assets (for example STEP, glTF, or GLB).
-- Carries **metadata**, **non-destructive overrides**, and **vendor extensions**.
-- Is serialized as a **binary Protocol Buffers** payload.
+- References **external** assets (STEP as **EXACT**, glTF/GLB/cadomesh as **MESH**, materials, metadata, optional parametric recipes).
+- Carries **non-destructive overrides** and **vendor extensions** (pass-through).
+- Is serialized as a **binary Protocol Buffers** payload (`CadomFile`).
 
-The conventional file extension for a CADOM document **MUST** be `.cadom`.
+The conventional file extension **MUST** be `.cadom`. The media type **SHOULD** be `application/vnd.opencad.cadom`.
 
-CADOM **MUST NOT** be treated as a boundary-representation (B-Rep) or NURBS geometry kernel. Exact solid/surface mathematics **MUST** remain in external files or systems; CADOM orchestrates structure and metadata around them.
+**Fil rouge:** a CADOM product **MUST** remain visualizable and round-trippable **without a geometry kernel and without rebuilding cadompart**. Parametric feature history is an **optional companion**, never a validity condition for `.cadom`.
+
+The `.cadom` file **MUST NOT** embed B-Rep/NURBS payloads. Exact mathematics live in referenced STEP (or equivalent) under role `EXACT`. Display triangles live under role `MESH`.
 
 ### 1.2 Goals
 
-A conforming CADOM implementation **SHOULD** support the following goals:
+A conforming CADOM **core** implementation **SHOULD** support:
 
-1. **Interoperability** — Strongly typed, multi-language serialization via Protocol Buffers so CAD, web, and tooling stacks can exchange the same assembly description.
-2. **Scalable structure** — Represent large assemblies as a flat UUID-addressed DAG to avoid deep recursive nesting in the on-disk form and to allow O(1) node lookup after deserialize.
-3. **Web-native consumption** — Expose transforms in a layout suitable for direct use by WebGL/WebGPU clients (column-major 4×4 matrices; see §2).
-4. **Late tessellation / lazy loading** — Allow consumers to load and traverse the assembly graph before asynchronously resolving external geometry.
-5. **Non-destructive editing** — Express presentation and placement changes as **overrides** layered on source nodes without mutating referenced geometry files.
-6. **Lossless extensibility** — Allow vendors to attach opaque extension payloads that unknown readers **MUST** preserve and rewrite unchanged (**pass-through**).
+1. **Interoperability** — Protobuf multi-language exchange of the assembly graph.
+2. **Scalable structure** — Flat UUID DAG for large assemblies (O(1) lookup).
+3. **Web-native consumption** — Column-major transforms suitable for WebGL/WebGPU (float32 runtime path).
+4. **Late tessellation** — Graph first; geometry fetch asynchronous.
+5. **Non-destructive editing** — Override layers without mutating source assets.
+6. **Lossless extensibility** — Opaque vendor extensions preserved bit-for-bit.
+7. **Exact + display split** — `EXACT` (STEP) and `MESH` (cadomesh/glTF) may both bind on one occurrence.
 
-### 1.3 Non-goals
+### 1.3 Non-goals (core `.cadom`)
 
-The following are **out of scope** for CADOM v0.1 (and **MUST NOT** be required of a v0.1-conformant reader or writer):
+The following are **out of scope for the `.cadom` core document** (and **MUST NOT** be required to validate a product):
 
-1. **Exact geometry definition** — Embedding or defining B-Rep, NURBS, or mesh tessellation payloads as the primary geometry model inside `.cadom`.
-2. **Tessellation algorithms** — How STEP (or other CAD) data is converted to triangles; that remains the responsibility of the consumer or a dedicated pipeline (for example a future w3dts-based validator).
-3. **Multi-file archive container** — A zip-like packaging of `.cadom` plus assets as a single compound file (may be specified in a later revision).
-4. **Authoring UI or viewer runtime** — Application chrome, ECS engines, or renderers; CADOM is a document format and data contract only.
-5. **Parametric feature history** — CAD feature trees, sketches, or rebuild recipes.
+1. **Embedding** B-Rep, NURBS, or mesh payloads inside `.cadom` (references only).
+2. **Tessellation algorithms** (consumer / pipeline responsibility, e.g. w3dts).
+3. **Multi-file archive container** (planned `.cadomz` in a later revision; see SWOT P1).
+4. **Authoring UI or viewer runtime**.
+5. **Parametric feature history inside `.cadom`** — feature trees live in optional `.cadompart`, not in the assembly file. A product **MUST** remain valid if cadompart is absent, unreadable, or non-rebuildable.
+6. **Native CADOM B-Rep kernel** — use STEP / Open CASCADE (or other) externally.
+7. **Full PMI/GD&T** — prefer STEP AP242; future face ids on meshes may link annotations.
+8. **USD stage compatibility** — share layering ideas, not the Pixar stack.
 
 ### 1.4 Informative comparison
 
-*Informative.* CADOM is intentionally narrower than general 3D scene or film pipelines:
+*Informative.*
 
 | Format | Primary focus | Relation to CADOM |
 |--------|---------------|-------------------|
-| **glTF** | Runtime mesh/scene delivery for real-time engines | CADOM **MAY** reference glTF/GLB as an **Asset**; CADOM does not replace glTF’s mesh/material model. |
-| **USD** | Broad composed scenes, layers, and film/VFX pipelines | CADOM shares the idea of non-destructive layering but targets **CAD assembly orchestration** with Protobuf and external STEP/glTF, not a full USD-compatible scene graph. |
-| **STEP (ISO 10303)** | Exact product geometry and manufacturing data | CADOM **MAY** reference STEP files as assets; it does not redefine STEP semantics. |
+| **JT** | OEM viz / structure | Closest industrial analogue for structure + late viz; CADOM is more web-native (Protobuf, glTF/cadomesh). |
+| **3DXML** | Dassault exchange / web | Manifest + companions; CADOM aims at the same split with a lighter binary graph. |
+| **glTF** | Runtime mesh | Referenced as **MESH**; not replaced. |
+| **USD** | Film / digital twin | Layers inspiration only; CADOM stays mechanical / PLM-lite / web CAD. |
+| **STEP AP242** | Exact geometry / PMI | Referenced as **EXACT**; CADOM does not redefine STEP. |
 
-CADOM’s role is the **assembly graph + metadata + overrides + extensions** layer that binds those external standards for web and tooling workflows.
+One-sentence positioning:
+
+> **CADOM is the assembly graph and visualization contract that references STEP and glTF; the parametric tree is an optional companion, rebuildable under a documented Open CASCADE profile, never required for a valid product.**
 
 
 ## 2. Units, axes, and transforms
 
 ### 2.1 Units
 
-A CADOM document **MUST** declare a length unit for spatial data in the document header (see §8).
+A CADOM document **MUST** declare a length unit in the header (`LengthUnit`).
 
-The default and **RECOMMENDED** unit for v0.1 **MUST** be interpreted as **metres** when the document uses the standard metres enumeration value.
+Supported values: `METRES`, `MILLIMETRES`, `INCHES`. If `UNSPECIFIED`, readers **MUST** interpret lengths as **metres** (backward compatible default).
+
+**Writer profiles (RECOMMENDED):**
+
+| Source pipeline | Units | Up axis |
+|-----------------|-------|---------|
+| CATIA / NX / Creo export | `MILLIMETRES` | `Z` |
+| glTF / w3dts / web runtime | `METRES` | `Y` |
 
 Writers **SHOULD** store all linear quantities (including translation components of transforms) in the document’s declared unit. Readers that display or simulate in another unit **MUST** convert explicitly; they **MUST NOT** assume a silent unit change inside the `.cadom` payload.
 
@@ -122,7 +150,7 @@ Writers **SHOULD** store all linear quantities (including translation components
 
 A CADOM document **MUST** declare an up axis in the document header.
 
-For v0.1, conforming documents **SHOULD** use **Y-up** (positive Y points up). Readers **MUST** honor the declared `up_axis` when mapping into a runtime scene. If a reader only supports Y-up, it **MUST** either transform the scene into Y-up or fail with an explicit error; it **MUST NOT** silently ignore a non-Y-up declaration.
+Conforming documents **SHOULD** declare the up axis that matches their source pipeline (see profiles in §2.1). Readers **MUST** honor the declared `up_axis` when mapping into a runtime scene. If a reader only supports Y-up, it **MUST** either transform the scene into Y-up or fail with an explicit error; it **MUST NOT** silently ignore a non-Y-up declaration.
 
 Right-handed coordinates are **RECOMMENDED** and assumed by the transform conventions below unless a future revision states otherwise.
 
@@ -143,6 +171,17 @@ This layout **MUST** match the common WebGL / gl-matrix `mat4` / `Float32Array(1
 - If `local_transform` is omitted, readers **MUST** treat the local transform as the **identity** matrix.
 
 Writers **MUST NOT** emit a `local_transform` with a length other than 16. All sixteen values **MUST** be finite (not NaN or ±Infinity). Readers that encounter an invalid length or non-finite value **MUST** reject the document or the offending node with an explicit error.
+
+### 2.3.1 Precision policy
+
+*Normative intent; storage remains float32 in this revision.*
+
+- **Visualization / WebGL path:** IEEE-754 binary32 (`float`) for `local_transform` is **allowed** and remains the on-disk / GPU-friendly contract.
+- **Authoring / mechanical pipelines (aviation station frames, watchmaking µm, large automotive line offsets):** writers **SHOULD** compute and validate world placements in **IEEE-754 binary64** (`double`) before storing or down-casting to float32.
+- Readers that recompose world matrices for metrology **SHOULD** promote to double during composition when available.
+- A future optional `local_transform_f64` field **MAY** be added without changing the float32 viz path; this revision **MUST NOT** require it.
+
+Silent float32 drift on mates that look correct in CATIA/NX/Creo is a known trap; document it in tooling UIs when applicable.
 
 ### 2.4 World transform composition
 
@@ -214,8 +253,9 @@ A node **MAY** reference **multiple** assets, **at most one per role**:
 
 | Role | Typical `Asset.kind` | Purpose |
 |------|----------------------|---------|
-| `MESH` | `CADOMESH`, `GLB`, `GLTF`, `STEP` | Display / tessellated or exact geometry for visualization |
-| `PARAMETRIC` | `CADOMPART` | Parametric part definition |
+| `MESH` | `CADOMESH`, `GLB`, `GLTF` | Display tessellation for GPU / web visualization |
+| `EXACT` | `STEP` | Exact B-Rep / product geometry (not a GPU mesh) |
+| `PARAMETRIC` | `CADOMPART` | Optional parametric rebuild recipe |
 | `MATERIAL` | `CADOMAT` | PBR material |
 | `METADATA` | `CADOMETA`, `OTHER` | Structured or opaque metadata payload |
 
@@ -226,6 +266,7 @@ Rules:
 3. A node **MUST NOT** contain two bindings with the same `role`.
 4. Kind/role pairing **SHOULD** follow the table above; readers **MAY** warn on mismatched pairs but **MUST** still round-trip the binding.
 5. Structural nodes (e.g. pure assemblies) **MAY** omit all bindings.
+6. Writers targeting v0.3.1+ **SHOULD** bind STEP under `EXACT`, not `MESH`. Readers that encounter `kind = STEP` with role `MESH` **SHOULD** warn and **MUST** treat the asset as exact geometry for loaders that understand STEP.
 
 #### 3.3.2 Legacy `asset_id`
 
@@ -247,7 +288,9 @@ Rules:
 
 ### 3.5 Children reconstruction
 
-Children are not stored on the parent. A consumer **MUST** derive children as all nodes whose `parent_id` equals a given node’s `id`. Order among siblings is **not** defined in v0.1 unless a future extension specifies it; readers **MAY** sort by `name` or `id` for stable UI.
+Children are not stored on the parent. A consumer **MUST** derive children as all nodes whose `parent_id` equals a given node’s `id`.
+
+**Sibling order (normative):** among nodes that share the same `parent_id`, the **order of first appearance in the document `nodes[]` list** **MUST** be treated as the child order (BOM / tree / drawing sequence). Writers that care about sibling order **MUST** emit children in that desired order within `nodes[]`. Readers **MUST NOT** reorder siblings by `name` or `id` when presenting the normative order.
 
 ### 3.6 Semantic types
 
@@ -296,7 +339,7 @@ Serialized as four flat nodes: Root (`parent_id` unset, in `root_ids`), Subassem
 
 ### 4.1 Role
 
-CADOM **MUST NOT** embed primary CAD solid geometry. Geometry and companion data are referenced through **Asset** records. Nodes **MAY** bind assets via `asset_bindings` (§3.3.1), at most one asset per role (mesh, parametric, material, metadata).
+CADOM **MUST NOT** embed primary CAD solid geometry. Geometry and companion data are referenced through **Asset** records. Nodes **MAY** bind assets via `asset_bindings` (§3.3.1), at most one asset per role (`MESH`, `EXACT`, `PARAMETRIC`, `MATERIAL`, `METADATA`).
 
 ### 4.2 Asset fields
 
@@ -306,10 +349,12 @@ Each asset **MUST** include:
 |-------|----------|-------------|
 | `id` | yes | UUID unique within the document |
 | `uri` | yes | Location of the external resource |
-| `kind` | yes | One of `STEP`, `GLTF`, `GLB`, `OTHER` |
-| `mime` | no | Optional MIME type hint (e.g. `model/gltf-binary`) |
+| `kind` | yes | One of `STEP`, `GLTF`, `GLB`, `CADOMESH`, `CADOMPART`, `CADOMAT`, `CADOMETA`, `OTHER` |
+| `mime` | no | Optional MIME type hint (e.g. `model/gltf-binary`, `application/vnd.opencad.cadomesh`) |
+| `content_sha256` | no | Hex-encoded SHA-256 of the referenced asset bytes (integrity / cache) |
+| `byte_length` | no | Declared byte length of the referenced asset |
 
-Duplicate asset `id` values **MUST** be rejected.
+Duplicate asset `id` values **MUST** be rejected. When `content_sha256` is present, consumers that fetch the asset **SHOULD** verify the digest and **MUST** warn (or fail in strict mode) on mismatch.
 
 ### 4.3 URI resolution
 
@@ -428,9 +473,14 @@ If no overrides apply, `R(n) = B(n)`.
 
 ### 5.4 Layer activation
 
-Which layers are active is **not** stored inside the v0.1 document (application / session concern). Documents **MAY** define many layers; consumers **MAY** activate a subset.
+The document header **MAY** list `default_active_layers`: ordered override layer names that **SHOULD** be active when the file is opened with no session overlay.
 
-When multiple overrides share the same `node_id` and `layer`, later document order **MUST** win for conflicting fields.
+Rules:
+
+1. Session / application activation **MAY** replace or extend `default_active_layers`.
+2. If `default_active_layers` is empty or omitted, which layers are active is an application / session concern (backward compatible with older files).
+3. Documents **MAY** define many layers; consumers **MAY** activate a subset.
+4. When multiple overrides share the same `node_id` and `layer`, later document order **MUST** win for conflicting fields.
 
 ### 5.5 Example
 
@@ -496,13 +546,16 @@ A CADOM document **MUST** declare format version integers in the header:
 | `version_major` | Incompatible / breaking revisions |
 | `version_minor` | Backward-compatible additions within a major |
 
-For this specification revision, writers producing v0.3 documents **MUST** set `version_major = 0` and `version_minor = 3`.
+For this specification revision (**v0.3.1**), writers **MUST** set `version_major = 0` and `version_minor = 4`.
 
-- v0.2 writers: `version_minor = 2` (native kinds without multi-role bindings requirement).
-- v0.1 writers: `version_minor = 1` and **MUST NOT** emit native kinds `CADOMESH` / `CADOMPART` / `CADOMAT` / `CADOMETA`.
+| Writer `version_minor` | Expectation |
+|------------------------|-------------|
+| 4 | v0.3.1: `EXACT` role, mm/inches units, `default_active_layers`, asset hash fields |
+| 3 | v0.3 multi-role bindings + CADOMETA |
+| 2 | v0.2 native kinds without multi-role requirement |
+| 1 | v0.1; **MUST NOT** emit native kinds `CADOMESH` / `CADOMPART` / `CADOMAT` / `CADOMETA` |
 
-
-A patch/third component is **not** required in the document header for v0.1; editorial patch notes appear in this document’s changelog only.
+A patch/third component is **not** stored in the document header; editorial notes appear in this document’s changelog only. The Protobuf **package** name remains `cadom.v0_1` (frozen).
 
 ### 7.2 Reader compatibility
 
@@ -537,11 +590,14 @@ See the [Changelog](#changelog) at the end of this document. Freeze of v0.1 is t
 
 ## 8. Normative Protobuf schema
 
-The normative on-disk schema for CADOM v0.1 **MUST** be the Protocol Buffers definition in:
+The normative on-disk schema for CADOM **MUST** be the Protocol Buffers definition in:
 
 [`packages/cadom-proto/cadom.proto`](../../packages/cadom-proto/cadom.proto)
 
-Writers **MUST** emit a serialized `cadom.v0_1.CadomFile` message as the contents of a `.cadom` file (no additional framing in v0.1).
+Writers **MUST** emit a serialized `cadom.v0_1.CadomFile` message as the contents of a `.cadom` file. v0.3.1 keeps **raw Protobuf framing** (no mandatory magic). A 4-byte magic **MAY** be introduced in a later minor if required for sniffing; until then, sniffers **SHOULD** decode enough of the message to read `version_major` / `version_minor`.
+
+**Media type:** `application/vnd.opencad.cadom`  
+**Native companions (informative):** `application/vnd.opencad.cadomesh`, `.cadomat`, `.cadometa`, `.cadompart` with the same `vnd.opencad.*` pattern.
 
 ### 8.1 Message map
 
@@ -549,11 +605,12 @@ Writers **MUST** emit a serialized `cadom.v0_1.CadomFile` message as the content
 |--------------|----------------------|
 | Document | `CadomFile` |
 | Node (§3) | `Node` |
-| Asset binding (§3.3.1) | `NodeAssetBinding` + `AssetRole` |
-| Asset (§4) | `Asset` + `AssetKind` |
+| Asset binding (§3.3.1) | `NodeAssetBinding` + `AssetRole` (incl. `EXACT`) |
+| Asset (§4) | `Asset` + `AssetKind` (+ optional hash fields) |
 | Override (§5) | `Override` |
+| Default layers (§5.4) | `CadomFile.default_active_layers` |
 | Extension (§6) | `Extension` |
-| Units / up axis (§2) | `LengthUnit`, `UpAxis` |
+| Units / up axis (§2) | `LengthUnit` (incl. mm/inches), `UpAxis` |
 | Version (§7) | `version_major`, `version_minor` |
 
 ### 8.2 Encoding notes
@@ -565,6 +622,7 @@ Writers **MUST** emit a serialized `cadom.v0_1.CadomFile` message as the content
 - For `Node.visible`, unset **MUST** be interpreted as `true` by readers (§3.3).
 - Extension `payload` **MUST** be preserved bit-for-bit on pass-through (§6).
 - Field numbers in `cadom.proto` are stable; renumbering **MUST** bump the format major version (§7).
+- Protobuf package name `cadom.v0_1` is **frozen**; document `version_minor` tracks the specification revision.
 
 ### 8.3 Informative minimal hex
 
@@ -591,8 +649,8 @@ Binary `.cadom` encodings of these examples **SHOULD** be added when the TypeScr
 | Node id | External map `CadomNodeId → Entity` / `SceneNode` |
 | parent_id / children | `HierarchyComponent` / `SceneNode.add` |
 | `local_transform` | `mat4.copy` into `TransformComponent.localTransform` |
-| Asset URI (GLB/glTF) | `CompositeModelLoader` / GLB loader under that node |
-| Asset URI (STEP) | STEP tessellation pipeline, then mesh upload |
+| Asset URI (`MESH`: cadomesh / GLB / glTF) | Mesh / GLB loader under that node |
+| Asset URI (`EXACT` / STEP) | STEP load / metrology path; optional tessellation then mesh upload |
 | `visible` / layer | `RenderableComponent.visible` / `.layer` |
 | `semantic_type` | `CadMetadataComponent` when applicable |
 | Overrides | Apply resolved view before or while syncing ECS |
@@ -619,3 +677,4 @@ Prefer live node matrices (GLB-style) over baking placements into mesh vertices.
 | 0.1 | 2026-09-14 | Draft frozen (SPEC-11); `Node.visible` optional in proto |
 | 0.2 | 2026-09-14 | Native assets: CADOMESH, CADOMPART, CADOMAT (#27) |
 | 0.3 | 2026-09-14 | Multi-asset bindings per node + CADOMETA (#29) |
+| 0.3.1 | 2026-09-15 | SWOT hygiene: two-layer identity, `EXACT` role, mm/inches, sibling order, default layers, asset hash, MIME, precision policy (#49) |
