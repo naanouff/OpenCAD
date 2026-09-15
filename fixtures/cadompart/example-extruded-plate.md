@@ -1,4 +1,4 @@
-# Example — extruded plate `.cadompart` v0.1
+# Example — extruded plate `.cadompart` v0.2
 
 *Informative logical document (not binary Protobuf).*
 
@@ -6,7 +6,7 @@ Ordered history: sketch rectangle → extrude solid.
 
 ```yaml
 version_major: 0
-version_minor: 1
+version_minor: 2
 name: "plate"
 units: METRES
 up_axis: Y

@@ -37,7 +37,7 @@ The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**, **
 | **Pass-through** | Preserve and rewrite unknown extension bytes unchanged |
 | **Late tessellation** | Load the graph first; fetch / tessellate geometry asynchronously |
 | **cadomesh** | Native CADOM tessellated mesh asset (`.cadomesh`) |
-| **cadompart** | Native CADOM parametric part definition with normative feature history (`.cadompart`) |
+| **cadompart** | Native CADOM parametric part definition with exhaustive normative feature history (`.cadompart`) |
 | **cadomat** | Native CADOM PBR material asset (`.cadomat`), Khronos-aligned |
 | **cadometa** | Native CADOM metadata asset (`.cadometa`) |
 | **Asset binding** | Role-typed link from a Node to an Asset (mesh / parametric / material / metadata) |
@@ -371,8 +371,8 @@ A **cadompart** asset holds the **parametric part definition** and **normative f
 - Conventional file extension: `.cadompart`
 - `Asset.kind` **MUST** be `CADOMPART`
 - Bound with role `PARAMETRIC`
-- Normative spec: [`cadompart-v0.md`](cadompart-v0.md) (**v0.1** — feature vocabulary + rebuild semantics)
-- Schema: [`packages/cadompart-proto/cadompart.proto`](../../packages/cadompart-proto/cadompart.proto)
+- Normative spec: [`cadompart-v0.md`](cadompart-v0.md) (**v0.2** — exhaustive industrial feature vocabulary + rebuild semantics)
+- Schema: [`packages/cadompart-proto/cadompart.proto`](../../packages/cadompart-proto/cadompart.proto) (`cadompart.v0_2`)
 
 ### 4.10 Native format: cadomat (PBR material)
 
