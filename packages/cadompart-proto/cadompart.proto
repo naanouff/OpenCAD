@@ -1,12 +1,24 @@
 syntax = "proto3";
 
-package cadompart.v0;
+package cadompart.v0_1;
 
-option java_package = "dev.opencad.cadompart.v0";
-option csharp_namespace = "OpenCad.Cadompart.V0";
+option java_package = "dev.opencad.cadompart.v0_1";
+option csharp_namespace = "OpenCad.Cadompart.V0_1";
 
-// CADOMPART v0 — parametric part-definition companion (.cadompart).
+// CADOMPART v0.1 — parametric part definition with normative feature history.
 // Entire file body MUST be a serialized CadompartFile message.
+
+enum LengthUnit {
+  LENGTH_UNIT_UNSPECIFIED = 0;
+  LENGTH_UNIT_METRES = 1;
+  LENGTH_UNIT_MILLIMETRES = 2;
+}
+
+enum UpAxis {
+  UP_AXIS_UNSPECIFIED = 0;
+  UP_AXIS_Y = 1;
+  UP_AXIS_Z = 2;
+}
 
 enum ParamType {
   PARAM_TYPE_UNSPECIFIED = 0;
@@ -17,40 +29,167 @@ enum ParamType {
   PARAM_TYPE_VEC3 = 5;
 }
 
+enum BooleanOp {
+  BOOLEAN_OP_UNSPECIFIED = 0;
+  BOOLEAN_OP_UNION = 1;
+  BOOLEAN_OP_SUBTRACT = 2;
+  BOOLEAN_OP_INTERSECT = 3;
+}
+
+enum HoleType {
+  HOLE_TYPE_UNSPECIFIED = 0;
+  HOLE_TYPE_SIMPLE = 1;
+  HOLE_TYPE_COUNTERBORE = 2;
+  HOLE_TYPE_COUNTERSINK = 3;
+}
+
+message Vec2 {
+  double x = 1;
+  double y = 2;
+}
+
 message Vec3 {
-  float x = 1;
-  float y = 2;
-  float z = 3;
+  double x = 1;
+  double y = 2;
+  double z = 3;
 }
 
 message Parameter {
-  string id = 1;   // stable id within the file (UUID or slug)
-  string name = 2; // human-readable
+  string id = 1;
+  string name = 2;
   ParamType type = 3;
-  // Exactly one value field SHOULD be set matching type.
   optional double float_value = 4;
   optional int64 int_value = 5;
   optional bool bool_value = 6;
   optional string string_value = 7;
   optional Vec3 vec3_value = 8;
-  // Optional length unit hint for FLOAT (e.g. "m", "mm"); empty = inherit/none.
   string unit = 9;
-  // Optional unevaluated expression (authoring hint); empty if unused.
   string expression = 10;
 }
 
-// Minimal feature stub — opaque type token + parameter id refs.
+// --- Sketch (profile in a local plane) ---
+
+message SketchLine {
+  Vec2 a = 1;
+  Vec2 b = 2;
+}
+
+message SketchCircle {
+  Vec2 center = 1;
+  double radius = 2;
+}
+
+message SketchArc {
+  Vec2 center = 1;
+  double radius = 2;
+  double start_angle_rad = 3;
+  double end_angle_rad = 4;
+}
+
+message SketchCurve {
+  oneof curve {
+    SketchLine line = 1;
+    SketchCircle circle = 2;
+    SketchArc arc = 3;
+  }
+}
+
+message SketchFeature {
+  // Plane origin + orthonormal axes in part space (metres unless document unit says otherwise).
+  Vec3 origin = 1;
+  Vec3 x_axis = 2;
+  Vec3 y_axis = 3;
+  repeated SketchCurve curves = 4;
+  // Closed outer loop indices into curves; empty = all curves form one outer loop in order.
+  repeated uint32 outer_loop = 5;
+}
+
+message ExtrudeFeature {
+  string profile_sketch_id = 1;
+  double distance = 2;
+  bool symmetric = 3;
+  // Direction in part space; if zero-length, use sketch plane normal.
+  Vec3 direction = 4;
+  bool cut = 5; // true = subtractive extrude
+}
+
+message RevolveFeature {
+  string profile_sketch_id = 1;
+  Vec3 axis_origin = 2;
+  Vec3 axis_direction = 3;
+  double angle_rad = 4;
+  bool cut = 5;
+}
+
+message HoleFeature {
+  HoleType hole_type = 1;
+  Vec3 position = 2;
+  Vec3 axis = 3;
+  double diameter = 4;
+  double depth = 5; // 0 or negative MAY mean through (application-defined through target)
+  double counterbore_diameter = 6;
+  double counterbore_depth = 7;
+  double countersink_angle_rad = 8;
+}
+
+message FilletFeature {
+  repeated string edge_ids = 1; // opaque edge ids from prior solid; empty = unspecified selection
+  double radius = 2;
+}
+
+message ChamferFeature {
+  repeated string edge_ids = 1;
+  double distance = 2;
+  optional double distance2 = 3; // asymmetric; unset = equal to distance
+}
+
+message BooleanFeature {
+  BooleanOp op = 1;
+  // Tool is the solid produced by tool_feature_id (prior in history), or empty = use preceding result only with external body id.
+  string tool_feature_id = 2;
+}
+
+message PatternLinearFeature {
+  string source_feature_id = 1;
+  Vec3 direction = 2;
+  uint32 count = 3;
+  double spacing = 4;
+}
+
+message PatternCircularFeature {
+  string source_feature_id = 1;
+  Vec3 axis_origin = 2;
+  Vec3 axis_direction = 3;
+  uint32 count = 4;
+  double angle_span_rad = 5;
+}
+
 message Feature {
   string id = 1;
-  string type = 2; // e.g. "extrude", "hole", "sketch" — vocabulary not fixed in v0
-  string name = 3;
+  string name = 2;
+  bool suppressed = 3;
+  // Optional parameter ids that drive this feature (for UI / expressions).
   repeated string parameter_ids = 4;
+  oneof body {
+    SketchFeature sketch = 10;
+    ExtrudeFeature extrude = 11;
+    RevolveFeature revolve = 12;
+    HoleFeature hole = 13;
+    FilletFeature fillet = 14;
+    ChamferFeature chamfer = 15;
+    BooleanFeature boolean = 16;
+    PatternLinearFeature pattern_linear = 17;
+    PatternCircularFeature pattern_circular = 18;
+  }
 }
 
 message CadompartFile {
-  uint32 version_major = 1; // v0 writers MUST set 0
-  uint32 version_minor = 2; // v0 writers MUST set 0
+  uint32 version_major = 1; // v0.1 writers MUST set 0
+  uint32 version_minor = 2; // v0.1 writers MUST set 1
   string name = 3;
-  repeated Parameter parameters = 4;
-  repeated Feature features = 5;
+  LengthUnit units = 4; // default METRES when UNSPECIFIED
+  UpAxis up_axis = 5;   // default Y when UNSPECIFIED
+  repeated Parameter parameters = 6;
+  // Ordered feature history: index 0 is first operation.
+  repeated Feature features = 7;
 }
