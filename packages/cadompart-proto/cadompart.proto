@@ -1,17 +1,20 @@
 syntax = "proto3";
 
-package cadompart.v0_1;
+package cadompart.v0_2;
 
-option java_package = "dev.opencad.cadompart.v0_1";
-option csharp_namespace = "OpenCad.Cadompart.V0_1";
+option java_package = "dev.opencad.cadompart.v0_2";
+option csharp_namespace = "OpenCad.Cadompart.V0_2";
 
-// CADOMPART v0.1 — parametric part definition with normative feature history.
-// Entire file body MUST be a serialized CadompartFile message.
+// CADOMPART v0.2 — exhaustive industrial parametric part definition.
+// File body MUST be a serialized CadompartFile message.
+
+// ========== Enums ==========
 
 enum LengthUnit {
   LENGTH_UNIT_UNSPECIFIED = 0;
   LENGTH_UNIT_METRES = 1;
   LENGTH_UNIT_MILLIMETRES = 2;
+  LENGTH_UNIT_INCHES = 3;
 }
 
 enum UpAxis {
@@ -26,7 +29,19 @@ enum ParamType {
   PARAM_TYPE_INT = 2;
   PARAM_TYPE_BOOL = 3;
   PARAM_TYPE_STRING = 4;
-  PARAM_TYPE_VEC3 = 5;
+  PARAM_TYPE_VEC2 = 5;
+  PARAM_TYPE_VEC3 = 6;
+  PARAM_TYPE_ANGLE = 7; // radians stored in float_value
+}
+
+enum EndCondition {
+  END_CONDITION_UNSPECIFIED = 0;
+  END_CONDITION_BLIND = 1;
+  END_CONDITION_THROUGH_ALL = 2;
+  END_CONDITION_TO_FACE = 3;
+  END_CONDITION_TO_VERTEX = 4;
+  END_CONDITION_MIDPLANE = 5;
+  END_CONDITION_OFFSET_FROM_FACE = 6;
 }
 
 enum BooleanOp {
@@ -41,7 +56,51 @@ enum HoleType {
   HOLE_TYPE_SIMPLE = 1;
   HOLE_TYPE_COUNTERBORE = 2;
   HOLE_TYPE_COUNTERSINK = 3;
+  HOLE_TYPE_TAP = 4;
 }
+
+enum DraftSide {
+  DRAFT_SIDE_UNSPECIFIED = 0;
+  DRAFT_SIDE_NEUTRAL_PLANE = 1;
+  DRAFT_SIDE_PARTING_LINE = 2;
+  DRAFT_SIDE_STEP = 3;
+}
+
+enum PatternInstanceCountMode {
+  // Total instances including source.
+  PATTERN_COUNT_TOTAL_INCLUDING_SOURCE = 0;
+}
+
+enum SketchConstraintKind {
+  SKETCH_CONSTRAINT_UNSPECIFIED = 0;
+  SKETCH_CONSTRAINT_COINCIDENT = 1;
+  SKETCH_CONSTRAINT_HORIZONTAL = 2;
+  SKETCH_CONSTRAINT_VERTICAL = 3;
+  SKETCH_CONSTRAINT_PARALLEL = 4;
+  SKETCH_CONSTRAINT_PERPENDICULAR = 5;
+  SKETCH_CONSTRAINT_TANGENT = 6;
+  SKETCH_CONSTRAINT_EQUAL = 7;
+  SKETCH_CONSTRAINT_MIDPOINT = 8;
+  SKETCH_CONSTRAINT_SYMMETRIC = 9;
+  SKETCH_CONSTRAINT_FIXED = 10;
+  SKETCH_CONSTRAINT_CONCENTRIC = 11;
+  SKETCH_CONSTRAINT_COLLINEAR = 12;
+  SKETCH_CONSTRAINT_DISTANCE = 13;
+  SKETCH_CONSTRAINT_ANGLE = 14;
+  SKETCH_CONSTRAINT_RADIUS = 15;
+  SKETCH_CONSTRAINT_DIAMETER = 16;
+  SKETCH_CONSTRAINT_LENGTH = 17;
+}
+
+enum SketchPointRefKind {
+  SKETCH_POINT_REF_UNSPECIFIED = 0;
+  SKETCH_POINT_REF_CURVE_START = 1;
+  SKETCH_POINT_REF_CURVE_END = 2;
+  SKETCH_POINT_REF_CURVE_CENTER = 3;
+  SKETCH_POINT_REF_EXPLICIT = 4;
+}
+
+// ========== Math ==========
 
 message Vec2 {
   double x = 1;
@@ -54,6 +113,13 @@ message Vec3 {
   double z = 3;
 }
 
+message Mat4 {
+  // Column-major 16 doubles (same layout as CADOM mat4).
+  repeated double m = 1 [packed = true];
+}
+
+// ========== Parameters ==========
+
 message Parameter {
   string id = 1;
   string name = 2;
@@ -62,28 +128,112 @@ message Parameter {
   optional int64 int_value = 5;
   optional bool bool_value = 6;
   optional string string_value = 7;
-  optional Vec3 vec3_value = 8;
-  string unit = 9;
-  string expression = 10;
+  optional Vec2 vec2_value = 8;
+  optional Vec3 vec3_value = 9;
+  string unit = 10;
+  string expression = 11;
+  bool driven = 12; // true = computed / read-only for UI
+  double min_value = 13;
+  double max_value = 14;
+  bool has_min = 15;
+  bool has_max = 16;
 }
 
-// --- Sketch (profile in a local plane) ---
+// ========== Topology refs (engine-assigned stable within a rebuild session; persist when possible) ==========
+
+message FaceRef {
+  string id = 1;
+}
+
+message EdgeRef {
+  string id = 1;
+}
+
+message VertexRef {
+  string id = 1;
+}
+
+message BodyRef {
+  string id = 1; // multi-body support
+}
+
+// ========== Datums ==========
+
+message DatumPlane {
+  string id = 1;
+  string name = 2;
+  Vec3 origin = 3;
+  Vec3 normal = 4;
+  // Optional: offset from referenced plane
+  string from_plane_id = 5;
+  double offset = 6;
+}
+
+message DatumAxis {
+  string id = 1;
+  string name = 2;
+  Vec3 origin = 3;
+  Vec3 direction = 4;
+}
+
+message DatumPoint {
+  string id = 1;
+  string name = 2;
+  Vec3 position = 3;
+}
+
+message CoordinateSystem {
+  string id = 1;
+  string name = 2;
+  Mat4 transform = 3; // part space; length 16
+}
+
+// ========== Sketch ==========
+
+message SketchPointRef {
+  SketchPointRefKind kind = 1;
+  uint32 curve_index = 2;
+  Vec2 explicit_point = 3; // when EXPLICIT
+}
 
 message SketchLine {
-  Vec2 a = 1;
-  Vec2 b = 2;
+  string id = 1;
+  Vec2 a = 2;
+  Vec2 b = 3;
+  bool construction = 4;
 }
 
 message SketchCircle {
-  Vec2 center = 1;
-  double radius = 2;
+  string id = 1;
+  Vec2 center = 2;
+  double radius = 3;
+  bool construction = 4;
 }
 
 message SketchArc {
-  Vec2 center = 1;
-  double radius = 2;
-  double start_angle_rad = 3;
-  double end_angle_rad = 4;
+  string id = 1;
+  Vec2 center = 2;
+  double radius = 3;
+  double start_angle_rad = 4;
+  double end_angle_rad = 5;
+  bool construction = 6;
+}
+
+message SketchEllipse {
+  string id = 1;
+  Vec2 center = 2;
+  Vec2 major_axis = 3; // vector in plane
+  double minor_radius = 4;
+  bool construction = 5;
+}
+
+message SketchSpline {
+  string id = 1;
+  repeated Vec2 poles = 2;
+  repeated double knots = 3;
+  uint32 degree = 4;
+  bool closed = 5;
+  bool construction = 6;
 }
 
 message SketchCurve {
@@ -91,105 +241,302 @@ message SketchCurve {
     SketchLine line = 1;
     SketchCircle circle = 2;
     SketchArc arc = 3;
+    SketchEllipse ellipse = 4;
+    SketchSpline spline = 5;
   }
 }
 
+message SketchConstraint {
+  string id = 1;
+  SketchConstraintKind kind = 2;
+  repeated uint32 curve_indices = 3;
+  repeated SketchPointRef points = 4;
+  optional double value = 5; // distance/angle/radius/length
+  string parameter_id = 6; // optional driven dimension parameter
+  string mirror_line_curve_id = 7; // for symmetric
+}
+
+message SketchLoop {
+  repeated uint32 curve_indices = 1; // ordered, closed
+  bool outer = 2;
+}
+
 message SketchFeature {
-  // Plane origin + orthonormal axes in part space (metres unless document unit says otherwise).
+  // Plane in part space
   Vec3 origin = 1;
   Vec3 x_axis = 2;
   Vec3 y_axis = 3;
-  repeated SketchCurve curves = 4;
-  // Closed outer loop indices into curves; empty = all curves form one outer loop in order.
-  repeated uint32 outer_loop = 5;
+  string datum_plane_id = 4; // alternative to origin/axes
+  repeated SketchCurve curves = 5;
+  repeated SketchConstraint constraints = 6;
+  repeated SketchLoop loops = 7; // if empty: infer single outer from curve order
 }
+
+// ========== Feature payloads ==========
 
 message ExtrudeFeature {
   string profile_sketch_id = 1;
-  double distance = 2;
-  bool symmetric = 3;
-  // Direction in part space; if zero-length, use sketch plane normal.
-  Vec3 direction = 4;
-  bool cut = 5; // true = subtractive extrude
+  EndCondition end_condition = 2;
+  double distance = 3;
+  double distance2 = 4; // second direction when midplane/two-direction
+  bool two_direction = 5;
+  string to_face_id = 6;
+  string to_vertex_id = 7;
+  double offset_from_face = 8;
+  Vec3 direction = 9; // zero => sketch normal
+  double draft_angle_rad = 10;
+  bool cut = 11;
+  bool merge = 12; // merge result into current body (default true)
 }
 
 message RevolveFeature {
   string profile_sketch_id = 1;
   Vec3 axis_origin = 2;
   Vec3 axis_direction = 3;
-  double angle_rad = 4;
+  string datum_axis_id = 4;
+  EndCondition end_condition = 5;
+  double angle_rad = 6;
+  double angle2_rad = 7;
+  bool two_direction = 8;
+  bool cut = 9;
+  bool merge = 10;
+}
+
+message SweepFeature {
+  string profile_sketch_id = 1;
+  string path_sketch_id = 2;
+  bool twist_follow_path = 3;
+  double twist_angle_rad = 4;
   bool cut = 5;
+  bool merge = 6;
+}
+
+message LoftProfileRef {
+  string sketch_id = 1;
+}
+
+message LoftFeature {
+  repeated LoftProfileRef profiles = 1;
+  repeated string guide_curve_sketch_ids = 2;
+  bool closed = 3;
+  bool cut = 4;
+  bool merge = 5;
 }
 
 message HoleFeature {
   HoleType hole_type = 1;
   Vec3 position = 2;
   Vec3 axis = 3;
-  double diameter = 4;
-  double depth = 5; // 0 or negative MAY mean through (application-defined through target)
-  double counterbore_diameter = 6;
-  double counterbore_depth = 7;
-  double countersink_angle_rad = 8;
+  string sketch_id = 4; // optional hole positions from sketch points
+  double diameter = 5;
+  double depth = 6;
+  EndCondition end_condition = 7;
+  double counterbore_diameter = 8;
+  double counterbore_depth = 9;
+  double countersink_angle_rad = 10;
+  double countersink_diameter = 11;
+  string tap_designation = 12; // e.g. M6x1
+  bool thread = 13;
+}
+
+message FilletEdgeSet {
+  repeated EdgeRef edges = 1;
+  double radius = 2;
+  string radius_parameter_id = 3;
 }
 
 message FilletFeature {
-  repeated string edge_ids = 1; // opaque edge ids from prior solid; empty = unspecified selection
-  double radius = 2;
+  repeated FilletEdgeSet sets = 1;
+  bool tangent_propagate = 2;
+}
+
+message ChamferEdgeSet {
+  repeated EdgeRef edges = 1;
+  double distance = 2;
+  optional double distance2 = 3;
+  optional double angle_rad = 4; // distance+angle mode
 }
 
 message ChamferFeature {
-  repeated string edge_ids = 1;
-  double distance = 2;
-  optional double distance2 = 3; // asymmetric; unset = equal to distance
+  repeated ChamferEdgeSet sets = 1;
+  bool tangent_propagate = 2;
 }
 
-message BooleanFeature {
-  BooleanOp op = 1;
-  // Tool is the solid produced by tool_feature_id (prior in history), or empty = use preceding result only with external body id.
-  string tool_feature_id = 2;
+message ShellFeature {
+  repeated FaceRef faces_to_remove = 1;
+  double thickness = 2;
+  bool outward = 3;
+}
+
+message DraftFeature {
+  DraftSide side_type = 1;
+  string neutral_plane_id = 2;
+  repeated FaceRef faces = 3;
+  double angle_rad = 4;
+  Vec3 pull_direction = 5;
+}
+
+message RibFeature {
+  string profile_sketch_id = 1;
+  double thickness = 2;
+  bool draft = 3;
+  double draft_angle_rad = 4;
+}
+
+message MirrorFeature {
+  string source_feature_id = 1;
+  string mirror_plane_id = 2; // datum plane
+  bool merge = 3;
+  bool copy = 4; // keep source
 }
 
 message PatternLinearFeature {
   string source_feature_id = 1;
   Vec3 direction = 2;
-  uint32 count = 3;
-  double spacing = 4;
+  string direction_edge_id = 3;
+  uint32 count = 4;
+  double spacing = 5;
+  bool spacing_is_total_extent = 6;
+  PatternInstanceCountMode count_mode = 7;
+  repeated uint32 skipped_instance_indices = 8;
 }
 
 message PatternCircularFeature {
   string source_feature_id = 1;
   Vec3 axis_origin = 2;
   Vec3 axis_direction = 3;
-  uint32 count = 4;
-  double angle_span_rad = 5;
+  string datum_axis_id = 4;
+  uint32 count = 5;
+  double angle_span_rad = 6;
+  bool equal_spacing = 7;
+  PatternInstanceCountMode count_mode = 8;
+  repeated uint32 skipped_instance_indices = 9;
+}
+
+message BooleanFeature {
+  BooleanOp op = 1;
+  string tool_feature_id = 2;
+  string tool_body_id = 3;
+  string target_body_id = 4;
+}
+
+message ThickenFeature {
+  string surface_feature_id = 1;
+  double thickness = 2;
+  bool both_sides = 3;
+}
+
+message OffsetFacesFeature {
+  repeated FaceRef faces = 1;
+  double distance = 2;
+}
+
+message MoveFaceFeature {
+  repeated FaceRef faces = 1;
+  Vec3 translation = 2;
+  optional Vec3 rotation_axis_origin = 3;
+  optional Vec3 rotation_axis_direction = 4;
+  optional double rotation_angle_rad = 5;
+}
+
+message SplitFeature {
+  string splitting_sketch_id = 1;
+  string splitting_face_id = 2;
+  bool consume_cutters = 3;
+}
+
+message ThreadFeature {
+  EdgeRef edge = 1;
+  FaceRef cylindrical_face = 2;
+  string designation = 3;
+  double length = 4;
+  bool right_handed = 5;
+  bool cosmetic = 6; // true = display only
+}
+
+message HelixFeature {
+  string profile_sketch_id = 1;
+  Vec3 axis_origin = 2;
+  Vec3 axis_direction = 3;
+  double pitch = 4;
+  double height = 5;
+  uint32 revolutions = 6;
+  bool taper = 7;
+  double taper_angle_rad = 8;
+  bool cut = 9;
+}
+
+message TransformBodyFeature {
+  string body_id = 1;
+  Mat4 transform = 2;
+  bool copy = 3;
 }
 
 message Feature {
   string id = 1;
   string name = 2;
   bool suppressed = 3;
-  // Optional parameter ids that drive this feature (for UI / expressions).
   repeated string parameter_ids = 4;
+  repeated string body_ids_out = 5; // bodies created/updated
   oneof body {
     SketchFeature sketch = 10;
     ExtrudeFeature extrude = 11;
     RevolveFeature revolve = 12;
-    HoleFeature hole = 13;
-    FilletFeature fillet = 14;
-    ChamferFeature chamfer = 15;
-    BooleanFeature boolean = 16;
-    PatternLinearFeature pattern_linear = 17;
-    PatternCircularFeature pattern_circular = 18;
+    SweepFeature sweep = 13;
+    LoftFeature loft = 14;
+    HoleFeature hole = 15;
+    FilletFeature fillet = 16;
+    ChamferFeature chamfer = 17;
+    ShellFeature shell = 18;
+    DraftFeature draft = 19;
+    RibFeature rib = 20;
+    MirrorFeature mirror = 21;
+    PatternLinearFeature pattern_linear = 22;
+    PatternCircularFeature pattern_circular = 23;
+    BooleanFeature boolean = 24;
+    ThickenFeature thicken = 25;
+    OffsetFacesFeature offset_faces = 26;
+    MoveFaceFeature move_face = 27;
+    SplitFeature split = 28;
+    ThreadFeature thread = 29;
+    HelixFeature helix = 30;
+    TransformBodyFeature transform_body = 31;
   }
 }
 
+// ========== Configurations ==========
+
+message ConfigurationParameterValue {
+  string parameter_id = 1;
+  optional double float_value = 2;
+  optional int64 int_value = 3;
+  optional bool bool_value = 4;
+  optional string string_value = 5;
+}
+
+message Configuration {
+  string id = 1;
+  string name = 2;
+  repeated ConfigurationParameterValue parameter_values = 3;
+  repeated string suppressed_feature_ids = 4;
+  bool is_default = 5;
+}
+
+// ========== Document ==========
+
 message CadompartFile {
-  uint32 version_major = 1; // v0.1 writers MUST set 0
-  uint32 version_minor = 2; // v0.1 writers MUST set 1
+  uint32 version_major = 1; // writers MUST set 0
+  uint32 version_minor = 2; // writers MUST set 2 for this revision
   string name = 3;
-  LengthUnit units = 4; // default METRES when UNSPECIFIED
-  UpAxis up_axis = 5;   // default Y when UNSPECIFIED
-  repeated Parameter parameters = 6;
-  // Ordered feature history: index 0 is first operation.
-  repeated Feature features = 7;
+  string description = 4;
+  LengthUnit units = 5;
+  UpAxis up_axis = 6;
+  repeated Parameter parameters = 7;
+  repeated DatumPlane datum_planes = 8;
+  repeated DatumAxis datum_axes = 9;
+  repeated DatumPoint datum_points = 10;
+  repeated CoordinateSystem coordinate_systems = 11;
+  repeated Feature features = 12; // ordered history
+  repeated Configuration configurations = 13;
+  string active_configuration_id = 14;
 }
