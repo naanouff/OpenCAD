@@ -1,30 +1,34 @@
 # OpenCAD / CADOM
 
-Open-source project. **CADOM** (CAD Object Model) is a light, web-native **assembly orchestration** format for CAD (JT/3DXML niche), released under the [MIT License](LICENSE).
+Open-source **CAD platform**: assembly orchestration (**CADOM**) + parametric rebuild on the **OpenCAD B-Rep kernel**, released under the [MIT License](LICENSE).
 
-CADOM is **two layers**:
+Doctrine (binding for product direction): [`documentation/opencad-doctrine.md`](documentation/opencad-doctrine.md)
 
-1. **Core** (`.cadom`) — flat UUID product graph, asset refs, overrides, extensions. Visualizable **without a geometry kernel**.
-2. **Native family** (optional) — `.cadomesh`, `.cadomat`, `.cadometa`, `.cadompart`.
-
-Exact solids stay in **STEP** (`EXACT`); display triangles in **cadomesh / glTF** (`MESH`). Parametric feature history (`.cadompart`) is optional enrichment, never required for a valid product.
+| Capability | Truth |
+|------------|--------|
+| Assembly graph | `.cadom` |
+| Design intent | `.cadompart` |
+| Exact solid | **OpenCAD Kernel** (rebuild) |
+| Viz without kernel | `.cadomesh` |
+| STEP / AP242 | **Out of** the OpenCAD truth model |
 
 ## Status
 
-- **CADOM Spec:** **v0.3.1** (hygiene / SWOT) — file [`documentation/specification/cadom-v0.1.md`](documentation/specification/cadom-v0.1.md) (filename historical); protobuf package `cadom.v0_1` frozen
-- **Native assets:** v0 frozen — [freeze notes](documentation/specification/native-assets-v0-freeze.md)
-- **cadompart:** v0.2 catalogue + **v0.2.1** realism posture (narrow Required; STEP/mesh = truth without rebuild)
-- **Next:** TypeScript SDK (TDD) after v0.3.1 lands — decode/encode, overrides, pass-through; writers **SHOULD** use `EXACT` for STEP
-- Process: [SWOT analysis](documentation/cadom-spec-swot.md) · [remediation backlog](documentation/sprint-swot-remediation.md)
-- Plan: [documentation/plan-mvp-a-cadom.md](documentation/plan-mvp-a-cadom.md)
+- **Doctrine:** B (orchestration + rebuild co-primary) · B3 (viz = mesh) · K3 (product kernel) — [#51](https://github.com/naanouff/OpenCAD/issues/51)
+- **CADOM Spec:** **v0.3.2** — [`documentation/specification/cadom-v0.1.md`](documentation/specification/cadom-v0.1.md) (filename historical); package `cadom.v0_1` frozen
+- **cadompart:** v0.2 catalogue + **v0.2.2** doctrine alignment (Required étroit, TDD)
+- **Kernel:** backlog [`documentation/sprint-kernel-k3.md`](documentation/sprint-kernel-k3.md)
+- **Next:** graph SDK (TDD) in parallel with kernel Required badge; writers use `PARAMETRIC` + `MESH` (not STEP/`EXACT`)
+- Process: [SWOT (historical)](documentation/cadom-spec-swot.md) · [remediation](documentation/sprint-swot-remediation.md)
 
 ## Goals
 
 - **Protobuf** serialization — strong typing, fast parse, multi-language
 - **Flat UUID DAG** — scalable assemblies without deep recursion
-- **TypeScript + `Float32Array`** — direct WebGL/WebGPU-friendly transforms (double authoring **SHOULD** where needed)
-- **Late tessellation** — load the graph first, fetch geometry asynchronously
-- **Non-destructive overrides** — materials/visibility as layers over source nodes
+- **TypeScript + `Float32Array`** — WebGL/WebGPU-friendly transforms
+- **Late loading** — graph first; fetch mesh / parametric asynchronously
+- **OpenCAD Kernel** — Required rebuild (sketch + extrude/revolve/hole/boolean) under TDD
+- **Non-destructive overrides** — including `default_active_layers`
 - **Pass-through extensions** — unknown vendor payloads preserved on round-trip
 
 ## File extension

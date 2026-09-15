@@ -11,13 +11,16 @@
 
 ## Vision (rappel)
 
-Le format délègue la géométrie pure à des fichiers externes standards (STEP, glTF) et se concentre sur la structure d’assemblage et les métadonnées. Piliers :
+> **Doctrine actuelle :** [`opencad-doctrine.md`](opencad-doctrine.md) (B + B3 + K3). Ce plan MVP A reste utile pour le **SDK graphe** ; la géométrie exacte OpenCAD = cadompart + kernel, viz = cadomesh — pas STEP.
+
+Le MVP A se concentre sur la structure d’assemblage, les métadonnées, overrides et pass-through. Piliers :
 
 - Sérialisation Protobuf (typage fort, multi-langages)
 - Liste plate UUID (DAG) pour assemblages massifs
 - TypeScript strict + `Float32Array` pour WebGL/WebGPU
-- Late-tessellation / lazy-loading du graphe puis des géométries
+- Late-loading du graphe puis des assets mesh / parametric
 - Overrides non destructifs + extensions pass-through
+- Kernel Required = piste parallèle ([`sprint-kernel-k3.md`](sprint-kernel-k3.md))
 
 ## Architecture cible
 
@@ -25,7 +28,7 @@ Le format délègue la géométrie pure à des fichiers externes standards (STEP
 flowchart LR
   subgraph file [Fichier .cadom]
     Header[Header version]
-    Assets[Asset refs STEP glTF]
+    Assets[Asset refs mesh parametric]
     Nodes[Flat node list UUID]
     Overrides[Override layers]
     Ext[Opaque extensions]
@@ -57,7 +60,7 @@ Messages essentiels dans `cadom.proto` :
 
 - **`CadomFile`** : `version`, `units`, `up_axis`, `root_ids[]`, `nodes[]`, `assets[]`, `overrides[]`, `extensions[]`
 - **`Node`** : `id` (UUID bytes/string), `parent_id`, `name`, `local_transform` (repeated float, len 16), `asset_id` optionnel, `visible`, `semantic_type` optionnel
-- **`Asset`** : `id`, `uri` (relatif ou absolu), `mime` / `kind` (`STEP` | `GLTF` | `GLB` | `OTHER`)
+- **`Asset`** : `id`, `uri` (relatif ou absolu), `mime` / `kind` (`CADOMESH` | `CADOMPART` | `GLTF` | `GLB` | `CADOMAT` | `CADOMETA` | `OTHER` ; `STEP` legacy only)
 - **`Override`** : cible `node_id`, calque nommé ; champs patchables : `visible`, `material_ref`, `local_transform` optionnel
 - **`Extension`** : `vendor` + `type` + `payload` (`bytes`) — **jamais interprété** par le core ; round-trip obligatoire
 
@@ -93,7 +96,7 @@ Couvrir : identité du format, unités/axes, modèle de nœuds plat, assets exte
 
 - Viewer / package adapter w3dts
 - Conteneur zip multi-fichiers
-- Tessellation STEP, conversion géométrie
+- Tessellation / rebuild kernel (piste K3), conversion géométrie
 - Bindings C++/Python (le `.proto` les permettra plus tard)
 
 ## Gate specs

@@ -1,10 +1,12 @@
 # Sprint backlog — SWOT remediations (post v0.3.1)
 
 **Status:** process backlog (non-normative)  
-**Driver:** [cadom-spec-swot.md](cadom-spec-swot.md)  
-**Done in #49:** P0 hygiene + P2 cadompart posture  
+**Driver (historical):** [cadom-spec-swot.md](cadom-spec-swot.md)  
+**Product doctrine (wins on conflict):** [opencad-doctrine.md](opencad-doctrine.md)  
+**Done:** P0 hygiene (#49) · Doctrine B3+K3 / purge STEP-as-truth (#51)  
+**Kernel track:** [sprint-kernel-k3.md](sprint-kernel-k3.md)
 
-Items below are **not** in the v0.3.1 PR. Track as separate issues before expanding the SDK surface area carelessly.
+Items below remain useful for **P1/P3**. P2 STEP-as-truth is **superseded** by doctrine.
 
 ---
 
@@ -35,10 +37,10 @@ Items below are **not** in the v0.3.1 PR. Track as separate issues before expand
 | P3.1 | cadomesh face/body groups + LOD | PMI face anchors later |
 | P3.2 | cadomat CAD-friendly defaults | metallic ≈ 0, roughness ≈ 0.4 for painted metals |
 | P3.3 | cadomesh units mm | Proto already additive; keep prose aligned |
-| P3.4 | PMI | Do **not** specify; use AP242 + future face ids |
+| P3.4 | PMI | Do **not** specify yet; future mesh/kernel face ids (no AP242-as-truth) |
 
-## Sequencing reminder (from SWOT)
+## Sequencing reminder
 
-1. Land **v0.3.1** (this sprint) before freezing wrong semantics in the SDK.  
-2. SDK decode/encode may start in parallel once EXACT + two-layer story are merged.  
-3. Rebuild engine = **separate** sprint; golden files for Required features only first.
+1. Doctrine + purge STEP-as-truth (#51).  
+2. Graph SDK decode/encode in parallel with **OpenCAD Kernel Required** badge (TDD).  
+3. P1 container / occurrence when packing real assemblies.
