@@ -1,11 +1,11 @@
-# CADOMPART Specification v0.2
+# CADOMPART Specification v0.2.1
 
-**Status:** draft (v0.2) — exhaustive industrial parametric part definition  
+**Status:** draft (v0.2.1) — SWOT realism posture (geometric truth without rebuild; narrow Required)  
 **File extension:** `.cadompart`  
 **Serialization:** Protocol Buffers — [`packages/cadompart-proto/cadompart.proto`](../../packages/cadompart-proto/cadompart.proto)  
 **Language:** English (normative)  
 **CADOM kind:** `AssetKind.CADOMPART` / role `PARAMETRIC`  
-**Supersedes:** v0.0 (parameter bag), v0.1 (initial feature set)
+**Supersedes:** v0.0 (parameter bag), v0.1 (initial feature set); amends v0.2 catalogue with interchange posture
 
 The key words **MUST**, **MUST NOT**, **SHOULD**, **MAY** are as in [RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119).
 
@@ -13,15 +13,17 @@ The key words **MUST**, **MUST NOT**, **SHOULD**, **MAY** are as in [RFC 2119](h
 
 ## 1. Purpose
 
-CADOMPART is the CADOM standard for **parametric solid part definition** aimed at modern industrial CAD interchange.
+CADOMPART is the CADOM **optional companion** for **parametric solid part definition** (feature history / rebuild recipe).
 
-A `.cadompart` file **MUST** be sufficient for a **conforming rebuild engine** to reconstruct the design intent expressed by its **ordered feature history**, using the **normative vocabulary** in this document.
+It is **not** required to validate a `.cadom` product. A CADOM assembly with STEP (`EXACT`) and/or `.cadomesh` (`MESH`) **MUST** remain a complete visualizable product when `.cadompart` is absent, unreadable, or non-rebuildable.
 
-The mechanical CAD domain is mature: extrudes, revolves, holes, fillets, patterns, sketches with constraints, datums, and configurations are well-known. This revision specifies them **explicitly** rather than leaving opaque stubs.
+A `.cadompart` file **SHOULD** be sufficient for a **conforming rebuild engine** (reference: Open CASCADE Technology — see §11.4) to reconstruct design intent expressed by its **ordered feature history**, using the vocabulary in this document. Interop across proprietary kernels remains **best-effort** for topology-sensitive features.
+
+The catalogue in §8 remains broad for industrial coverage; **Required** rebuild conformance is intentionally **narrow** (§11.2). Features outside Required are **Recommended** / informative for interchange until a documented reference engine profile exists.
 
 ### 1.1 In scope
 
-- Parameters (typed, bounded, optional expressions)
+- Parameters (typed, bounded; expressions deferred — §4.1)
 - Datums (planes, axes, points, coordinate systems)
 - 2D sketches (curves, loops, geometric & dimensional constraints)
 - Solid modeling features listed in §8
@@ -31,22 +33,28 @@ The mechanical CAD domain is mature: extrudes, revolves, holes, fillets, pattern
 
 ### 1.2 Out of scope (this revision)
 
-- Assembly mates (belong in `.cadom` / future assembly constraints doc)
+- Assembly mates (belong in `.cadom` / future assembly constraints doc; prefer vendor `Extension` first)
 - Full 3D PMI/GD&T presentation (use STEP AP242 PMI and/or future CADOM PMI extension)
 - Freeform Class-A surfacing specialty tools
 - Electrical/harness, PCB, and non-mechanical domains
 - Shipping a geometry kernel binary with the format
+- Claiming bit-identical solids across CATIA / Creo / NX / OCCT for fillet/shell/draft without shared topology selectors
 
-### 1.3 Relation to other CADOM assets
+### 1.3 Relation to other CADOM assets — geometric truth
+
+| Consumer | Geometric truth |
+|----------|-----------------|
+| Without rebuild | **STEP** (`EXACT`) and/or **`.cadomesh`** (`MESH`) on the occurrence |
+| With rebuild | Feature tree is **intent**; after rebuild, exporters **SHOULD** refresh STEP and/or `.cadomesh` |
 
 | Asset | Role |
 |-------|------|
-| `.cadompart` | Authoritative **parametric recipe** |
-| STEP | Optional **exact B-Rep snapshot** for non-rebuilding consumers |
-| `.cadomesh` | Optional **tessellation** for runtime view |
+| `.cadompart` | Optional **parametric recipe** (never a validity condition for `.cadom`) |
+| STEP | **Exact B-Rep snapshot** for non-rebuilding / metrology consumers |
+| `.cadomesh` | **Tessellation** for runtime view |
 | `.cadomat` / `.cadometa` | Appearance / metadata on the occurrence |
 
-After rebuild, exporters **SHOULD** refresh STEP and/or `.cadomesh` so non-rebuild viewers stay consistent.
+**Fil rouge:** feature history is enrichment; STEP/mesh keep the product alive.
 
 ---
 
@@ -54,15 +62,15 @@ After rebuild, exporters **SHOULD** refresh STEP and/or `.cadomesh` so non-rebui
 
 The file body **MUST** be one serialized `cadompart.v0_2.CadompartFile`.
 
-Writers of this revision **MUST** set `version_major = 0` and `version_minor = 2`.
+Writers of this revision **MUST** set `version_major = 0` and `version_minor = 2` (schema unchanged; v0.2.1 is a posture/conformance clarification).
 
 | Writer minor | Reader expectation |
 |--------------|-------------------|
 | 0 | Parameters + opaque stubs only (legacy) |
 | 1 | v0.1 feature subset |
-| 2 | This document |
+| 2 | This document (catalogue + v0.2.1 posture) |
 
-A v0.2 conforming rebuild engine **MUST** implement all **Required** features in §11. It **SHOULD** implement all **Recommended** features. It **MUST** error explicitly on unsupported non-suppressed features.
+A conforming rebuild engine **MUST** implement all **Required** features in §11.2. It **SHOULD** implement **Recommended** features (§11.3). Until a published Open CASCADE reference profile exists (§11.4), Recommended features are **informative for cross-kernel interchange**. Engines **MUST** error explicitly on unsupported non-suppressed features.
 
 ---
 
@@ -95,7 +103,7 @@ Parameters are the editable design variables.
 | `type` | **MUST NOT** be `UNSPECIFIED` |
 | value_* | **SHOULD** match type |
 | `unit` | Hint (`m`, `mm`, `in`, `deg`…); angles still stored in radians in `float_value` when `type = ANGLE` |
-| `expression` | Optional; dialect TBD in a future minor — v0.2 engines **MAY** ignore |
+| `expression` | **MUST NOT** be relied upon. Writers **MUST NOT** emit a non-empty `expression` until a versioned dialect is specified. Engines **MUST** ignore `expression` if present and use the typed value fields. |
 | `driven` | If true, value is output of constraints/solve — writers **MUST NOT** expect user edits to stick without re-solve |
 | `has_min` / `min_value`, `has_max` / `max_value` | Optional bounds; engines **SHOULD** clamp or reject out-of-range edits |
 
@@ -350,12 +358,17 @@ Industrial interchange of local operations (fillet, draft) requires selectors.
 
 ### 11.2 Rebuild engine — Required
 
+Narrow profile (SWOT P2): enough for credible demos and golden files without claiming a CATIA clone.
+
 - [ ] Parameters + datums loading
 - [ ] Sketch curves + loops + constraints (at least: coincident, horizontal, vertical, parallel, perpendicular, distance, radius)
 - [ ] Extrude, revolve, hole, boolean
 - [ ] Explicit errors on failure
+- [ ] Does **not** require `.cadompart` presence to validate a referencing `.cadom`
 
-### 11.3 Rebuild engine — Recommended (industrial completeness)
+### 11.3 Rebuild engine — Recommended (industrial catalogue)
+
+Catalogue features in §8 beyond Required remain available for authors. Cross-kernel interchange of these is **best-effort** until §11.4 is published:
 
 - [ ] Sweep, loft, helix
 - [ ] Fillet, chamfer, shell, draft, rib
@@ -365,6 +378,17 @@ Industrial interchange of local operations (fillet, draft) requires selectors.
 - [ ] Transform body
 - [ ] Configurations
 
+### 11.4 Reference engine (Open CASCADE)
+
+*Normative posture for “conforming rebuild” claims.*
+
+1. The **reference rebuild engine** for OpenCAD **MUST** be documented against **Open CASCADE Technology (OCCT)** (version, linear/angular tolerances, id scheme).
+2. Until that profile is published, claims of full industrial rebuild interop **MUST NOT** be made; Required (§11.2) demos **MAY** ship with golden STEP/mesh outputs.
+3. Other kernels (Parasolid, CGM, Granite, etc.) **MAY** consume `.cadompart` on a **best-effort** basis; failures on topology-sensitive features **MUST** be explicit errors, not silent wrong solids.
+
+### 11.5 Feature history = best-effort intent
+
+Fillet/chamfer/shell and similar operations that depend on edge/face ids **MUST** surface mapping failures explicitly (§10). A future minor **MAY** add geometric selectors (point + direction / nearest entity) to reduce kernel-local id fragility.
 ---
 
 ## 12. Binding to CADOM assemblies
@@ -373,9 +397,9 @@ Occurrence nodes **SHOULD** bind:
 
 | Role | Asset |
 |------|--------|
-| `PARAMETRIC` | `.cadompart` |
-| `MESH` | `.cadomesh` derived from rebuild |
-| optional exact | STEP |
+| `PARAMETRIC` | `.cadompart` (optional) |
+| `MESH` | `.cadomesh` (display truth without rebuild) |
+| `EXACT` | STEP (exact truth without rebuild) |
 
 `Override` transforms still apply at assembly level without mutating this file.
 
@@ -406,3 +430,4 @@ Occurrence nodes **SHOULD** bind:
 | 0.0 | 2026-09-14 | Parameter bag + opaque stubs |
 | 0.1 | 2026-09-15 | Initial normative features (option A) |
 | 0.2 | 2026-09-15 | Exhaustive industrial catalogue: constraints, datums, sweep/loft/shell/draft/rib/thread/helix/configs, conformance tiers (#45) |
+| 0.2.1 | 2026-09-15 | SWOT P2 posture: geometric truth = STEP/mesh; narrow Required; forbid expressions until dialect; OCCT reference engine (#49) |
