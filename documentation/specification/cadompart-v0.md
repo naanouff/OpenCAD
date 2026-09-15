@@ -1,6 +1,6 @@
-# CADOMPART Specification v0
+# CADOMPART Specification v0.1
 
-**Status:** draft initial (v0)  
+**Status:** draft (v0.1) — supersedes v0.0 “parameter bag”  
 **File extension:** `.cadompart`  
 **Serialization:** Protocol Buffers — [`packages/cadompart-proto/cadompart.proto`](../../packages/cadompart-proto/cadompart.proto)  
 **Language:** English (normative)  
@@ -8,93 +8,145 @@
 
 The key words **MUST**, **MUST NOT**, **SHOULD**, **MAY** are as in [RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119).
 
-## 1. Purpose
+## 1. Purpose and ambition
 
-CADOMPART stores **parametric part-definition data** (named parameters and optional feature stubs). It is **not**:
+CADOMPART is the CADOM-native **parametric part definition** format for modern industrial interchange.
+
+It **MUST** provide:
+
+1. An ordered **feature history** with a **normative vocabulary** of operations;
+2. Typed **parameters** that drive those operations;
+3. Enough semantics that a **conforming rebuild engine** can reconstruct the intended solid from the file alone (for features defined in this revision).
+
+CADOMPART is **not**:
 
 - the assembly occurrence graph (`.cadom`);
-- tessellated display geometry (`.cadomesh`);
-- a full CAD rebuild kernel or feature-history standard.
+- display tessellation (`.cadomesh`) — though tools **SHOULD** refresh mesh assets after rebuild;
+- a proprietary kernel binary (Parasolid/ACIS dump). Exact B-Rep **MAY** also be published alongside as STEP for downstream consumers that do not rebuild.
 
-v0 defines a portable **parameter bag** plus lightweight **feature** records so tools can exchange editable parameters without mandating a specific modeller.
+### 1.1 Design stance
+
+CADOM does not ship a geometry kernel in the format itself. It **standardizes the recipe**. Any conforming modeller / open kernel binding (OpenCascade, etc.) **MUST** interpret the normative features in this document the same way.
 
 ## 2. File layout
 
-The entire `.cadompart` file body **MUST** be a single serialized `cadompart.v0.CadompartFile` Protobuf message.
+The entire `.cadompart` file body **MUST** be a single serialized `cadompart.v0_1.CadompartFile` message.
 
-Writers producing v0 **MUST** set `version_major = 0` and `version_minor = 0`.
+Writers producing this revision **MUST** set `version_major = 0` and `version_minor = 1`.
 
-## 3. Parameters
+Readers that only implement v0.0 parameter bags **MUST** reject or explicitly open-in-compatibility-mode files with `version_minor >= 1` that contain typed feature bodies.
 
-Each `Parameter` **MUST** have:
+## 3. Units and axes
+
+- If `units` is `UNSPECIFIED`, readers **MUST** assume **metres**.
+- If `up_axis` is `UNSPECIFIED`, readers **MUST** assume **Y-up**.
+- Linear quantities in feature payloads (distances, radii, positions) **MUST** be expressed in the file’s length unit.
+- Angles in feature payloads **MUST** be in **radians**.
+
+## 4. Parameters
+
+Parameters remain a first-class table for UI, configurations, and expressions.
 
 | Field | Rule |
 |-------|------|
 | `id` | Non-empty; unique within the file |
-| `name` | **SHOULD** be non-empty for UI |
 | `type` | **MUST NOT** be `UNSPECIFIED` when written |
+| value fields | **SHOULD** match `type` (see v0.0 table: FLOAT/INT/BOOL/STRING/VEC3) |
+| `expression` | Optional unevaluated authoring string; engines **MAY** support a future expression dialect |
 
-### 3.1 Values
+Duplicate parameter `id` **MUST** be rejected.
 
-Writers **SHOULD** set exactly one value field matching `type`:
+Features **MAY** list `parameter_ids` they depend on for tooling; the geometric payload fields remain authoritative for rebuild unless a future revision defines binding rules from parameters → fields.
 
-| `type` | Value field |
-|--------|-------------|
-| `FLOAT` | `float_value` |
-| `INT` | `int_value` |
-| `BOOL` | `bool_value` |
-| `STRING` | `string_value` |
-| `VEC3` | `vec3_value` |
+## 5. Feature history
 
-Readers that encounter a mismatched or missing value **SHOULD** warn and **MAY** treat the parameter as unset for evaluation while still round-tripping bytes.
+`features` is an **ordered** list. Index `0` is applied first. Each entry **MUST** set exactly one `body` oneof.
 
-`unit` is an optional hint (e.g. `m`, `mm`, `deg`). Empty means no declared unit. Interpretation of units is application-defined in v0; when the part is used under a `.cadom` in metres, float length parameters **SHOULD** be stored in metres unless `unit` says otherwise.
+- `suppressed = true` **MUST** skip the feature during rebuild while retaining it for round-trip.
+- Unknown future `oneof` variants **MUST** be preserved on round-trip when the runtime allows; a v0.1 engine that does not understand them **MUST** fail rebuild with an explicit unsupported-feature error (not silent skip), unless `suppressed`.
 
-`expression` is an optional unevaluated string for authoring systems. CADOM core **MUST NOT** require evaluating expressions.
+Duplicate feature `id` **MUST** be rejected.
 
-## 4. Features
+### 5.1 Rebuild result model (normative intent)
 
-Each `Feature` is a stub:
+A conforming rebuild **MUST** maintain a current solid body (possibly empty at start). Features mutate that body according to §§6–7. Edge ids referenced by fillet/chamfer are **implementation-defined labels** produced by the engine for prior geometry; files that rely on edge ids **SHOULD** also ship a companion STEP or document edge mapping — v0.1 edge identity is best-effort across kernels (**known limitation**).
 
-| Field | Meaning |
-|-------|---------|
-| `id` | Unique within the file |
-| `type` | Opaque type token (`extrude`, `hole`, …) — **no** closed vocabulary in v0 |
-| `name` | Optional label |
-| `parameter_ids` | References to `Parameter.id` values used by this feature |
+## 6. Normative feature vocabulary (v0.1)
 
-Unknown `type` values **MUST** be preserved. Readers that do not understand a feature **MUST** still round-trip it (same spirit as CADOM extensions).
+### 6.1 `sketch`
 
-Duplicate `id` among parameters or among features **MUST** be rejected.
+Defines a 2D profile in a plane:
 
-## 5. Binding to CADOM
+- `origin`, `x_axis`, `y_axis` — plane in part space (`x_axis` × `y_axis` **SHOULD** be unit and orthogonal; readers **MAY** orthonormalize);
+- `curves` — lines, circles, arcs;
+- `outer_loop` — indices into `curves` for the outer boundary; if empty, curves **MUST** be interpreted in list order as one outer loop.
 
-A part occurrence node **SHOULD** bind this file with role `PARAMETRIC`. Display **SHOULD** still use a `MESH` binding (often `.cadomesh`) produced by a modeller or tessellator — CADOMPART alone does not define triangles.
+Inner loops / holes in sketch **are not** in v0.1 (use separate cut features).
 
-## 6. Validation summary
+### 6.2 `extrude`
 
-A v0 reader **MUST** reject:
+- `profile_sketch_id` **MUST** refer to a prior `sketch` feature.
+- `distance` **MUST** be > 0.
+- If `direction` is zero-length, use the sketch plane normal (`x_axis` × `y_axis`).
+- `symmetric` extrudes ± distance/2 along direction.
+- `cut = false` adds material (union with current body, or creates body if empty).
+- `cut = true` subtracts from current body (**MUST** fail if body empty).
 
-- empty `Parameter.id` / `Feature.id`;
-- duplicate parameter or feature ids;
-- `ParamType.UNSPECIFIED` on a written parameter.
+### 6.3 `revolve`
 
-## 7. Normative schema
+- Profile sketch + axis (`axis_origin`, `axis_direction` non-zero) + `angle_rad` in `(0, 2π]`.
+- `cut` as for extrude.
 
-See [`packages/cadompart-proto/cadompart.proto`](../../packages/cadompart-proto/cadompart.proto).
+### 6.4 `hole`
 
-## 8. Out of scope for v0
+- `position` + `axis` (non-zero) + `diameter` > 0 + `depth`.
+- `hole_type` selects simple / counterbore / countersink; counterbore/sink dimensions **MUST** be set when type requires them.
+- Applied as subtractive geometry on the current body.
 
-- Constraint solvers, sketches, B-Rep recipes
-- Guaranteed rebuild across vendors
-- Inheritance / configuration tables (may come later)
+### 6.5 `fillet` / `chamfer`
 
-## 9. Example
+- `edge_ids` select target edges; `radius` / `distance` **MUST** be > 0.
+- If `edge_ids` is empty, behaviour is application-defined and **MUST NOT** be relied on for interchange.
 
-*Informative.* See [`fixtures/cadompart/example-box-params.md`](../../fixtures/cadompart/example-box-params.md).
+### 6.6 `boolean`
+
+- `op`: union / subtract / intersect.
+- `tool_feature_id` **MUST** refer to a prior feature whose solid contribution is the tool body (engines **MUST** define how feature solids are retained for boolean tools).
+
+### 6.7 `pattern_linear` / `pattern_circular`
+
+- Instance a prior feature’s contribution `count` times along a direction or about an axis.
+- `count` **MUST** be ≥ 1; for patterns that include the source, engines **MUST** document whether the source is duplicated or count includes the original — **v0.1 rule:** `count` is the **total** number of instances including the source.
+
+## 7. Conformance tiers
+
+| Tier | Requirement |
+|------|-------------|
+| **Reader (round-trip)** | Preserve all fields/features; validate ids and oneof presence |
+| **Rebuild engine (conformant)** | Implement sketch, extrude, revolve, hole, boolean; fillet/chamfer/patterns **SHOULD** be implemented; unsupported non-suppressed features → explicit error |
+| **Authoring exporter** | Emit ordered history using only normative kinds above (or mark experimental extensions via CADOM `Extension` on the assembly, not inside cadompart v0.1) |
+
+## 8. Binding to CADOM
+
+A part occurrence **SHOULD** bind:
+
+| Role | Asset |
+|------|--------|
+| `PARAMETRIC` | this `.cadompart` |
+| `MESH` | tessellation derived from rebuild (`.cadomesh`) and/or |
+| exact | `STEP` asset for consumers that skip rebuild |
+
+## 9. Relation to v0.0
+
+v0.0 defined only a parameter bag + opaque feature stubs. That model is **insufficient** for industrial rebuild interchange and is **superseded** by v0.1. Tools **MAY** still read v0.0 (`version_minor = 0`) as parameters-only.
+
+## 10. Example
+
+*Informative.* See [`fixtures/cadompart/example-extruded-plate.md`](../../fixtures/cadompart/example-extruded-plate.md).
 
 ## Changelog
 
 | Version | Date | Notes |
 |---------|------|-------|
-| 0.0 | 2026-09-14 | Initial draft (NATIVE-02) |
+| 0.0 | 2026-09-14 | Parameter bag + opaque stubs (superseded) |
+| 0.1 | 2026-09-15 | Normative feature history + rebuild ambition (option A) (#43) |

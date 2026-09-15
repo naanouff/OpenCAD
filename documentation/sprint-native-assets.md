@@ -12,7 +12,7 @@ All required initial v0 specs are published. See [specification/native-assets-v0
 |--------|----------|-------|
 | `.cadom` | [cadom-v0.1.md](specification/cadom-v0.1.md) (v0.3+) | done |
 | `.cadomesh` | [cadomesh-v0.md](specification/cadomesh-v0.md) | [#31](https://github.com/naanouff/OpenCAD/issues/31) — done |
-| `.cadompart` | [cadompart-v0.md](specification/cadompart-v0.md) | [#32](https://github.com/naanouff/OpenCAD/issues/32) — done |
+| `.cadompart` | [cadompart-v0.md](specification/cadompart-v0.md) (**v0.1** feature history) | [#32](https://github.com/naanouff/OpenCAD/issues/32) / ambition [#43](https://github.com/naanouff/OpenCAD/issues/43) |
 | `.cadomat` | [cadomat-v0.md](specification/cadomat-v0.md) | [#33](https://github.com/naanouff/OpenCAD/issues/33) — done |
 | `.cadometa` | [cadometa-v0.md](specification/cadometa-v0.md) | [#34](https://github.com/naanouff/OpenCAD/issues/34) — done |
 

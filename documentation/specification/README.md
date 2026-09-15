@@ -9,7 +9,7 @@ This directory is the **source of truth** for the CADOM format specification.
 | [v0.2-amendment.md](v0.2-amendment.md) | Amendment | Native cadomesh / cadompart / cadomat |
 | [cadomesh-v0.md](cadomesh-v0.md) | **v0 draft** | Tessellated mesh companion |
 | [cadomat-v0.md](cadomat-v0.md) | **v0 draft** | PBR material (Khronos / glTF MR) |
-| [cadompart-v0.md](cadompart-v0.md) | **v0 draft** | Parametric part definition |
+| [cadompart-v0.md](cadompart-v0.md) | **v0.1 draft** | Parametric part + normative feature history |
 | [cadometa-v0.md](cadometa-v0.md) | **v0 draft** | Metadata companion |
 | [native-assets-v0-freeze.md](native-assets-v0-freeze.md) | **Frozen** | Gate lifted — SDK allowed |
 | [v0.3-amendment.md](v0.3-amendment.md) | Amendment | Multi-asset bindings + cadometa |

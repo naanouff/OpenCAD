@@ -37,7 +37,7 @@ The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**, **
 | **Pass-through** | Preserve and rewrite unknown extension bytes unchanged |
 | **Late tessellation** | Load the graph first; fetch / tessellate geometry asynchronously |
 | **cadomesh** | Native CADOM tessellated mesh asset (`.cadomesh`) |
-| **cadompart** | Native CADOM parametric part-definition asset (`.cadompart`) |
+| **cadompart** | Native CADOM parametric part definition with normative feature history (`.cadompart`) |
 | **cadomat** | Native CADOM PBR material asset (`.cadomat`), Khronos-aligned |
 | **cadometa** | Native CADOM metadata asset (`.cadometa`) |
 | **Asset binding** | Role-typed link from a Node to an Asset (mesh / parametric / material / metadata) |
@@ -364,15 +364,15 @@ A **cadomesh** asset is a CADOM-native **triangle (or indexed) mesh** for displa
 
 *Normative binary layout of `.cadomesh` **v0** is defined in [`cadomesh-v0.md`](cadomesh-v0.md) and [`packages/cadomesh-proto/cadomesh.proto`](../../packages/cadomesh-proto/cadomesh.proto).*
 
-### 4.9 Native format: cadompart (parametric data)
+### 4.9 Native format: cadompart (parametric / feature history)
 
-A **cadompart** asset holds **parametric** part definition data (construction / feature-oriented parameters), not the assembly occurrence graph (that remains in `.cadom` nodes).
+A **cadompart** asset holds the **parametric part definition** and **normative feature history** for rebuild by conforming engines.
 
 - Conventional file extension: `.cadompart`
 - `Asset.kind` **MUST** be `CADOMPART`
-- A part occurrence node **MAY** reference a cadompart for authoring/rebuild workflows while also referencing a cadomesh (or STEP/glTF) for visualization via a separate node or future multi-asset links
-
-*Normative parametric schema of `.cadompart` **v0** is defined in [`cadompart-v0.md`](cadompart-v0.md) and [`packages/cadompart-proto/cadompart.proto`](../../packages/cadompart-proto/cadompart.proto).*
+- Bound with role `PARAMETRIC`
+- Normative spec: [`cadompart-v0.md`](cadompart-v0.md) (**v0.1** — feature vocabulary + rebuild semantics)
+- Schema: [`packages/cadompart-proto/cadompart.proto`](../../packages/cadompart-proto/cadompart.proto)
 
 ### 4.10 Native format: cadomat (PBR material)
 
