@@ -1,11 +1,12 @@
-# CADOMPART Specification v0.2.1
+# CADOMPART Specification v0.2.2
 
-**Status:** draft (v0.2.1) — SWOT realism posture (geometric truth without rebuild; narrow Required)  
+**Status:** draft (v0.2.2) — OpenCAD doctrine B3 + K3 (intent = cadompart; exact = OpenCAD Kernel; viz = cadomesh)  
 **File extension:** `.cadompart`  
 **Serialization:** Protocol Buffers — [`packages/cadompart-proto/cadompart.proto`](../../packages/cadompart-proto/cadompart.proto)  
 **Language:** English (normative)  
 **CADOM kind:** `AssetKind.CADOMPART` / role `PARAMETRIC`  
-**Supersedes:** v0.0 (parameter bag), v0.1 (initial feature set); amends v0.2 catalogue with interchange posture
+**Doctrine:** [`../opencad-doctrine.md`](../opencad-doctrine.md)  
+**Supersedes:** v0.0–v0.2.1 postures where they conflict with doctrine B3+K3
 
 The key words **MUST**, **MUST NOT**, **SHOULD**, **MAY** are as in [RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119).
 
@@ -13,13 +14,13 @@ The key words **MUST**, **MUST NOT**, **SHOULD**, **MAY** are as in [RFC 2119](h
 
 ## 1. Purpose
 
-CADOMPART is the CADOM **optional companion** for **parametric solid part definition** (feature history / rebuild recipe).
+CADOMPART is the CADOM **parametric solid part definition** (feature history / rebuild recipe). Under OpenCAD doctrine it is **co-primary** with assembly orchestration: intent lives here; exact solids are produced by the **OpenCAD Kernel (K3)**.
 
-It is **not** required to validate a `.cadom` product. A CADOM assembly with STEP (`EXACT`) and/or `.cadomesh` (`MESH`) **MUST** remain a complete visualizable product when `.cadompart` is absent, unreadable, or non-rebuildable.
+A **graph-only** `.cadom` **MAY** omit `.cadompart`. A **Design** or **Complete** OpenCAD product **MUST** provide `.cadompart` for part occurrences that claim parametric/exact design. Kernel-free **Viz** profiles use `.cadomesh` only.
 
-A `.cadompart` file **SHOULD** be sufficient for a **conforming rebuild engine** (reference: Open CASCADE Technology — see §11.4) to reconstruct design intent expressed by its **ordered feature history**, using the vocabulary in this document. Interop across proprietary kernels remains **best-effort** for topology-sensitive features.
+A `.cadompart` file **MUST** be sufficient for the **OpenCAD Kernel** Required profile (§11.2) to reconstruct design intent expressed by its **ordered feature history**, using the vocabulary in this document. Other kernels remain **best-effort**.
 
-The catalogue in §8 remains broad for industrial coverage; **Required** rebuild conformance is intentionally **narrow** (§11.2). Features outside Required are **Recommended** / informative for interchange until a documented reference engine profile exists.
+The catalogue in §8 remains broad for industrial coverage; **Required** rebuild conformance is intentionally **narrow** (§11.2). Features outside Required are **Recommended** / informative for interchange until kernel badges grow. Method: **TDD** and mass golden tests (see [`../sprint-kernel-k3.md`](../sprint-kernel-k3.md)).
 
 ### 1.1 In scope
 
@@ -34,27 +35,26 @@ The catalogue in §8 remains broad for industrial coverage; **Required** rebuild
 ### 1.2 Out of scope (this revision)
 
 - Assembly mates (belong in `.cadom` / future assembly constraints doc; prefer vendor `Extension` first)
-- Full 3D PMI/GD&T presentation (use STEP AP242 PMI and/or future CADOM PMI extension)
+- Full 3D PMI/GD&T presentation (future mesh/kernel face ids; not specified here)
 - Freeform Class-A surfacing specialty tools
 - Electrical/harness, PCB, and non-mechanical domains
-- Shipping a geometry kernel binary with the format
-- Claiming bit-identical solids across CATIA / Creo / NX / OCCT for fillet/shell/draft without shared topology selectors
+- Claiming bit-identical solids across CATIA / Creo / NX without shared topology selectors
+- Treating industry STEP/AP242 as OpenCAD geometric truth
 
 ### 1.3 Relation to other CADOM assets — geometric truth
 
 | Consumer | Geometric truth |
 |----------|-----------------|
-| Without rebuild | **STEP** (`EXACT`) and/or **`.cadomesh`** (`MESH`) on the occurrence |
-| With rebuild | Feature tree is **intent**; after rebuild, exporters **SHOULD** refresh STEP and/or `.cadomesh` |
+| Without kernel (Viz) | **`.cadomesh`** (`MESH`) on the occurrence |
+| With OpenCAD Kernel (Design/Complete) | **`.cadompart`** intent → kernel solid; exporters **SHOULD** refresh `.cadomesh` |
 
 | Asset | Role |
 |-------|------|
-| `.cadompart` | Optional **parametric recipe** (never a validity condition for `.cadom`) |
-| STEP | **Exact B-Rep snapshot** for non-rebuilding / metrology consumers |
-| `.cadomesh` | **Tessellation** for runtime view |
+| `.cadompart` | **Parametric recipe** (co-primary for Design/Complete) |
+| `.cadomesh` | **Tessellation** for kernel-free viz |
 | `.cadomat` / `.cadometa` | Appearance / metadata on the occurrence |
 
-**Fil rouge:** feature history is enrichment; STEP/mesh keep the product alive.
+**Fil rouge:** cadompart + OpenCAD Kernel = exact/intent; cadomesh = viz without kernel.
 
 ---
 
@@ -62,15 +62,15 @@ The catalogue in §8 remains broad for industrial coverage; **Required** rebuild
 
 The file body **MUST** be one serialized `cadompart.v0_2.CadompartFile`.
 
-Writers of this revision **MUST** set `version_major = 0` and `version_minor = 2` (schema unchanged; v0.2.1 is a posture/conformance clarification).
+Writers of this revision **MUST** set `version_major = 0` and `version_minor = 2` (schema unchanged; v0.2.2 is doctrine alignment).
 
 | Writer minor | Reader expectation |
 |--------------|-------------------|
 | 0 | Parameters + opaque stubs only (legacy) |
 | 1 | v0.1 feature subset |
-| 2 | This document (catalogue + v0.2.1 posture) |
+| 2 | This document (catalogue + doctrine B3+K3) |
 
-A conforming rebuild engine **MUST** implement all **Required** features in §11.2. It **SHOULD** implement **Recommended** features (§11.3). Until a published Open CASCADE reference profile exists (§11.4), Recommended features are **informative for cross-kernel interchange**. Engines **MUST** error explicitly on unsupported non-suppressed features.
+A conforming **OpenCAD Kernel** **MUST** implement all **Required** features in §11.2. It **SHOULD** implement **Recommended** features (§11.3). Recommended features are **informative for interchange** until kernel badges grow. Engines **MUST** error explicitly on unsupported non-suppressed features.
 
 ---
 
@@ -358,17 +358,17 @@ Industrial interchange of local operations (fillet, draft) requires selectors.
 
 ### 11.2 Rebuild engine — Required
 
-Narrow profile (SWOT P2): enough for credible demos and golden files without claiming a CATIA clone.
+Narrow profile (agile / TDD): enough for credible golden files without claiming a full industrial clone.
 
 - [ ] Parameters + datums loading
 - [ ] Sketch curves + loops + constraints (at least: coincident, horizontal, vertical, parallel, perpendicular, distance, radius)
 - [ ] Extrude, revolve, hole, boolean
 - [ ] Explicit errors on failure
-- [ ] Does **not** require `.cadompart` presence to validate a referencing `.cadom`
+- [ ] Tessellation export path to `.cadomesh` for Viz/Complete profiles
 
 ### 11.3 Rebuild engine — Recommended (industrial catalogue)
 
-Catalogue features in §8 beyond Required remain available for authors. Cross-kernel interchange of these is **best-effort** until §11.4 is published:
+Catalogue features in §8 beyond Required remain available for authors. Cross-kernel interchange of these is **best-effort** until OpenCAD Kernel badges cover them:
 
 - [ ] Sweep, loft, helix
 - [ ] Fillet, chamfer, shell, draft, rib
@@ -378,17 +378,19 @@ Catalogue features in §8 beyond Required remain available for authors. Cross-ke
 - [ ] Transform body
 - [ ] Configurations
 
-### 11.4 Reference engine (Open CASCADE)
+### 11.4 Reference engine — OpenCAD Kernel (K3)
 
 *Normative posture for “conforming rebuild” claims.*
 
-1. The **reference rebuild engine** for OpenCAD **MUST** be documented against **Open CASCADE Technology (OCCT)** (version, linear/angular tolerances, id scheme).
-2. Until that profile is published, claims of full industrial rebuild interop **MUST NOT** be made; Required (§11.2) demos **MAY** ship with golden STEP/mesh outputs.
-3. Other kernels (Parasolid, CGM, Granite, etc.) **MAY** consume `.cadompart` on a **best-effort** basis; failures on topology-sensitive features **MUST** be explicit errors, not silent wrong solids.
+1. The **reference rebuild engine** for OpenCAD **MUST** be the **OpenCAD Kernel** product component (see [`../opencad-doctrine.md`](../opencad-doctrine.md) and [`../sprint-kernel-k3.md`](../sprint-kernel-k3.md)).
+2. Implementation **MAY** bootstrap on Open CASCADE Technology (or another library); the **product contract** is OpenCAD Kernel versioning, tolerances, and id scheme — not “bring your own kernel”.
+3. Until the first Required badge ships, claims of full industrial rebuild interop **MUST NOT** be made; Required demos **MAY** ship with golden **cadomesh** outputs.
+4. Third-party kernels **MAY** consume `.cadompart` on a **best-effort** basis; failures on topology-sensitive features **MUST** be explicit errors.
 
-### 11.5 Feature history = best-effort intent
+### 11.5 Feature history = intent under kernel rebuild
 
-Fillet/chamfer/shell and similar operations that depend on edge/face ids **MUST** surface mapping failures explicitly (§10). A future minor **MAY** add geometric selectors (point + direction / nearest entity) to reduce kernel-local id fragility.
+Fillet/chamfer/shell and similar operations that depend on edge/face ids **MUST** surface mapping failures explicitly (§10). A future minor **MAY** add geometric selectors (point + direction / nearest entity) to reduce id fragility.
+
 ---
 
 ## 12. Binding to CADOM assemblies
@@ -397,9 +399,8 @@ Occurrence nodes **SHOULD** bind:
 
 | Role | Asset |
 |------|--------|
-| `PARAMETRIC` | `.cadompart` (optional) |
-| `MESH` | `.cadomesh` (display truth without rebuild) |
-| `EXACT` | STEP (exact truth without rebuild) |
+| `PARAMETRIC` | `.cadompart` (required for Design/Complete) |
+| `MESH` | `.cadomesh` (viz truth without kernel; refresh after rebuild) |
 
 `Override` transforms still apply at assembly level without mutating this file.
 
@@ -431,3 +432,4 @@ Occurrence nodes **SHOULD** bind:
 | 0.1 | 2026-09-15 | Initial normative features (option A) |
 | 0.2 | 2026-09-15 | Exhaustive industrial catalogue: constraints, datums, sweep/loft/shell/draft/rib/thread/helix/configs, conformance tiers (#45) |
 | 0.2.1 | 2026-09-15 | SWOT P2 posture: geometric truth = STEP/mesh; narrow Required; forbid expressions until dialect; OCCT reference engine (#49) |
+| 0.2.2 | 2026-09-15 | Doctrine B3+K3: cadompart+OpenCAD Kernel = truth; viz = cadomesh; STEP out of model (#51) |

@@ -1,8 +1,10 @@
 # Rapport SWOT expert — spécifications CADOM
 
-**Statut :** document de process (non normatif)  
+**Statut :** document de process (non normatif) — **analyse historique**  
 **Date :** 2026-09-15  
 **Issue :** [#47](https://github.com/naanouff/OpenCAD/issues/47)  
+
+> **Doctrine produit (2026-09-15) :** les décisions B + B3 + K3 + « pas de STEP comme vérité OpenCAD » dans [`opencad-doctrine.md`](opencad-doctrine.md) **priment** sur le fil rouge SWOT ci-dessous (JT-web sans kernel). Conserver ce fichier pour le raisonnement et le backlog P1/P3 ; ne pas le traiter comme contrat produit.
 **Périmètre lu :** CADOM v0.3 (fichier historique `cadom-v0.1.md`), cadomesh / cadompart v0.2 / cadomat / cadometa v0, freeze native assets, amendements v0.2–v0.3, schémas Protobuf associés  
 **Auteur :** revue d’expert CAO industrielle (automobile, aviation, horlogerie) + architecture de formats d’échange  
 **Référentiels de comparaison :** CATIA V5 / 3DEXPERIENCE, Creo, NX, JT, 3DXML, USD, STEP AP242, glTF 2.0
