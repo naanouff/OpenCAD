@@ -1,4 +1,5 @@
-# Example — parametric box `.cadompart`
+﻿> **Superseded for rebuild demos:** prefer [example-extruded-plate.md](example-extruded-plate.md) (cadompart v0.1). This file remains as a v0.0-style parameters illustration.
+# Example â€” parametric box `.cadompart`
 
 *Informative logical document (not binary Protobuf).*
 
@@ -36,3 +37,4 @@ features:
     name: "Edge fillet"
     parameter_ids: ["p-fillet"]
 ```
+
