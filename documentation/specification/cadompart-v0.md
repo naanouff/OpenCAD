@@ -1,12 +1,12 @@
 # CADOMPART Specification v0.2.2
 
-**Status:** draft (v0.2.2) — OpenCAD doctrine B3 + K3 (intent = cadompart; exact = OpenCAD Kernel; viz = cadomesh)  
+**Status:** draft (v0.2.2) — OpenCAD doctrine B3′ + K3 (intent = cadompart; exact runtime = kernel; exact dead = cadombrep; viz = cadomesh)  
 **File extension:** `.cadompart`  
 **Serialization:** Protocol Buffers — [`packages/cadompart-proto/cadompart.proto`](../../packages/cadompart-proto/cadompart.proto)  
 **Language:** English (normative)  
 **CADOM kind:** `AssetKind.CADOMPART` / role `PARAMETRIC`  
 **Doctrine:** [`../opencad-doctrine.md`](../opencad-doctrine.md)  
-**Supersedes:** v0.0–v0.2.1 postures where they conflict with doctrine B3+K3
+**Supersedes:** v0.0–v0.2.1 postures where they conflict with doctrine B3′+K3
 
 The key words **MUST**, **MUST NOT**, **SHOULD**, **MAY** are as in [RFC 2119](https://datatracker.ietf.org/doc/html/rfc2119).
 
@@ -14,9 +14,9 @@ The key words **MUST**, **MUST NOT**, **SHOULD**, **MAY** are as in [RFC 2119](h
 
 ## 1. Purpose
 
-CADOMPART is the CADOM **parametric solid part definition** (feature history / rebuild recipe). Under OpenCAD doctrine it is **co-primary** with assembly orchestration: intent lives here; exact solids are produced by the **OpenCAD Kernel (K3)**.
+CADOMPART is the CADOM **parametric solid part definition** (feature history / rebuild recipe). Under OpenCAD doctrine it is **co-primary** with assembly orchestration: intent lives here; exact solids at runtime are produced by the **OpenCAD Kernel (K3)**; exact solids for exchange / metrology / archive are persisted as **`.cadombrep`**.
 
-A **graph-only** `.cadom` **MAY** omit `.cadompart`. A **Design** or **Complete** OpenCAD product **MUST** provide `.cadompart` for part occurrences that claim parametric/exact design. Kernel-free **Viz** profiles use `.cadomesh` only.
+A **graph-only** `.cadom` **MAY** omit `.cadompart`. A **Design** OpenCAD product **MUST** provide `.cadompart` for part occurrences that claim parametric design. A **Complete** product **MUST** also bind `.cadomesh` and `.cadombrep` (see doctrine). Kernel-free **Viz** profiles use `.cadomesh` only.
 
 A `.cadompart` file **MUST** be sufficient for the **OpenCAD Kernel** Required profile (§11.2) to reconstruct design intent expressed by its **ordered feature history**, using the vocabulary in this document. Other kernels remain **best-effort**.
 
@@ -46,15 +46,17 @@ The catalogue in §8 remains broad for industrial coverage; **Required** rebuild
 | Consumer | Geometric truth |
 |----------|-----------------|
 | Without kernel (Viz) | **`.cadomesh`** (`MESH`) on the occurrence |
-| With OpenCAD Kernel (Design/Complete) | **`.cadompart`** intent → kernel solid; exporters **SHOULD** refresh `.cadomesh` |
+| With OpenCAD Kernel (Design) | **`.cadompart`** intent → kernel solid; exporters **SHOULD** refresh `.cadomesh` |
+| Complete / metrology / archive | **`.cadombrep`** (`EXACT`) dead envelope; exporters **MUST** refresh after rebuild together with `.cadomesh` |
 
 | Asset | Role |
 |-------|------|
 | `.cadompart` | **Parametric recipe** (co-primary for Design/Complete) |
+| `.cadombrep` | **Dead exact B-Rep** (MUST for Complete) |
 | `.cadomesh` | **Tessellation** for kernel-free viz |
 | `.cadomat` / `.cadometa` | Appearance / metadata on the occurrence |
 
-**Fil rouge:** cadompart + OpenCAD Kernel = exact/intent; cadomesh = viz without kernel.
+**Fil rouge:** cadompart = intent; kernel = exact runtime; cadombrep = exact dead; cadomesh = viz without kernel.
 
 ---
 
@@ -365,6 +367,7 @@ Narrow profile (agile / TDD): enough for credible golden files without claiming 
 - [ ] Extrude, revolve, hole, boolean
 - [ ] Explicit errors on failure
 - [ ] Tessellation export path to `.cadomesh` for Viz/Complete profiles
+- [ ] Dead B-Rep export path to `.cadombrep` for Complete profiles (see cadombrep-v0 stub)
 
 ### 11.3 Rebuild engine — Recommended (industrial catalogue)
 
@@ -401,6 +404,7 @@ Occurrence nodes **SHOULD** bind:
 |------|--------|
 | `PARAMETRIC` | `.cadompart` (required for Design/Complete) |
 | `MESH` | `.cadomesh` (viz truth without kernel; refresh after rebuild) |
+| `EXACT` | `.cadombrep` (**MUST** for Complete; refresh after rebuild) |
 
 `Override` transforms still apply at assembly level without mutating this file.
 
@@ -433,3 +437,4 @@ Occurrence nodes **SHOULD** bind:
 | 0.2 | 2026-09-15 | Exhaustive industrial catalogue: constraints, datums, sweep/loft/shell/draft/rib/thread/helix/configs, conformance tiers (#45) |
 | 0.2.1 | 2026-09-15 | SWOT P2 posture: geometric truth = STEP/mesh; narrow Required; forbid expressions until dialect; OCCT reference engine (#49) |
 | 0.2.2 | 2026-09-15 | Doctrine B3+K3: cadompart+OpenCAD Kernel = truth; viz = cadomesh; STEP out of model (#51) |
+| 0.2.2+ | 2026-09-16 | Align B3′: dead exact = `.cadombrep` on Complete (#55) — schema unchanged |
