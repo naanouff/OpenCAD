@@ -10,12 +10,13 @@ The key words **MUST**, **MUST NOT**, **SHOULD**, **MAY** are as in [RFC 2119](h
 
 ## 1. Purpose
 
-CADOMESH is the CADOM-native **tessellated triangle mesh** format for display and GPU upload. It is the **kernel-free visualization** path in OpenCAD doctrine (B3). It does **not** replace `.cadompart` intent or the OpenCAD Kernel, and it does not replace CADOM assembly structure (`.cadom`).
+CADOMESH is the CADOM-native **tessellated triangle mesh** format for display and GPU upload. It is the **kernel-free visualization** path in OpenCAD doctrine (B3′). It does **not** replace `.cadompart` intent, `.cadombrep` dead exact, or the OpenCAD Kernel, and it does not replace CADOM assembly structure (`.cadom`).
 
 A Complete OpenCAD part occurrence typically binds:
 
 - `MESH` → `.cadomesh` (this format) and/or glTF/GLB
 - `PARAMETRIC` → `.cadompart` (rebuild via OpenCAD Kernel)
+- `EXACT` → `.cadombrep` (dead B-Rep envelope)
 - optionally `MATERIAL` / `METADATA` → other companion files
 
 Supported length units when set on the mesh: `METRES`, `MILLIMETRES`, `INCHES` (aligned with CADOM assembly). `UNSPECIFIED` still means inherit from `.cadom`.

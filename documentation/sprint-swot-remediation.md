@@ -3,10 +3,10 @@
 **Status:** process backlog (non-normative)  
 **Current analysis:** [cadom-spec-swot.md](cadom-spec-swot.md) (SWOT-2, #53)  
 **Product doctrine (wins on conflict):** [opencad-doctrine.md](opencad-doctrine.md)  
-**Done:** P0 hygiene (#49) · Doctrine B3+K3 / purge STEP-as-truth (#51)  
-**Kernel track (new P0):** [sprint-kernel-k3.md](sprint-kernel-k3.md) — SWOT-2 P0-K
+**Done:** P0 hygiene (#49) · Doctrine B3+K3 / purge STEP-as-truth (#51) · **B3′ + cadombrep stub (#55)**  
+**Kernel track (new P0):** [sprint-kernel-k3.md](sprint-kernel-k3.md) — SWOT-2 P0-K + K3-8 cadombrep
 
-Items below remain useful for **P1/P3**. P2 STEP-as-truth is **superseded** by doctrine. **Complete** product is blocked on the kernel badge, not on more assembly prose.
+Items below remain useful for **P1/P3**. P2 STEP-as-truth is **superseded** by doctrine. **Complete** product requires parametric + mesh + **cadombrep**, blocked on kernel writers — not on more assembly prose alone.
 
 ---
 

@@ -6,9 +6,9 @@ option java_package = "dev.opencad.cadom.v0_1";
 option csharp_namespace = "OpenCad.Cadom.V0_1";
 
 // CADOM document schema (protobuf package name frozen as v0_1).
-// Document/file version_minor: 5 => specification v0.3.2 (OpenCAD doctrine B3+K3).
-// AssetKind.STEP and AssetRole.EXACT remain for wire compatibility only;
-// they are NOT part of the OpenCAD truth model (writers MUST NOT use them as product truth).
+// Document/file version_minor: 6 => specification v0.3.3 (B3′ + CADOMBREP).
+// AssetKind.STEP remains LEGACY (not OpenCAD truth).
+// AssetRole.EXACT + AssetKind.CADOMBREP are OpenCAD dead-exact truth for Complete.
 // Field numbers are stable; do not reuse numbers.
 
 enum LengthUnit {
@@ -34,16 +34,17 @@ enum AssetKind {
   ASSET_KIND_CADOMPART = 6;
   ASSET_KIND_CADOMAT = 7;
   ASSET_KIND_CADOMETA = 8;
+  ASSET_KIND_CADOMBREP = 9;  // dead B-Rep envelope (.cadombrep) — role EXACT
 }
 
-// Role of an asset binding on a node (at most one binding per role in v0.3.1).
+// Role of an asset binding on a node (at most one binding per role).
 enum AssetRole {
   ASSET_ROLE_UNSPECIFIED = 0;
   ASSET_ROLE_MESH = 1;       // display tessellation: CADOMESH / GLTF / GLB
-  ASSET_ROLE_PARAMETRIC = 2; // CADOMPART (optional intent)
+  ASSET_ROLE_PARAMETRIC = 2; // CADOMPART (intent)
   ASSET_ROLE_MATERIAL = 3;   // CADOMAT
   ASSET_ROLE_METADATA = 4;   // CADOMETA / OTHER
-  ASSET_ROLE_EXACT = 5;      // LEGACY — not OpenCAD truth; prefer PARAMETRIC + Kernel / MESH
+  ASSET_ROLE_EXACT = 5;      // dead exact solid: CADOMBREP only (not STEP)
 }
 
 message CadomFile {

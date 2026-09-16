@@ -1,7 +1,7 @@
-# CADOM Specification v0.3.2
+# CADOM Specification v0.3.3
 
-**Status:** draft (v0.3.2) — OpenCAD doctrine B3 + K3 (fil rouge; STEP out of truth model)  
-**Filename note:** `cadom-v0.1.md` is **historical**; the document version is **v0.3.2** and writers set `version_minor = 5`. The Protobuf package name `cadom.v0_1` is **frozen** for compatibility.  
+**Status:** draft (v0.3.3) — OpenCAD doctrine B3′ + K3 (dead exact = cadombrep; STEP out of truth model)  
+**Filename note:** `cadom-v0.1.md` is **historical**; the document version is **v0.3.3** and writers set `version_minor = 6`. The Protobuf package name `cadom.v0_1` is **frozen** for compatibility.  
 **Doctrine:** [`../opencad-doctrine.md`](../opencad-doctrine.md)  
 **File extension:** `.cadom`  
 **Media type:** `application/vnd.opencad.cadom`  
@@ -41,12 +41,13 @@ The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**, **
 | **Late tessellation** | Load the graph first; fetch / tessellate geometry asynchronously |
 | **cadomesh** | Native CADOM tessellated mesh asset (`.cadomesh`) — viz truth without kernel |
 | **cadompart** | Native CADOM parametric part definition (`.cadompart`) — intent for OpenCAD Kernel |
+| **cadombrep** | Native CADOM **dead** B-Rep envelope (`.cadombrep`) — exact exchange / metrology / archive |
 | **cadomat** | Native CADOM PBR material asset (`.cadomat`), Khronos-aligned |
 | **cadometa** | Native CADOM metadata asset (`.cadometa`) |
-| **Asset binding** | Role-typed link from a Node to an Asset (`MESH`, `PARAMETRIC`, `MATERIAL`, `METADATA`; legacy `EXACT` deprecated) |
-| **OpenCAD Kernel** | Product B-Rep kernel (K3) that rebuilds cadompart — see doctrine |
-| **Complete product** | Graph + parametric + mesh, rebuildable with OpenCAD Kernel |
-| **Graph document** | A valid `.cadom` DAG (may omit parametric / mesh) |
+| **Asset binding** | Role-typed link from a Node to an Asset (`MESH`, `PARAMETRIC`, `EXACT`, `MATERIAL`, `METADATA`) |
+| **OpenCAD Kernel** | Product B-Rep kernel (K3) that rebuilds cadompart and exports cadomesh / cadombrep — see doctrine |
+| **Complete product** | Graph + parametric + mesh + cadombrep, rebuildable with OpenCAD Kernel |
+| **Graph document** | A valid `.cadom` DAG (may omit parametric / mesh / exact) |
 
 ## Table of contents
 
@@ -69,19 +70,20 @@ The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**, **
 
 **CADOM** (CAD Object Model) is the **assembly orchestration** format of the OpenCAD platform: a flat UUID product graph that references native companions and optional runtime meshes.
 
-OpenCAD product doctrine (**B + B3 + K3**) is defined in [`../opencad-doctrine.md`](../opencad-doctrine.md). Summary:
+OpenCAD product doctrine (**B + B3′ + K3**) is defined in [`../opencad-doctrine.md`](../opencad-doctrine.md). Summary:
 
 | Layer | What it is | Role |
 |-------|------------|------|
 | **Core** (`.cadom`) | Flat UUID DAG, asset refs, overrides, extensions | Always required for a graph document |
 | **Parametric** (`.cadompart`) | Feature history / intent | Co-primary for **Design** / **Complete** profiles |
 | **Viz** (`.cadomesh` / glTF) | Display tessellation | Co-primary for **Viz** / **Complete** without shipping a kernel to the client |
-| **OpenCAD Kernel** | Product B-Rep rebuild engine | Co-primary runtime for exact solids from cadompart |
+| **Exact dead** (`.cadombrep`) | Frozen B-Rep snapshot | **MUST** for **Complete**; metrology / archive / exchange without live kernel |
+| **OpenCAD Kernel** | Product B-Rep rebuild engine | Co-primary runtime for exact solids from cadompart; exports mesh + cadombrep |
 
 A CADOM document:
 
 - Describes an assembly as a **flat directed acyclic graph (DAG)** of nodes identified by UUIDs.
-- References **external** assets (cadomesh/glTF as `MESH`, cadompart as `PARAMETRIC`, materials, metadata).
+- References **external** assets (cadomesh/glTF as `MESH`, cadompart as `PARAMETRIC`, cadombrep as `EXACT`, materials, metadata).
 - Carries **non-destructive overrides** and **vendor extensions** (pass-through).
 - Is serialized as a **binary Protocol Buffers** payload (`CadomFile`).
 
@@ -89,9 +91,9 @@ The conventional file extension **MUST** be `.cadom`. The media type **SHOULD** 
 
 **Fil rouge:**
 
-> OpenCAD carries two co-primary capabilities: assembly orchestration (`.cadom`) and parametric rebuild (`.cadompart`) on the **OpenCAD B-Rep kernel**. Intent and exactness live in **cadompart + kernel**. Kernel-free visualization uses **cadomesh**. A **Complete** OpenCAD product binds graph + parametric + mesh. Industry STEP/AP242 files are **not** part of the OpenCAD truth model.
+> OpenCAD carries two co-primary capabilities: assembly orchestration (`.cadom`) and parametric rebuild (`.cadompart`) on the **OpenCAD B-Rep kernel**. Intent lives in **cadompart**; exactness at runtime lives in the **kernel**; exactness for exchange, metrology, and archive lives in **`.cadombrep`**. Kernel-free visualization uses **cadomesh**. A **Complete** OpenCAD product binds graph + parametric + mesh + cadombrep. Industry STEP/AP242 files are **not** part of the OpenCAD truth model.
 
-The `.cadom` file **MUST NOT** embed B-Rep/NURBS or mesh payloads. Display triangles live under role `MESH`. Exact solids are produced by the **OpenCAD Kernel** from `.cadompart`, not by embedding solids in `.cadom`.
+The `.cadom` file **MUST NOT** embed B-Rep/NURBS or mesh payloads. Display triangles live under role `MESH`. Dead exact solids live under role `EXACT` as `.cadombrep`. Live exact solids are produced by the **OpenCAD Kernel** from `.cadompart`.
 
 ### 1.2 Goals
 
@@ -103,7 +105,7 @@ A conforming CADOM **core** implementation **SHOULD** support:
 4. **Late loading** — Graph first; fetch mesh / parametric assets asynchronously.
 5. **Non-destructive editing** — Override layers without mutating source assets (`default_active_layers` supported).
 6. **Lossless extensibility** — Opaque vendor extensions preserved bit-for-bit.
-7. **Native binding split** — `MESH` (cadomesh/glTF) and `PARAMETRIC` (cadompart) on the same occurrence for Complete products.
+7. **Native binding split** — `MESH` (cadomesh/glTF), `PARAMETRIC` (cadompart), and `EXACT` (cadombrep) on the same occurrence for Complete products.
 
 ### 1.3 Non-goals (core `.cadom`)
 
@@ -113,8 +115,8 @@ The following are **out of scope for the `.cadom` core document**:
 2. **Tessellation algorithms** (OpenCAD Kernel / pipeline / w3dts responsibility).
 3. **Multi-file archive container** (planned `.cadomz` in a later revision).
 4. **Authoring UI or viewer runtime**.
-5. **Parametric feature history inside `.cadom`** — feature trees live in `.cadompart`. A **graph** document **MAY** omit cadompart; a **Complete** OpenCAD product **MUST** provide parametric + mesh per doctrine.
-6. **Defining the OpenCAD Kernel binary** inside this file format — kernel is a separate OpenCAD component (see doctrine / kernel backlog). This document **MUST NOT** treat “external STEP” as OpenCAD exact truth.
+5. **Parametric feature history inside `.cadom`** — feature trees live in `.cadompart`. A **graph** document **MAY** omit cadompart; a **Complete** OpenCAD product **MUST** provide parametric + mesh + cadombrep per doctrine.
+6. **Defining the OpenCAD Kernel binary** inside this file format — kernel is a separate OpenCAD component (see doctrine / kernel backlog). This document **MUST NOT** treat “external STEP” as OpenCAD exact truth; dead exact is `.cadombrep`.
 7. **Full PMI/GD&T** — future face ids on meshes / kernel entities; not a CADOM core concern.
 8. **USD stage compatibility** — share layering ideas, not the Pixar stack.
 
@@ -128,11 +130,12 @@ The following are **out of scope for the `.cadom` core document**:
 | **3DXML** | Dassault exchange / web | Manifest + companions pattern |
 | **glTF** | Runtime mesh | Referenced as **MESH**; not replaced |
 | **USD** | Film / digital twin | Layers inspiration only |
-| **OpenCAD Kernel** | Exact solid from cadompart | Product B-Rep path (K3); not this `.cadom` file |
+| **OpenCAD Kernel** | Exact solid from cadompart | Product B-Rep path (K3); exports `.cadomesh` + `.cadombrep` |
+| **cadombrep** | Dead exact B-Rep | Metrology / archive / exchange without live kernel |
 
 One-sentence positioning:
 
-> **CADOM is the assembly graph of the OpenCAD platform; cadompart + OpenCAD Kernel are co-primary for exact design; cadomesh is the kernel-free viz path; STEP is outside the OpenCAD truth model.**
+> **CADOM is the assembly graph of the OpenCAD platform; cadompart + OpenCAD Kernel are co-primary for design; cadombrep is the dead exact envelope; cadomesh is the kernel-free viz path; STEP is outside the OpenCAD truth model.**
 
 
 ## 2. Units, axes, and transforms
@@ -261,14 +264,15 @@ A node **MAY** reference **multiple** assets, **at most one per role**:
 |------|----------------------|---------|
 | `MESH` | `CADOMESH`, `GLB`, `GLTF` | Display tessellation for GPU / web visualization |
 | `PARAMETRIC` | `CADOMPART` | Parametric rebuild recipe for OpenCAD Kernel |
+| `EXACT` | `CADOMBREP` | Dead / frozen B-Rep envelope (metrology, archive, exact exchange) |
 | `MATERIAL` | `CADOMAT` | PBR material |
 | `METADATA` | `CADOMETA`, `OTHER` | Structured or opaque metadata payload |
 
 Legacy (wire-compatible, **not** part of the OpenCAD truth model):
 
-| Role | Typical `Asset.kind` | Rule |
-|------|----------------------|------|
-| `EXACT` | `STEP` (legacy enum) | OpenCAD writers **MUST NOT** emit `EXACT` / `STEP` as product truth. Readers **MAY** round-trip unknown legacy bindings bit-for-bit. |
+| Kind (with any role) | Rule |
+|----------------------|------|
+| `STEP` | OpenCAD writers **MUST NOT** emit `STEP` as product truth. Readers **MAY** round-trip legacy bindings bit-for-bit. Writers **MUST NOT** bind `EXACT` → `STEP`. |
 
 Rules:
 
@@ -277,7 +281,7 @@ Rules:
 3. A node **MUST NOT** contain two bindings with the same `role`.
 4. Kind/role pairing **SHOULD** follow the tables above; readers **MAY** warn on mismatched pairs but **MUST** still round-trip the binding.
 5. Structural nodes (e.g. pure assemblies) **MAY** omit all bindings.
-6. Complete OpenCAD products **SHOULD** bind both `PARAMETRIC` and `MESH` on part occurrences.
+6. Complete OpenCAD products **MUST** bind `PARAMETRIC`, `MESH`, and `EXACT` (`CADOMBREP`) on part occurrences that claim geometric completeness.
 
 #### 3.3.2 Legacy `asset_id`
 
@@ -350,7 +354,7 @@ Serialized as four flat nodes: Root (`parent_id` unset, in `root_ids`), Subassem
 
 ### 4.1 Role
 
-CADOM **MUST NOT** embed primary solid geometry. Geometry and companion data are referenced through **Asset** records. Nodes **MAY** bind assets via `asset_bindings` (§3.3.1), at most one asset per role (`MESH`, `PARAMETRIC`, `MATERIAL`, `METADATA`; legacy `EXACT` discouraged).
+CADOM **MUST NOT** embed primary solid geometry. Geometry and companion data are referenced through **Asset** records. Nodes **MAY** bind assets via `asset_bindings` (§3.3.1), at most one asset per role (`MESH`, `PARAMETRIC`, `EXACT`, `MATERIAL`, `METADATA`).
 
 ### 4.2 Asset fields
 
@@ -360,7 +364,7 @@ Each asset **MUST** include:
 |-------|----------|-------------|
 | `id` | yes | UUID unique within the document |
 | `uri` | yes | Location of the external resource |
-| `kind` | yes | One of `GLTF`, `GLB`, `CADOMESH`, `CADOMPART`, `CADOMAT`, `CADOMETA`, `OTHER` (legacy `STEP` enum value: see below) |
+| `kind` | yes | One of `GLTF`, `GLB`, `CADOMESH`, `CADOMPART`, `CADOMBREP`, `CADOMAT`, `CADOMETA`, `OTHER` (legacy `STEP` enum value: see below) |
 | `mime` | no | Optional MIME type hint (e.g. `model/gltf-binary`, `application/vnd.opencad.cadomesh`) |
 | `content_sha256` | no | Hex-encoded SHA-256 of the referenced asset bytes (integrity / cache) |
 | `byte_length` | no | Declared byte length of the referenced asset |
@@ -383,12 +387,13 @@ OpenCAD writers **MUST NOT** use `kind = STEP` for OpenCAD truth. The protobuf e
 | `GLB` | `.glb` | Binary glTF container |
 | `CADOMESH` | `.cadomesh` | Native CADOM **tessellated mesh** (§4.8) |
 | `CADOMPART` | `.cadompart` | Native CADOM **parametric** part definition (§4.9) |
+| `CADOMBREP` | `.cadombrep` | Native CADOM **dead B-Rep** envelope (§4.12) |
 | `CADOMAT` | `.cadomat` | Native CADOM **PBR material** (Khronos-aligned) (§4.10) |
 | `CADOMETA` | `.cadometa` | Native CADOM **metadata** document (§4.11) |
 | `OTHER` | — | Any other payload; consumers that do not recognize it **MAY** ignore load while still round-tripping the Asset record |
 | `STEP` | *(legacy)* | **Not** part of the OpenCAD truth model; writers **MUST NOT** emit for OpenCAD products |
 
-Parsing glTF/GLB or native companion formats **MUST NOT** be required of a minimal CADOM graph library; loaders **MAY** live in companion packages (e.g. w3dts). A **Complete** OpenCAD toolchain **SHOULD** understand `CADOMESH`, `CADOMPART`, `CADOMAT`, and `CADOMETA`, and **MUST** integrate the OpenCAD Kernel for Design/Complete profiles.
+Parsing glTF/GLB or native companion formats **MUST NOT** be required of a minimal CADOM graph library; loaders **MAY** live in companion packages (e.g. w3dts). A **Complete** OpenCAD toolchain **SHOULD** understand `CADOMESH`, `CADOMPART`, `CADOMBREP`, `CADOMAT`, and `CADOMETA`, and **MUST** integrate the OpenCAD Kernel for Design/Complete profiles.
 
 ### 4.5 Late loading
 
@@ -451,6 +456,18 @@ A **cadometa** asset carries **structured or opaque metadata** associated with a
 - Bound with role `METADATA`
 
 *Normative `.cadometa` **v0** schema is defined in [`cadometa-v0.md`](cadometa-v0.md) and [`packages/cadometa-proto/cadometa.proto`](../../packages/cadometa-proto/cadometa.proto).*
+
+### 4.12 Native format: cadombrep (dead B-Rep envelope)
+
+A **cadombrep** asset is a CADOM-native **frozen exact solid** snapshot for metrology, archive, and exact exchange without a live kernel.
+
+- Conventional file extension: `.cadombrep`
+- `Asset.kind` **MUST** be `CADOMBREP`
+- Bound with role `EXACT`
+- Writers **MUST NOT** use role `EXACT` with `AssetKind.STEP`
+- After rebuild, exporters **SHOULD** refresh `.cadombrep` together with `.cadomesh` from the same OpenCAD Kernel run
+
+*Normative `.cadombrep` **v0** stub is defined in [`cadombrep-v0.md`](cadombrep-v0.md) and [`packages/cadombrep-proto/cadombrep.proto`](../../packages/cadombrep-proto/cadombrep.proto).*
 
 ## 5. Non-destructive overrides
 
@@ -559,11 +576,12 @@ A CADOM document **MUST** declare format version integers in the header:
 | `version_major` | Incompatible / breaking revisions |
 | `version_minor` | Backward-compatible additions within a major |
 
-For this specification revision (**v0.3.2**), writers **MUST** set `version_major = 0` and `version_minor = 5`.
+For this specification revision (**v0.3.3**), writers **MUST** set `version_major = 0` and `version_minor = 6`.
 
 | Writer `version_minor` | Expectation |
 |------------------------|-------------|
-| 5 | v0.3.2: OpenCAD doctrine B3+K3; STEP/`EXACT` out of truth model |
+| 6 | v0.3.3: `CADOMBREP` + `EXACT` dead envelope; Complete MUST parametric+mesh+exact |
+| 5 | v0.3.2: OpenCAD doctrine B3+K3; STEP out of truth model (`EXACT` discouraged) |
 | 4 | v0.3.1: `EXACT` role, mm/inches units, `default_active_layers`, asset hash fields |
 | 3 | v0.3 multi-role bindings + CADOMETA |
 | 2 | v0.2 native kinds without multi-role requirement |
@@ -611,7 +629,7 @@ The normative on-disk schema for CADOM **MUST** be the Protocol Buffers definiti
 Writers **MUST** emit a serialized `cadom.v0_1.CadomFile` message as the contents of a `.cadom` file. v0.3.2 keeps **raw Protobuf framing** (no mandatory magic). A 4-byte magic **MAY** be introduced in a later minor if required for sniffing; until then, sniffers **SHOULD** decode enough of the message to read `version_major` / `version_minor`.
 
 **Media type:** `application/vnd.opencad.cadom`  
-**Native companions (informative):** `application/vnd.opencad.cadomesh`, `.cadomat`, `.cadometa`, `.cadompart` with the same `vnd.opencad.*` pattern.
+**Native companions (informative):** `application/vnd.opencad.cadomesh`, `.cadombrep`, `.cadomat`, `.cadometa`, `.cadompart` with the same `vnd.opencad.*` pattern.
 
 ### 8.1 Message map
 
@@ -619,7 +637,7 @@ Writers **MUST** emit a serialized `cadom.v0_1.CadomFile` message as the content
 |--------------|----------------------|
 | Document | `CadomFile` |
 | Node (§3) | `Node` |
-| Asset binding (§3.3.1) | `NodeAssetBinding` + `AssetRole` (`EXACT` legacy) |
+| Asset binding (§3.3.1) | `NodeAssetBinding` + `AssetRole` (`EXACT` → `CADOMBREP`) |
 | Asset (§4) | `Asset` + `AssetKind` (+ optional hash fields) |
 | Override (§5) | `Override` |
 | Default layers (§5.4) | `CadomFile.default_active_layers` |
@@ -665,6 +683,7 @@ Binary `.cadom` encodings of these examples **SHOULD** be added when the TypeScr
 | `local_transform` | `mat4.copy` into `TransformComponent.localTransform` |
 | Asset URI (`MESH`: cadomesh / GLB / glTF) | Mesh / GLB loader under that node |
 | Asset URI (`PARAMETRIC`) | OpenCAD Kernel rebuild path (Design/Complete) |
+| Asset URI (`EXACT`: cadombrep) | Exact solid consumer / metrology path (Complete) |
 | `visible` / layer | `RenderableComponent.visible` / `.layer` |
 | `semantic_type` | `CadMetadataComponent` when applicable |
 | Overrides | Apply resolved view before or while syncing ECS |
@@ -693,3 +712,4 @@ Prefer live node matrices (GLB-style) over baking placements into mesh vertices.
 | 0.3 | 2026-09-14 | Multi-asset bindings per node + CADOMETA (#29) |
 | 0.3.1 | 2026-09-15 | SWOT hygiene: two-layer identity, `EXACT` role, mm/inches, sibling order, default layers, asset hash, MIME, precision policy (#49) |
 | 0.3.2 | 2026-09-15 | Doctrine B3+K3: fil rouge rebuild co-primary; STEP/`EXACT` out of truth model (#51) |
+| 0.3.3 | 2026-09-16 | B3′: `CADOMBREP` dead exact; `EXACT` reactivated for CADOMBREP; Complete MUST parametric+mesh+exact (#55) |

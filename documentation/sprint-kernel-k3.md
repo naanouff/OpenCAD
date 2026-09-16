@@ -1,18 +1,18 @@
 # Sprint backlog — OpenCAD Kernel (K3)
 
 **Status:** process backlog  
-**Doctrine:** [`opencad-doctrine.md`](opencad-doctrine.md)  
-**Issue seed:** [#51](https://github.com/naanouff/OpenCAD/issues/51)
+**Doctrine:** [`opencad-doctrine.md`](opencad-doctrine.md) (B3′)  
+**Issue seeds:** [#51](https://github.com/naanouff/OpenCAD/issues/51), [#55](https://github.com/naanouff/OpenCAD/issues/55)
 
 ## Goal
 
-Ship an **OpenCAD B-Rep kernel** as a first-class product component that rebuilds Required `.cadompart` features under TDD and mass golden tests, and tessellates to `.cadomesh`.
+Ship an **OpenCAD B-Rep kernel** as a first-class product component that rebuilds Required `.cadompart` features under TDD and mass golden tests, tessellates to `.cadomesh`, and exports dead exact `.cadombrep`.
 
 ## Out of scope (first kernel badge)
 
 - Full industrial catalogue (fillet/shell/draft/…)
 - Expression dialect
-- Persisted native B-Rep file format (possible later B2)
+- Native analytic `OPENCAD_NATIVE` B-Rep encoding (bootstrap `OCCT_BREP` OK)
 - STEP import/export as truth
 - Assembly mates solver
 
@@ -26,9 +26,15 @@ Ship an **OpenCAD B-Rep kernel** as a first-class product component that rebuild
 | K3-3 | Extrude golden corpus | cadompart → solid → mesh asserts |
 | K3-4 | Revolve + hole + boolean | Same harness |
 | K3-5 | Sketch constraints (Required set) | Fail explicit on over-constrain |
-| K3-6 | Id scheme faces/edges | Stable enough for later fillet work |
-| K3-7 | Tessellate → `.cadomesh` writer | B3 viz path; emit provenance (`kernel_id`, `kernel_version`, source cadompart id/hash) — SWOT P0-K.4 |
+| K3-6 | Id scheme faces/edges | Stable enough for fillet work **and** cadombrep topo lists |
+| K3-7 | Tessellate → `.cadomesh` writer | Viz path; provenance fields — SWOT P0-K.4 |
+| K3-8 | Export → `.cadombrep` writer | Dead exact; provenance + `OCCT_BREP` bootstrap — #55 |
 
-## Conformance badge (first)
+## Conformance badges
 
-An implementation **MAY** claim **OpenCAD Kernel Required v0** only if **K3-3…K3-5 and K3-7** pass the published golden set.
+| Badge | Requirement |
+|-------|-------------|
+| **OpenCAD Kernel Required v0** | K3-3…K3-5 and K3-7 pass published goldens |
+| **OpenCAD Kernel Complete export v0** | Required badge **plus** K3-8 (cadombrep with provenance) |
+
+Complete **product** claims (doctrine) need the Complete export badge.
