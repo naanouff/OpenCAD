@@ -19,7 +19,7 @@ Doctrine (binding for product direction): [`documentation/opencad-doctrine.md`](
 - **cadompart:** v0.2 catalogue + **v0.2.2** doctrine alignment (Required étroit, TDD)
 - **Kernel:** backlog [`documentation/sprint-kernel-k3.md`](documentation/sprint-kernel-k3.md)
 - **Next:** graph SDK (TDD) in parallel with kernel Required badge; writers use `PARAMETRIC` + `MESH` (not STEP/`EXACT`)
-- Process: [SWOT (historical)](documentation/cadom-spec-swot.md) · [remediation](documentation/sprint-swot-remediation.md)
+- Process: [SWOT-2 (current)](documentation/cadom-spec-swot.md) · [remediation](documentation/sprint-swot-remediation.md)
 
 ## Goals
 

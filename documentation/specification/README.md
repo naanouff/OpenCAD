@@ -16,7 +16,7 @@ This directory is the **source of truth** for CADOM wire formats. Product doctri
 | [cadometa-v0.md](cadometa-v0.md) | **v0 draft** | Metadata companion |
 | [native-assets-v0-freeze.md](native-assets-v0-freeze.md) | **Frozen** | Gate lifted — SDK allowed |
 
-Process: [../opencad-doctrine.md](../opencad-doctrine.md), [../sprint-kernel-k3.md](../sprint-kernel-k3.md), [../cadom-spec-swot.md](../cadom-spec-swot.md).
+Process: [../opencad-doctrine.md](../opencad-doctrine.md), [../sprint-kernel-k3.md](../sprint-kernel-k3.md), [../cadom-spec-swot.md](../cadom-spec-swot.md) (SWOT-2).
 
 ## Writing conventions
 
