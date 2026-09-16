@@ -3,7 +3,7 @@
 **Status:** process / product doctrine (non-normative for wire formats; **binding for OpenCAD product direction**)  
 **Date:** 2026-09-15  
 **Issue:** [#51](https://github.com/naanouff/OpenCAD/issues/51)  
-**Supersedes (direction):** fil rouge SWOT « JT-web sans kernel » in [`cadom-spec-swot.md`](cadom-spec-swot.md) — that document remains a useful historical analysis; **product decisions below win** when they conflict.
+**Supersedes (direction):** fil rouge SWOT-1 « JT-web sans kernel ». Current expert analysis: [`cadom-spec-swot.md`](cadom-spec-swot.md) (SWOT-2). **Product decisions below win** when they conflict with any SWOT wording.
 
 ---
 

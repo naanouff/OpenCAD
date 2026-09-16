@@ -27,8 +27,8 @@ Ship an **OpenCAD B-Rep kernel** as a first-class product component that rebuild
 | K3-4 | Revolve + hole + boolean | Same harness |
 | K3-5 | Sketch constraints (Required set) | Fail explicit on over-constrain |
 | K3-6 | Id scheme faces/edges | Stable enough for later fillet work |
-| K3-7 | Tessellate → `.cadomesh` writer | B3 viz path |
+| K3-7 | Tessellate → `.cadomesh` writer | B3 viz path; emit provenance (`kernel_id`, `kernel_version`, source cadompart id/hash) — SWOT P0-K.4 |
 
 ## Conformance badge (first)
 
-An implementation **MAY** claim **OpenCAD Kernel Required v0** only if K3-3…K3-5 (+ tessellation) pass the published golden set.
+An implementation **MAY** claim **OpenCAD Kernel Required v0** only if **K3-3…K3-5 and K3-7** pass the published golden set.
