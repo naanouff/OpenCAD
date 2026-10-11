@@ -7,7 +7,8 @@ OpenCAD B-Rep kernel package (K3).
 | K3-2 skeleton + CI | done |
 | K3-3 extrude plate golden | done (`rebuildExtrudePlate`) |
 | K3-4 revolve + hole | done (`rebuildRevolveCylinder`, `rebuildPlateWithHole`) |
-| K3-5 sketch constraints | next |
+| K3-5 sketch constraints | done (`resoudreEsquisse`, `rebuildExtrudeFromRectangle`) |
+| K3-6 id faces/edges | next |
 | O2 editor pipeline extract | later |
 
 Bootstrap engine: **`occt-kernel`** ([spec](../../documentation/specification/opencad-kernel-v0.md)).

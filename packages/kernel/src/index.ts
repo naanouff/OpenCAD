@@ -15,6 +15,16 @@ export {
   type PlateWithHoleIntent,
   type PlateWithHoleResult,
 } from './plateWithHole.ts'
+export {
+  resoudreEsquisse,
+  etatEsquisse,
+  exigerContraint,
+  type EsquisseKernel,
+  type EsquisseResolue,
+  type StatutContrainte,
+} from './sketchSolve.ts'
+export { rebuildExtrudeFromRectangle } from './extrudeFromSketch.ts'
+export { evaluer } from './evaluateur.ts'
 
 export type KernelIntent = {
   /** cadompart `expression_dialect`, if any */
