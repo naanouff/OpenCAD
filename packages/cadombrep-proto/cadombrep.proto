@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package cadombrep.v0;
+
+option java_package = "dev.opencad.cadombrep.v0";
+option csharp_namespace = "OpenCad.Cadombrep.V0";
+
+// CADOMBREP v0 — dead / frozen B-Rep envelope (.cadombrep).
+// Stub schema: provenance + topology id lists + opaque solid encoding.
+// Native analytic B-Rep fields are deferred to a later minor once the
+// OpenCAD Kernel id scheme and solid domain are frozen (K3).
+// Entire file body MUST be a serialized CadombrepFile message.
+
+enum LengthUnit {
+  LENGTH_UNIT_UNSPECIFIED = 0;
+  LENGTH_UNIT_METRES = 1;
+  LENGTH_UNIT_MILLIMETRES = 2;
+  LENGTH_UNIT_INCHES = 3;
+}
+
+enum UpAxis {
+  UP_AXIS_UNSPECIFIED = 0;
+  UP_AXIS_Y = 1;
+  UP_AXIS_Z = 2;
+}
+
+// How `solid_blob` is encoded. OPENCAD_NATIVE is reserved for a future
+// normative protobuf solid model; OCCT_BREP is a bootstrap encoding.
+enum BrepEncoding {
+  BREP_ENCODING_UNSPECIFIED = 0;
+  BREP_ENCODING_OPENCAD_NATIVE = 1; // reserved — not defined in v0 stub
+  BREP_ENCODING_OCCT_BREP = 2;     // Open CASCADE .brep text/binary as produced by kernel bootstrap
+}
+
+message CadombrepFile {
+  uint32 version_major = 1; // v0 writers MUST set 0
+  uint32 version_minor = 2; // field 2; v0 writers MUST set value 0
+  string name = 3;
+  LengthUnit units = 4; // UNSPECIFIED = inherit from referencing .cadom
+  UpAxis up_axis = 5;   // UNSPECIFIED = inherit from referencing .cadom
+
+  // --- Provenance (dead snapshot of a parametric rebuild) ---
+  string kernel_id = 6;              // e.g. "opencad-kernel"
+  string kernel_version = 7;         // kernel product version that produced this file
+  string source_cadompart_id = 8;    // asset id or part id in the authoring context
+  string source_cadompart_sha256 = 9; // hex SHA-256 of source .cadompart bytes when known
+  string active_configuration_id = 10; // cadompart configuration used at rebuild, if any
+
+  // --- Topology identity (stable strings; scheme owned by OpenCAD Kernel) ---
+  repeated string body_ids = 11;
+  repeated string face_ids = 12;
+  repeated string edge_ids = 13;
+  repeated string vertex_ids = 14;
+
+  // --- Solid payload ---
+  BrepEncoding encoding = 15;
+  bytes solid_blob = 16; // encoding-specific; MUST be non-empty when encoding != UNSPECIFIED
+}

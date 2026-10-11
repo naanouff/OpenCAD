@@ -1,0 +1,21 @@
+{
+  "name": "@opencad/kernel",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./ops": "./src/opsDepuisFonction.ts"
+  },
+  "scripts": {
+    "fetch:occt": "node ../../scripts/fetch-occt-kernel.mjs",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.9"
+  },
+  "dependencies": {
+    "protobufjs": "^8.8.0"
+  }
+}

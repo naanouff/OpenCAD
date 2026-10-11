@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package cadomat.v0;
+
+option java_package = "dev.opencad.cadomat.v0";
+option csharp_namespace = "OpenCad.Cadomat.V0";
+
+// CADOMAT v0 — PBR material companion file (.cadomat).
+// Semantics align with Khronos glTF 2.0 metallic-roughness materials.
+// Entire file body MUST be a serialized CadomatFile message.
+
+enum AlphaMode {
+  ALPHA_MODE_UNSPECIFIED = 0; // readers MUST treat as OPAQUE
+  ALPHA_MODE_OPAQUE = 1;
+  ALPHA_MODE_MASK = 2;
+  ALPHA_MODE_BLEND = 3;
+}
+
+// Optional texture reference (URI relative to this .cadomat file unless absolute).
+message TextureRef {
+  string uri = 1;
+  // glTF texCoord set index; default 0 when unset.
+  optional uint32 tex_coord = 2;
+}
+
+message CadomatFile {
+  uint32 version_major = 1; // v0 writers MUST set 0
+  uint32 version_minor = 2; // v0 writers MUST set 0
+  string name = 3;
+
+  // --- metallic-roughness PBR (glTF 2.0) ---
+  // RGBA; default [1,1,1,1] when empty.
+  repeated float base_color_factor = 4 [packed = true];
+  // Default 1.0 when unset.
+  optional float metallic_factor = 5;
+  // Default 1.0 when unset.
+  optional float roughness_factor = 6;
+  TextureRef base_color_texture = 7;
+  // Packs metal (B) + roughness (G) per glTF convention when present.
+  TextureRef metallic_roughness_texture = 8;
+
+  TextureRef normal_texture = 9;
+  optional float normal_scale = 10; // default 1.0
+  TextureRef occlusion_texture = 11;
+  optional float occlusion_strength = 12; // default 1.0
+  // RGB; default [0,0,0] when empty.
+  repeated float emissive_factor = 13 [packed = true];
+  TextureRef emissive_texture = 14;
+
+  AlphaMode alpha_mode = 15;
+  optional float alpha_cutoff = 16; // default 0.5 when MASK
+  optional bool double_sided = 17; // default false
+}
