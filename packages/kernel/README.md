@@ -23,7 +23,9 @@ OpenCAD B-Rep kernel package (K3).
 | O2-8 editor GCS consume | done (`./sketch` + editor `esquissePolylines`) |
 | O2-9 compiler mm + pipeline bridge | done (`unite: 'mm'`, `./compiler`) |
 | O2-10 face.* supports | done (`registreFaces`, extrude/enlever) |
-| O2 suite (carrure / plan.3h) | later |
+| O2-11 plan.3h tube | done (`datumsKernel`, altitude/decalage tube) |
+| O2-12 barrettes pédagogiques | done (`opsBarrettesPedagogiques`, plan.12h traverse) |
+| O2 suite (cornes / pas / concentrique) | later |
 
 Bootstrap engine: **`occt-kernel`** ([spec](../../documentation/specification/opencad-kernel-v0.md)).
 
