@@ -1,11 +1,11 @@
 # Fixtures (SPEC-10)
 
-Logical examples for CADOM v0.1. Binary `.cadom` files will be produced once the SDK exists.
+Logical examples + binary `.cadom` (O4-2, regenerated via `pnpm --filter @opencad/cadom fixtures`).
 
-| ID | Description |
-|----|-------------|
-| [A — three-level assembly](example-a-three-level-assembly.md) | Root → subassembly → two parts |
-| [B — visibility override](example-b-visibility-override.md) | Same graph + `review` layer hide |
-| [C — opaque extension](example-c-passthrough-extension.md) | Kinematics extension pass-through |
+| ID | Markdown | Binary |
+|----|----------|--------|
+| A — three-level assembly | [example-a-three-level-assembly.md](example-a-three-level-assembly.md) | [cadom/example-a-three-level-assembly.cadom](cadom/example-a-three-level-assembly.cadom) |
+| B — visibility override | [example-b-visibility-override.md](example-b-visibility-override.md) | [cadom/example-b-visibility-override.cadom](cadom/example-b-visibility-override.cadom) |
+| C — opaque extension | [example-c-passthrough-extension.md](example-c-passthrough-extension.md) | [cadom/example-c-passthrough-extension.cadom](cadom/example-c-passthrough-extension.cadom) |
 
-UUIDs below are fixed for documentation only.
+UUIDs are fixed for documentation and SDK tests.

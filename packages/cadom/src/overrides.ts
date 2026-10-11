@@ -15,7 +15,8 @@ export function applyOverrides(
   doc: CadomDocument,
   layers?: readonly string[],
 ): Map<string, ResolvedCadomNode> {
-  const active = new Set(layers ?? doc.defaultActiveLayers)
+  // `undefined` → document defaults; explicit `[]` → no layer active.
+  const active = new Set(layers !== undefined ? layers : doc.defaultActiveLayers)
   const out = new Map<string, ResolvedCadomNode>()
   for (const [id, node] of doc.nodes) {
     out.set(id, {
@@ -26,7 +27,7 @@ export function applyOverrides(
     })
   }
   for (const ov of doc.overrides) {
-    if (active.size > 0 && !active.has(ov.layer)) continue
+    if (!active.has(ov.layer)) continue
     const cur = out.get(ov.nodeId)
     if (!cur) continue
     if (ov.visible !== undefined) cur.visible = ov.visible

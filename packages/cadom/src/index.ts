@@ -1,11 +1,13 @@
 /**
- * @opencad/cadom — CADOM graph SDK (O4-1).
- * decode / encode / CadomDocument / applyOverrides.
+ * @opencad/cadom — CADOM graph SDK (O4).
+ * decode / encode / CadomDocument / applyOverrides / fixtures / layers.
  */
 
 export { decode, encode } from './codec.ts'
 export { CadomDocument } from './document.ts'
 export { applyOverrides, type ResolvedCadomNode } from './overrides.ts'
+export { exampleA, exampleB, exampleC, ID } from './examples.ts'
+export { listOverrideLayers, withDefaultActiveLayers, renameNode } from './layers.ts'
 export {
   CADOM_VERSION_MAJOR,
   CADOM_VERSION_MINOR,
