@@ -7,7 +7,8 @@
     ".": "./src/index.ts",
     "./ops": "./src/opsDepuisFonction.ts",
     "./sketch": "./src/sketchSolve.ts",
-    "./polylines": "./src/polylinesDepuisResolue.ts"
+    "./polylines": "./src/polylinesDepuisResolue.ts",
+    "./compiler": "./src/compilerHistorique.ts"
   },
   "scripts": {
     "fetch:occt": "node ../../scripts/fetch-occt-kernel.mjs",
