@@ -11,7 +11,7 @@ Ship an **OpenCAD B-Rep kernel** as a first-class product component that rebuild
 ## Out of scope (first kernel badge)
 
 - Full industrial catalogue (fillet/shell/draft/…)
-- Expression dialect
+- Expression dialect beyond `opencad.expr.v0` (shipped O1)
 - Native analytic `OPENCAD_NATIVE` B-Rep encoding (bootstrap `OCCT_BREP` OK)
 - STEP import/export as truth
 - Assembly mates solver
@@ -22,7 +22,7 @@ Ship an **OpenCAD B-Rep kernel** as a first-class product component that rebuild
 |----|-------|-------|
 | K3-0 | Spec stub `opencad-kernel-v0.md` | **Done** (#57) — [`specification/opencad-kernel-v0.md`](specification/opencad-kernel-v0.md) |
 | K3-1 | Choose implementation base | **Done** (#57) — bootstrap `occt-kernel` / OCCT LGPL-2.1 |
-| K3-2 | Package skeleton + CI | Monorepo package, TDD harness |
+| K3-2 | Package skeleton + CI | **Done** (#59) — `@opencad/kernel` + Vitest + Actions |
 | K3-3 | Extrude golden corpus | cadompart → solid → mesh asserts |
 | K3-4 | Revolve + hole + boolean | Same harness |
 | K3-5 | Sketch constraints (Required set) | Fail explicit on over-constrain |
