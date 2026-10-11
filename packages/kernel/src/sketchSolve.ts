@@ -6,6 +6,7 @@ export type Contrainte =
   | { sorte: 'distance'; a: string; b: string; valeur: number }
   | { sorte: 'horizontal'; a: string; b: string }
   | { sorte: 'vertical'; a: string; b: string }
+  | { sorte: 'rayon'; centre: string; point: string; valeur: number }
 
 export type PointResolu = { id: string; u: number; v: number }
 
@@ -17,12 +18,20 @@ export type RectangleEsquisse = {
   largeur?: string
 }
 
+/** Cercle coté par diamètre (extrait éditeur `solveurGcs.resoudreCercle`). */
+export type CercleEsquisse = {
+  id: string
+  diametre?: string
+}
+
 export type EsquisseKernel = {
-  rectangles: RectangleEsquisse[]
+  rectangles?: RectangleEsquisse[]
+  cercles?: CercleEsquisse[]
 }
 
 export type EsquisseResolue = {
   points: PointResolu[]
+  /** Rectangle: coin ids fermés. Cercle: un seul id bord (`.p`) — densifié en polylines. */
   polylines: { points: string[] }[]
   degres: number
   ferme: boolean
@@ -122,28 +131,35 @@ function resoudreRectangle(
   }
 }
 
-/** Required sketch solve (K3-5): rectangle H/V + distance. */
-export function resoudreEsquisse(
-  esquisse: EsquisseKernel,
-  parametres: Map<string, string> = new Map(),
-  options: OptionsResoudre = {},
-): EsquisseResolue {
-  const extra = options.contraintesExtra ?? []
-  const rectangles = esquisse.rectangles
-  if (rectangles.length === 0) {
+function resoudreCercle(entite: CercleEsquisse, parametres: Map<string, string>): EsquisseResolue {
+  if (!entite.diametre) {
     return {
       points: [],
       polylines: [],
-      degres: 0,
-      ferme: false,
+      degres: 1,
+      ferme: true,
       statut: 'sous-contraint',
       contraintes: [],
     }
   }
-  if (rectangles.length === 1) {
-    return resoudreRectangle(rectangles[0]!, parametres, extra)
+  const r = evaluer(entite.diametre, parametres) / 2
+  const centre = `${entite.id}.o`
+  const bord = `${entite.id}.p`
+  const contraintes: Contrainte[] = [{ sorte: 'rayon', centre, point: bord, valeur: r }]
+  return {
+    points: [
+      { id: centre, u: 0, v: 0 },
+      { id: bord, u: r, v: 0 },
+    ],
+    polylines: [{ points: [bord] }],
+    degres: 0,
+    ferme: true,
+    statut: 'contraint',
+    contraintes,
   }
-  const parties = rectangles.map((r) => resoudreRectangle(r, parametres, []))
+}
+
+function fusionner(parties: EsquisseResolue[]): EsquisseResolue {
   const degres = parties.reduce((s, p) => s + p.degres, 0)
   const sur = parties.some((p) => p.statut === 'surcontraint')
   return {
@@ -154,6 +170,49 @@ export function resoudreEsquisse(
     statut: sur ? 'surcontraint' : degres > 0 ? 'sous-contraint' : 'contraint',
     contraintes: parties.flatMap((p) => p.contraintes),
   }
+}
+
+/**
+ * Required sketch solve (K3-5 + O2-6):
+ * rectangle H/V + distance ; cercle diamètre / contrainte rayon.
+ */
+export function resoudreEsquisse(
+  esquisse: EsquisseKernel,
+  parametres: Map<string, string> = new Map(),
+  options: OptionsResoudre = {},
+): EsquisseResolue {
+  const extra = options.contraintesExtra ?? []
+  const rectangles = esquisse.rectangles ?? []
+  const cercles = esquisse.cercles ?? []
+
+  if (rectangles.length === 0 && cercles.length === 0) {
+    return {
+      points: [],
+      polylines: [],
+      degres: 0,
+      ferme: false,
+      statut: 'sous-contraint',
+      contraintes: [],
+    }
+  }
+
+  if (cercles.length >= 1 && rectangles.length === 0) {
+    return fusionner(cercles.map((c) => resoudreCercle(c, parametres)))
+  }
+
+  if (rectangles.length === 1 && cercles.length === 0) {
+    return resoudreRectangle(rectangles[0]!, parametres, extra)
+  }
+
+  if (rectangles.length > 0 && cercles.length === 0) {
+    return fusionner(rectangles.map((r) => resoudreRectangle(r, parametres, [])))
+  }
+
+  // Anneau / plaque+trous : rectangle(s) + cercle(s) résolus séparément (concentriques v1).
+  return fusionner([
+    ...rectangles.map((r) => resoudreRectangle(r, parametres, [])),
+    ...cercles.map((c) => resoudreCercle(c, parametres)),
+  ])
 }
 
 export function etatEsquisse(
