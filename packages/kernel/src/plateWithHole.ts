@@ -1,10 +1,11 @@
 import type { OcctKernelModule } from './chargerKernel.ts'
 import { tessellerSolide } from './meshUtils.ts'
+import { opsCouper, opsExtrude } from './opsDepuisFonction.ts'
 import type { BBox, KernelMesh } from './types.ts'
 
 /**
- * Plaque + trou traversant (boolean cut), aligné example-plate-hole-fillet.md
- * (sans fillet). Dimensions en mètres.
+ * Plaque (wire extrude) + trou (cylindre cut via opsCouper).
+ * Dimensions en mètres.
  */
 export type PlateWithHoleIntent = {
   width: number
@@ -32,16 +33,21 @@ export function rebuildPlateWithHole(
   const dy = thickness * 1000
   const dz = depth * 1000
   const holeR = (holeDiameter * 1000) / 2
-  // Cylindre outil plus long que l’épaisseur ; cut au centre de la plaque.
+  // Contour plaque en XZ (y=0), extrude +Y — même repère que O2-1.
+  const hx = dx / 2
+  const hz = dz / 2
+  const contour = [-hx, 0, -hz, hx, 0, -hz, hx, 0, hz, -hx, 0, hz, -hx, 0, -hz]
+  const plate = opsExtrude(contour, [0, dy, 0], 'plate')
   const cutterH = dy + 4
+  const cut = opsCouper(plate.as, 'cutter', 'hole')
   const out = tessellerSolide(
     occt,
     [
-      { op: 'make_box', args: [dx, dy, dz], as: 'plate' },
+      ...plate.ops,
       { op: 'make_cylinder', args: [holeR, cutterH], as: 'cutter' },
-      { op: 'boolean_cut', args: [{ handle: 'plate' }, { handle: 'cutter' }], as: 'body' },
+      ...cut.ops,
     ],
-    'body',
+    cut.solidAs,
   )
   if (!out.ok) return out
   return { ok: true, mesh: out.mesh, bbox: out.bbox, unit: 'mm' }

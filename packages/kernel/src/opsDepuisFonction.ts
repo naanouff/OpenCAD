@@ -38,3 +38,30 @@ export function opsRevolution(polyline: Polyline3, uid: string): { ops: KernelBa
     as: s,
   }
 }
+
+/** Première feature → alias courant ; suivantes → fuse (extrait éditeur). */
+export function accrocherSolide(
+  solidAs: string | null,
+  outilAs: string,
+  uid: string,
+): { ops: KernelBatchOp[]; solidAs: string } {
+  if (!solidAs) return { ops: [], solidAs: outilAs }
+  const as = `fuse${uid}`
+  return {
+    ops: [{ op: 'boolean_fuse', args: [{ handle: solidAs }, { handle: outilAs }], as }],
+    solidAs: as,
+  }
+}
+
+/** Boolean cut (extrait éditeur). */
+export function opsCouper(
+  solidAs: string,
+  outilAs: string,
+  uid: string,
+): { ops: KernelBatchOp[]; solidAs: string } {
+  const as = `cut${uid}`
+  return {
+    ops: [{ op: 'boolean_cut', args: [{ handle: solidAs }, { handle: outilAs }], as }],
+    solidAs: as,
+  }
+}
