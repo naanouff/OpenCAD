@@ -9,6 +9,12 @@ export const EXPRESSION_DIALECT_V0 = 'opencad.expr.v0'
 
 export { chargerKernel, runBatch } from './chargerKernel.ts'
 export { rebuildExtrudePlate, type ExtrudePlateIntent, type ExtrudePlateResult } from './extrudePlate.ts'
+export { rebuildRevolveCylinder, type RevolveCylinderIntent, type RevolveResult } from './revolveSolid.ts'
+export {
+  rebuildPlateWithHole,
+  type PlateWithHoleIntent,
+  type PlateWithHoleResult,
+} from './plateWithHole.ts'
 
 export type KernelIntent = {
   /** cadompart `expression_dialect`, if any */

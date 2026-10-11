@@ -24,7 +24,7 @@ Ship an **OpenCAD B-Rep kernel** as a first-class product component that rebuild
 | K3-1 | Choose implementation base | **Done** (#57) — bootstrap `occt-kernel` / OCCT LGPL-2.1 |
 | K3-2 | Package skeleton + CI | **Done** (#59) — `@opencad/kernel` + Vitest + Actions |
 | K3-3 | Extrude golden corpus | **Done** (#61) — plate golden via `make_box` + tessellate |
-| K3-4 | Revolve + hole + boolean | Same harness |
+| K3-4 | Revolve + hole + boolean | **Done** (#63) — revolve cylinder + plate hole cut |
 | K3-5 | Sketch constraints (Required set) | Fail explicit on over-constrain |
 | K3-6 | Id scheme faces/edges | Stable enough for fillet work **and** cadombrep topo lists |
 | K3-7 | Tessellate → `.cadomesh` writer | Viz path; provenance fields — SWOT P0-K.4 |
