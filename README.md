@@ -19,8 +19,9 @@ Doctrine (binding for product direction): [`documentation/opencad-doctrine.md`](
 - **CADOM Spec:** **v0.3.3** — [`documentation/specification/cadom-v0.1.md`](documentation/specification/cadom-v0.1.md) (filename historical); package `cadom.v0_1` frozen
 - **cadombrep:** stub v0 — [`documentation/specification/cadombrep-v0.md`](documentation/specification/cadombrep-v0.md)
 - **cadompart:** **v0.3** — expression dialect `opencad.expr.v0` ([#57](https://github.com/naanouff/OpenCAD/issues/57))
-- **Kernel:** `@opencad/kernel` (K3-2…K3-8) — [`packages/kernel`](packages/kernel); spec [`documentation/specification/opencad-kernel-v0.md`](documentation/specification/opencad-kernel-v0.md); backlog [`documentation/sprint-kernel-k3.md`](documentation/sprint-kernel-k3.md)
-- **Next:** O2 suite (carrure / plan.3h); graph SDK (TDD / O4)
+- **Kernel:** `@opencad/kernel` (K3 + O2-1…O2-15) — [`packages/kernel`](packages/kernel); spec [`documentation/specification/opencad-kernel-v0.md`](documentation/specification/opencad-kernel-v0.md)
+- **CADOM SDK:** `@opencad/cadom` (O4-1 decode/encode) — [`packages/cadom`](packages/cadom)
+- **Next:** O4 overrides/fixtures polish; W1 helix (occt-wasm)
 - Process: [SWOT-2 (current)](documentation/cadom-spec-swot.md) · [remediation](documentation/sprint-swot-remediation.md)
 
 ## Goals
