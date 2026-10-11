@@ -56,6 +56,14 @@ export {
   type FaceSupport,
   type RegistreFaces,
 } from './registreFaces.ts'
+export {
+  CHEVAUCHE_TUBE,
+  datumParId,
+  gcsVersMonde,
+  directionDatum,
+  type DatumPlan,
+  type Vecteur3,
+} from './datumsKernel.ts'
 export { evaluer } from './evaluateur.ts'
 export {
   listerTopo,

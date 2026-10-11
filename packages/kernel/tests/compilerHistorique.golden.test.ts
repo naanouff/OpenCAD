@@ -121,6 +121,31 @@ describe('O2-3/O2-4 compiler historique', () => {
     expect(out.bbox.xmax - out.bbox.xmin).toBeCloseTo(100, 0)
   }, 120_000)
 
+  it('O2-11: tube plan.3h — axe X, altitude peau, décalage mi-hauteur', async () => {
+    const occt = await chargerKernel()
+    const compilation = compilerHistorique(
+      [
+        { type: 'param', nom: 'diametre_boite', expression: '40' },
+        { type: 'param', nom: 'hauteur_carrure', expression: '20' },
+        { type: 'ouvrir', support: 'plan.3h' },
+        { type: 'cercle', id: 'tube' },
+        { type: 'cote', cible: 'diametre', expression: '8' },
+        { type: 'extrude', profondeur: '15' },
+      ],
+      { unite: 'mm' },
+    )
+    const out = tessellerSolide(occt, compilation.ops, compilation.solidAs!)
+    expect(out.ok).toBe(true)
+    if (!out.ok) return
+    // altitude = 20 − 0.3 ; extrude = 15 + 0.3 → x ∈ [19.7, 35]
+    expect(out.bbox.xmin).toBeCloseTo(19.7, 0)
+    expect(out.bbox.xmax).toBeCloseTo(35, 0)
+    // centre Y = hauteur_carrure/2 = 10 ; rayon 4
+    expect((out.bbox.ymin + out.bbox.ymax) / 2).toBeCloseTo(10, 0)
+    expect(out.bbox.ymax - out.bbox.ymin).toBeCloseTo(8, 0)
+    expect(out.bbox.zmax - out.bbox.zmin).toBeCloseTo(8, 0)
+  }, 120_000)
+
   it('O2-10: plaque + poche enlever sur face.dessus', async () => {
     const occt = await chargerKernel()
     const plein = compilerHistorique(
