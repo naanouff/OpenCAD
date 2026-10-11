@@ -9,6 +9,14 @@ import {
 } from './opsDepuisFonction.ts'
 import { polylinesDepuisResolue } from './polylinesDepuisResolue.ts'
 import {
+  directionCoupe,
+  directionExtrude,
+  faceDepuisBornesY,
+  yPlanCoupe,
+  yPlanFace,
+  type RegistreFaces,
+} from './registreFaces.ts'
+import {
   exigerContraint,
   resoudreEsquisse,
   type CercleEsquisse,
@@ -120,6 +128,7 @@ export function compilerHistorique(
   let uid = 0
   let yMax = 0
   let yMin = 0
+  let faces: RegistreFaces = new Map()
 
   for (const operation of historique) {
     if (operation.type === 'param') {
@@ -197,8 +206,13 @@ export function compilerHistorique(
       }
       const resolue = resoudreEsquisse(sketch, parametres)
       exigerContraint(resolue)
-      const polys = polylinesDepuisResolue(resolue, { yPlan: 0, echelle: scale })
-      const dir: readonly [number, number, number] = [0, profondeur * scale, 0]
+      const profondeurMm = profondeur * scale
+      const face = faces.get(esquisse.support)
+      const yPlan = face ? yPlanFace(face) : 0
+      const dir = face
+        ? directionExtrude(face, profondeurMm)
+        : ([0, profondeurMm, 0] as const)
+      const polys = polylinesDepuisResolue(resolue, { yPlan, echelle: scale })
       if (polys.length === 1) {
         const feat = opsExtrude(polys[0] as Polyline3, dir, String(uid++))
         ops.push(...feat.ops)
@@ -228,8 +242,15 @@ export function compilerHistorique(
           solidAs = cut.solidAs
         }
       }
-      yMax = Math.max(yMax, profondeur * scale)
-      yMin = Math.min(yMin, 0)
+      if (face) {
+        const yFin = face.origin[1] + face.normal[1] * profondeurMm
+        yMax = Math.max(yMax, yFin, face.origin[1])
+        yMin = Math.min(yMin, yFin, face.origin[1])
+      } else {
+        yMax = Math.max(yMax, profondeurMm)
+        yMin = Math.min(yMin, 0)
+      }
+      faces = faceDepuisBornesY(yMin, yMax)
       esquisse = null
       continue
     }
@@ -245,6 +266,7 @@ export function compilerHistorique(
         if (s.hauteur) yMax = Math.max(yMax, evaluer(s.hauteur, parametres) * scale)
       }
       yMin = Math.min(yMin, 0)
+      faces = faceDepuisBornesY(yMin, yMax)
       esquisse = null
       continue
     }
@@ -256,12 +278,15 @@ export function compilerHistorique(
       const sketch: EsquisseKernel = { cercles: esquisse.cercles.map((c) => ({ ...c })) }
       const resolue = resoudreEsquisse(sketch, parametres)
       exigerContraint(resolue)
-      const marge = 0.4
-      const yCut = yMax - profondeur * scale
-      const dirY = profondeur * scale + marge
+      const profondeurMm = profondeur * scale
+      const face = faces.get(esquisse.support)
+      const yCut = face ? yPlanCoupe(face, profondeurMm) : yMax - profondeurMm
+      const dir = face
+        ? directionCoupe(face, profondeurMm)
+        : ([0, profondeurMm + 0.4, 0] as const)
       const polys = polylinesDepuisResolue(resolue, { yPlan: yCut, echelle: scale })
       for (const poly of polys) {
-        const outil = opsExtrude(poly, [0, dirY, 0], String(uid++))
+        const outil = opsExtrude(poly, dir, String(uid++))
         ops.push(...outil.ops)
         const cut = opsCouper(solidAs, outil.as, String(uid++))
         ops.push(...cut.ops)

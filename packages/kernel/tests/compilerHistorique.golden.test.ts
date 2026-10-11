@@ -97,6 +97,64 @@ describe('O2-3/O2-4 compiler historique', () => {
     expect(rx).toBeCloseTo(10, 0)
   }, 120_000)
 
+  it('O2-10: plaque + bossage sur face.dessus', async () => {
+    const occt = await chargerKernel()
+    const compilation = compilerHistorique(
+      [
+        { type: 'ouvrir' },
+        { type: 'rectangle', id: 'base' },
+        { type: 'cote', cible: 'longueur', expression: '100' },
+        { type: 'cote', cible: 'largeur', expression: '60' },
+        { type: 'extrude', profondeur: '8' },
+        { type: 'ouvrir', support: 'face.dessus' },
+        { type: 'rectangle', id: 'boss' },
+        { type: 'cote', cible: 'longueur', expression: '20' },
+        { type: 'cote', cible: 'largeur', expression: '20' },
+        { type: 'extrude', profondeur: '5' },
+      ],
+      { unite: 'mm' },
+    )
+    const out = tessellerSolide(occt, compilation.ops, compilation.solidAs!)
+    expect(out.ok).toBe(true)
+    if (!out.ok) return
+    expect(out.bbox.ymax - out.bbox.ymin).toBeCloseTo(13, 0)
+    expect(out.bbox.xmax - out.bbox.xmin).toBeCloseTo(100, 0)
+  }, 120_000)
+
+  it('O2-10: plaque + poche enlever sur face.dessus', async () => {
+    const occt = await chargerKernel()
+    const plein = compilerHistorique(
+      [
+        { type: 'ouvrir' },
+        { type: 'rectangle', id: 'r' },
+        { type: 'cote', cible: 'longueur', expression: '100' },
+        { type: 'cote', cible: 'largeur', expression: '60' },
+        { type: 'extrude', profondeur: '8' },
+      ],
+      { unite: 'mm' },
+    )
+    const poche = compilerHistorique(
+      [
+        { type: 'ouvrir' },
+        { type: 'rectangle', id: 'r' },
+        { type: 'cote', cible: 'longueur', expression: '100' },
+        { type: 'cote', cible: 'largeur', expression: '60' },
+        { type: 'extrude', profondeur: '8' },
+        { type: 'ouvrir', support: 'face.dessus' },
+        { type: 'cercle', id: 'c' },
+        { type: 'cote', cible: 'diametre', expression: '10' },
+        { type: 'enlever', profondeur: '4' },
+      ],
+      { unite: 'mm' },
+    )
+    const a = tessellerSolide(occt, plein.ops, plein.solidAs!)
+    const b = tessellerSolide(occt, poche.ops, poche.solidAs!)
+    expect(a.ok && b.ok).toBe(true)
+    if (!a.ok || !b.ok) return
+    expect(b.bbox.ymax - b.bbox.ymin).toBeCloseTo(8, 0)
+    expect(b.mesh.triangleCount).toBeGreaterThan(a.mesh.triangleCount)
+  }, 120_000)
+
   it('O2-9: unite mm (Session) → même bbox que metres×1000', async () => {
     const occt = await chargerKernel()
     const metres = compilerHistorique([

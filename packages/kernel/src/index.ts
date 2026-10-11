@@ -47,6 +47,15 @@ export {
   type CompilationKernel,
   type OptionsCompilation,
 } from './compilerHistorique.ts'
+export {
+  faceDepuisBornesY,
+  yPlanFace,
+  yPlanCoupe,
+  directionCoupe,
+  directionExtrude,
+  type FaceSupport,
+  type RegistreFaces,
+} from './registreFaces.ts'
 export { evaluer } from './evaluateur.ts'
 export {
   listerTopo,

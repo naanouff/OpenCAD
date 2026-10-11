@@ -22,7 +22,8 @@ OpenCAD B-Rep kernel package (K3).
 | O2-7 GCS polygone | done (`PolygoneEsquisse`, hex/octo) |
 | O2-8 editor GCS consume | done (`./sketch` + editor `esquissePolylines`) |
 | O2-9 compiler mm + pipeline bridge | done (`unite: 'mm'`, `./compiler`) |
-| O2 suite (carrure / face.* in kernel) | later |
+| O2-10 face.* supports | done (`registreFaces`, extrude/enlever) |
+| O2 suite (carrure / plan.3h) | later |
 
 Bootstrap engine: **`occt-kernel`** ([spec](../../documentation/specification/opencad-kernel-v0.md)).
 
