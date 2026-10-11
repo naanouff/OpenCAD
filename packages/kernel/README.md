@@ -25,7 +25,8 @@ OpenCAD B-Rep kernel package (K3).
 | O2-10 face.* supports | done (`registreFaces`, extrude/enlever) |
 | O2-11 plan.3h tube | done (`datumsKernel`, altitude/decalage tube) |
 | O2-12 barrettes pédagogiques | done (`opsBarrettesPedagogiques`, plan.12h traverse) |
-| O2 suite (cornes / pas / concentrique) | later |
+| O2-13 concentrique | done (`concentrique` op + anneau extrude) |
+| O2 suite (cornes / symétrie / pas) | later |
 
 Bootstrap engine: **`occt-kernel`** ([spec](../../documentation/specification/opencad-kernel-v0.md)).
 

@@ -79,6 +79,21 @@ describe('K3-5 sketch constraints', () => {
     expect(out.polylines[0]!.points).toEqual(['c1.p'])
   })
 
+  it('O2-13: deux cercles concentriques → centres coincidents, deux polylines', () => {
+    const out = resoudreEsquisse({
+      cercles: [
+        { id: 'ext', diametre: '0.04' },
+        { id: 'int', diametre: '0.035', concentrique: 'cercle.exterieur' },
+      ],
+    })
+    expect(out.statut).toBe('contraint')
+    expect(out.polylines).toHaveLength(2)
+    const centres = out.points.filter((p) => p.id.endsWith('.o'))
+    expect(centres).toHaveLength(2)
+    expect(centres[0]!.u).toBeCloseTo(centres[1]!.u)
+    expect(centres[0]!.v).toBeCloseTo(centres[1]!.v)
+  })
+
   it('O2-6: cercle sans diamètre → sous-contraint', () => {
     const out = resoudreEsquisse({ cercles: [{ id: 'c1' }] })
     expect(out.statut).toBe('sous-contraint')

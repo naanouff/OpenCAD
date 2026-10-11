@@ -22,6 +22,8 @@ export type RectangleEsquisse = {
 export type CercleEsquisse = {
   id: string
   diametre?: string
+  /** Cible nommée (`cercle.exterieur`, `anneau`, …) — centres déjà à l’origine en v1. */
+  concentrique?: string
 }
 
 /**
@@ -230,8 +232,8 @@ function resoudrePolygoneRegulier(
 }
 
 /**
- * Required sketch solve (K3-5 + O2-6/7):
- * rectangle ; cercle ; polygone régulier (entreplat).
+ * Required sketch solve (K3-5 + O2-6/7/13):
+ * rectangle ; cercle (+ concentrique v1) ; polygone régulier (entreplat).
  */
 export function resoudreEsquisse(
   esquisse: EsquisseKernel,

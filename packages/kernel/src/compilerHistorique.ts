@@ -50,6 +50,7 @@ export type OperationKernel =
       cible: 'longueur' | 'largeur' | 'rayon' | 'hauteur' | 'diametre' | 'entreplat'
       expression: string
     }
+  | { type: 'concentrique'; cible: string }
   | { type: 'extrude'; profondeur: string }
   | { type: 'revolution' }
   | { type: 'enlever'; profondeur: string; traverse?: boolean }
@@ -153,7 +154,7 @@ export type OptionsCompilation = {
 
 /**
  * Compile un préfixe d’historique (param / esquisse / extrude / revolution / enlever / fillet)
- * en batch occt-kernel. Hors scope : cornes / elevation, pas hybride, concentrique.
+ * en batch occt-kernel. Hors scope : cornes / elevation, pas hybride, symétrie.
  */
 export function compilerHistorique(
   historique: OperationKernel[],
@@ -234,6 +235,13 @@ export function compilerHistorique(
       cercle.diametre = operation.expression
       continue
     }
+    if (operation.type === 'concentrique') {
+      if (!esquisse) throw new Error('concentrique hors esquisse')
+      const dernier = esquisse.cercles.at(-1)
+      if (!dernier) throw new Error('concentrique sans cercle')
+      dernier.concentrique = operation.cible
+      continue
+    }
     if (operation.type === 'extrude') {
       if (!esquisse) throw new Error('extrude sans esquisse')
       const profondeur = evaluer(operation.profondeur, parametres)
@@ -264,14 +272,18 @@ export function compilerHistorique(
         const [dx, dy, dz] = decalageTube(esquisse.support, parametres, scale)
         polys = decalerPolylines(polys, dx, dy, dz)
       }
-      if (polys.length === 1) {
-        const feat = opsExtrude(polys[0] as Polyline3, dir, String(uid++))
-        ops.push(...feat.ops)
-        const attach = accrocherSolide(solidAs, feat.as, String(uid++))
-        ops.push(...attach.ops)
-        solidAs = attach.solidAs
+      // Anneau (plan horizontal) : extrude extérieur puis coupe intérieurs.
+      // Tube latéral / mono-polyline : fuse chaque extrude (aligné éditeur).
+      const anneau = polys.length >= 2 && !tubeLateral
+      if (!anneau) {
+        for (const poly of polys) {
+          const feat = opsExtrude(poly, dir, String(uid++))
+          ops.push(...feat.ops)
+          const attach = accrocherSolide(solidAs, feat.as, String(uid++))
+          ops.push(...attach.ops)
+          solidAs = attach.solidAs
+        }
       } else {
-        // Anneau : extrude extérieur puis coupe les intérieurs (GCS multi-cercles).
         const classes = polys
           .map((poly) => ({ poly, r: rayonApprox(poly) }))
           .sort((a, b) => b.r - a.r)
