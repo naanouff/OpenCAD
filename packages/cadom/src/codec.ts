@@ -1,6 +1,5 @@
-import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
 import protobuf from 'protobufjs'
+import { CADOM_PROTO_SOURCE } from './cadomProtoSource.ts'
 import {
   CADOM_VERSION_MAJOR,
   CADOM_VERSION_MINOR,
@@ -12,19 +11,11 @@ import {
   type UpAxis,
 } from './types.ts'
 
-const protoPath = join(
-  dirname(fileURLToPath(import.meta.url)),
-  '..',
-  '..',
-  'cadom-proto',
-  'cadom.proto',
-)
-
 let CadomFileType: protobuf.Type | null = null
 
 function typeCadom(): protobuf.Type {
   if (!CadomFileType) {
-    const root = protobuf.loadSync(protoPath)
+    const { root } = protobuf.parse(CADOM_PROTO_SOURCE, { keepCase: false })
     CadomFileType = root.lookupType('cadom.v0_1.CadomFile')
   }
   return CadomFileType
@@ -98,7 +89,7 @@ const PROTO_TO_ROLE: Record<number, AssetRole> = {
 
 function bytesOf(value: unknown): Uint8Array {
   if (value instanceof Uint8Array) return value
-  if (Buffer.isBuffer(value)) return new Uint8Array(value)
+  if (typeof Buffer !== 'undefined' && Buffer.isBuffer(value)) return new Uint8Array(value)
   if (value && typeof value === 'object' && 'buffer' in (value as object)) {
     const u = value as { buffer: ArrayBuffer; byteOffset: number; byteLength: number }
     return new Uint8Array(u.buffer, u.byteOffset, u.byteLength)

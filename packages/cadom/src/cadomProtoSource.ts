@@ -1,0 +1,107 @@
+﻿/** Embedded cadom.proto — browser-safe (no fs / path). Keep in sync with packages/cadom-proto/cadom.proto. */
+export const CADOM_PROTO_SOURCE = `
+syntax = "proto3";
+
+package cadom.v0_1;
+
+option java_package = "dev.opencad.cadom.v0_1";
+option csharp_namespace = "OpenCad.Cadom.V0_1";
+
+// CADOM document schema (protobuf package name frozen as v0_1).
+// Document/file version_minor: 6 => specification v0.3.3 (B3' + CADOMBREP).
+// AssetKind.STEP remains LEGACY (not OpenCAD truth).
+// AssetRole.EXACT + AssetKind.CADOMBREP are OpenCAD dead-exact truth for Complete.
+// Field numbers are stable; do not reuse numbers.
+
+enum LengthUnit {
+  LENGTH_UNIT_UNSPECIFIED = 0;
+  LENGTH_UNIT_METRES = 1;
+  LENGTH_UNIT_MILLIMETRES = 2;
+  LENGTH_UNIT_INCHES = 3;
+}
+
+enum UpAxis {
+  UP_AXIS_UNSPECIFIED = 0;
+  UP_AXIS_Y = 1;
+  UP_AXIS_Z = 2;
+}
+
+enum AssetKind {
+  ASSET_KIND_UNSPECIFIED = 0;
+  ASSET_KIND_STEP = 1;       // LEGACY — not OpenCAD truth; do not emit for OpenCAD products
+  ASSET_KIND_GLTF = 2;
+  ASSET_KIND_GLB = 3;
+  ASSET_KIND_OTHER = 4;
+  ASSET_KIND_CADOMESH = 5;
+  ASSET_KIND_CADOMPART = 6;
+  ASSET_KIND_CADOMAT = 7;
+  ASSET_KIND_CADOMETA = 8;
+  ASSET_KIND_CADOMBREP = 9;  // dead B-Rep envelope (.cadombrep) — role EXACT
+}
+
+// Role of an asset binding on a node (at most one binding per role).
+enum AssetRole {
+  ASSET_ROLE_UNSPECIFIED = 0;
+  ASSET_ROLE_MESH = 1;       // display tessellation: CADOMESH / GLTF / GLB
+  ASSET_ROLE_PARAMETRIC = 2; // CADOMPART (intent)
+  ASSET_ROLE_MATERIAL = 3;   // CADOMAT
+  ASSET_ROLE_METADATA = 4;   // CADOMETA / OTHER
+  ASSET_ROLE_EXACT = 5;      // dead exact solid: CADOMBREP only (not STEP)
+}
+
+message CadomFile {
+  uint32 version_major = 1;
+  uint32 version_minor = 2;
+  LengthUnit units = 3;
+  UpAxis up_axis = 4;
+  repeated string root_ids = 5;
+  repeated Node nodes = 6;
+  repeated Asset assets = 7;
+  repeated Override overrides = 8;
+  repeated Extension extensions = 9;
+  // Default active override layer names (same semantics as session activation).
+  repeated string default_active_layers = 10;
+}
+
+message NodeAssetBinding {
+  AssetRole role = 1;
+  string asset_id = 2;
+}
+
+message Node {
+  string id = 1;
+  string parent_id = 2;
+  string name = 3;
+  // Column-major 4x4 float32 (GPU-friendly). See spec precision policy.
+  repeated float local_transform = 4 [packed = true];
+  // Deprecated: if non-empty and no MESH binding, treat as MESH.
+  string asset_id = 5;
+  optional bool visible = 6;
+  string semantic_type = 7;
+  repeated NodeAssetBinding asset_bindings = 8;
+}
+
+message Asset {
+  string id = 1;
+  string uri = 2;
+  AssetKind kind = 3;
+  string mime = 4;
+  // Optional integrity metadata (hex-encoded SHA-256 of asset bytes).
+  string content_sha256 = 5;
+  optional uint64 byte_length = 6;
+}
+
+message Override {
+  string node_id = 1;
+  string layer = 2;
+  optional bool visible = 3;
+  optional string material_ref = 4;
+  repeated float local_transform = 5 [packed = true];
+}
+
+message Extension {
+  string vendor = 1;
+  string type = 2;
+  bytes payload = 3;
+}
+`

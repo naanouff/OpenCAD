@@ -1,6 +1,6 @@
 # `@opencad/cadom`
 
-CADOM graph SDK (O4). Decode / encode `.cadom`, flat UUID `CadomDocument`, non-destructive overrides, extension pass-through.
+CADOM graph SDK (O4). Decode / encode `.cadom`, flat UUID `CadomDocument`, non-destructive overrides, extension pass-through. Codec parses an embedded `cadom.proto` string (no Node `fs`) so it runs in the browser.
 
 | Milestone | Status |
 |-----------|--------|
