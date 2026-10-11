@@ -20,7 +20,7 @@ Doctrine (binding for product direction): [`documentation/opencad-doctrine.md`](
 - **cadombrep:** stub v0 — [`documentation/specification/cadombrep-v0.md`](documentation/specification/cadombrep-v0.md)
 - **cadompart:** **v0.3** — expression dialect `opencad.expr.v0` ([#57](https://github.com/naanouff/OpenCAD/issues/57))
 - **Kernel:** `@opencad/kernel` (K3-2 skeleton) + K3-1 bootstrap — [`packages/kernel`](packages/kernel); spec [`documentation/specification/opencad-kernel-v0.md`](documentation/specification/opencad-kernel-v0.md); backlog [`documentation/sprint-kernel-k3.md`](documentation/sprint-kernel-k3.md)
-- **Next:** K3-4 revolve/hole goldens; graph SDK (TDD); Complete writers use `PARAMETRIC` + `MESH` + `EXACT` (CADOMBREP)
+- **Next:** K3-5 sketch constraints; graph SDK (TDD); Complete writers use `PARAMETRIC` + `MESH` + `EXACT` (CADOMBREP)
 - Process: [SWOT-2 (current)](documentation/cadom-spec-swot.md) · [remediation](documentation/sprint-swot-remediation.md)
 
 ## Goals
