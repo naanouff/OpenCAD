@@ -27,6 +27,9 @@ feature/* ou fix/*
 - `main` n’avance que via **PR depuis `develop`** (release).
 - `develop` n’avance que via **merge de PR** depuis `feature/*` ou `fix/*`.
 - Nom de branche : `feature/titre-de-la-feature` ou `fix/titre-du-fix` (kebab-case, sans espaces).
+- Après fusion d’une PR `feature/*` / `fix/*` → `develop`, la branche source est **supprimée** (`delete_branch_on_merge`).
+- `main` et `develop` sont **protégées** (rulesets) : PR obligatoire, pas de force-push, **pas de suppression** (y compris après une PR release `develop` → `main`).
+- Rulesets versionnés : [`.github/rulesets/`](../.github/rulesets/).
 
 ### Exemples
 
