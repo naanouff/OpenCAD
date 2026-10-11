@@ -32,10 +32,16 @@ export {
   opsExtrude,
   opsRevolution,
   opsCouper,
+  opsFillet,
   accrocherSolide,
   type Polyline3,
 } from './opsDepuisFonction.ts'
 export { polylinesDepuisResolue } from './polylinesDepuisResolue.ts'
+export {
+  compilerHistorique,
+  type OperationKernel,
+  type CompilationKernel,
+} from './compilerHistorique.ts'
 export { evaluer } from './evaluateur.ts'
 export {
   listerTopo,

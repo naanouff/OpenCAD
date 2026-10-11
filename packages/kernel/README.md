@@ -15,7 +15,8 @@ OpenCAD B-Rep kernel package (K3).
 | Complete export v0 | Required + K3-8 |
 | O2-1 wire/extrude extract | done (`opsExtrude`, `polylinesDepuisResolue`) |
 | O2-2 boolean fuse/cut | done (`opsCouper`, `accrocherSolide`) |
-| O2 suite (full pipeline) | later |
+| O2-3 history compiler | done (`compilerHistorique`, `opsFillet`) |
+| O2 suite (revolve/cut/carrure + editor consume) | later |
 
 Bootstrap engine: **`occt-kernel`** ([spec](../../documentation/specification/opencad-kernel-v0.md)).
 
