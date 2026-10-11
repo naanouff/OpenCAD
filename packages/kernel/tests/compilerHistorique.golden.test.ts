@@ -97,6 +97,33 @@ describe('O2-3/O2-4 compiler historique', () => {
     expect(rx).toBeCloseTo(10, 0)
   }, 120_000)
 
+  it('O2-9: unite mm (Session) → même bbox que metres×1000', async () => {
+    const occt = await chargerKernel()
+    const metres = compilerHistorique([
+      { type: 'ouvrir' },
+      { type: 'rectangle', id: 'r' },
+      { type: 'cote', cible: 'longueur', expression: '0.12' },
+      { type: 'cote', cible: 'largeur', expression: '0.08' },
+      { type: 'extrude', profondeur: '0.01' },
+    ])
+    const mm = compilerHistorique(
+      [
+        { type: 'ouvrir' },
+        { type: 'rectangle', id: 'r' },
+        { type: 'cote', cible: 'longueur', expression: '120' },
+        { type: 'cote', cible: 'largeur', expression: '80' },
+        { type: 'extrude', profondeur: '10' },
+      ],
+      { unite: 'mm' },
+    )
+    const a = tessellerSolide(occt, metres.ops, metres.solidAs!)
+    const b = tessellerSolide(occt, mm.ops, mm.solidAs!)
+    expect(a.ok && b.ok).toBe(true)
+    if (!a.ok || !b.ok) return
+    expect(b.bbox.xmax - b.bbox.xmin).toBeCloseTo(a.bbox.xmax - a.bbox.xmin, 0)
+    expect(b.bbox.ymax - b.bbox.ymin).toBeCloseTo(a.bbox.ymax - a.bbox.ymin, 0)
+  }, 120_000)
+
   it('O2-6: densifie un cercle GCS en polyline fermée', () => {
     const resolue = resoudreEsquisse({ cercles: [{ id: 'c', diametre: '0.02' }] })
     const polys = polylinesDepuisResolue(resolue, { echelle: 1000, segmentsCercle: 32 })

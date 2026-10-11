@@ -78,10 +78,11 @@ function fermerXy(xyz: Polyline3): Polyline3 {
   return [...xyz, xyz[0]!, xyz[1]!, xyz[2]!]
 }
 
-/** Profil révolution XY (mm) depuis segments rayon/hauteur (m). */
-function profilRevolutionMm(
+/** Profil révolution XY (mm OCCT) depuis segments rayon/hauteur (unités sketch). */
+function profilRevolution(
   segments: SegmentProfil[],
   parametres: Map<string, string>,
+  scale: number,
 ): Polyline3 {
   if (segments.length < 2) throw new Error('profil révolution trop court')
   const xyz: number[] = []
@@ -89,16 +90,29 @@ function profilRevolutionMm(
     if (s.rayon === undefined || s.hauteur === undefined) {
       throw new Error('segment sans rayon/hauteur')
     }
-    xyz.push(evaluer(s.rayon, parametres) * 1000, evaluer(s.hauteur, parametres) * 1000, 0)
+    xyz.push(evaluer(s.rayon, parametres) * scale, evaluer(s.hauteur, parametres) * scale, 0)
   }
   return fermerXy(xyz)
+}
+
+export type OptionsCompilation = {
+  /**
+   * Unité des expressions sketch / profondeur / rayons.
+   * - `m` (défaut) : mètres → OCCT mm via ×1000 (goldens K3)
+   * - `mm` : millimètres (Session éditeur) → OCCT mm via ×1
+   */
+  unite?: 'm' | 'mm'
 }
 
 /**
  * Compile un préfixe d’historique (param / esquisse / extrude / revolution / enlever / fillet)
  * en batch occt-kernel. Hors scope : carrure barrettes, pas hybride.
  */
-export function compilerHistorique(historique: OperationKernel[]): CompilationKernel {
+export function compilerHistorique(
+  historique: OperationKernel[],
+  options: OptionsCompilation = {},
+): CompilationKernel {
+  const scale = options.unite === 'mm' ? 1 : 1000
   const parametres = new Map<string, string>()
   const ops: KernelBatchOp[] = []
   let solidAs: string | null = null
@@ -183,8 +197,8 @@ export function compilerHistorique(historique: OperationKernel[]): CompilationKe
       }
       const resolue = resoudreEsquisse(sketch, parametres)
       exigerContraint(resolue)
-      const polys = polylinesDepuisResolue(resolue, { yPlan: 0, echelle: 1000 })
-      const dir: readonly [number, number, number] = [0, profondeur * 1000, 0]
+      const polys = polylinesDepuisResolue(resolue, { yPlan: 0, echelle: scale })
+      const dir: readonly [number, number, number] = [0, profondeur * scale, 0]
       if (polys.length === 1) {
         const feat = opsExtrude(polys[0] as Polyline3, dir, String(uid++))
         ops.push(...feat.ops)
@@ -214,21 +228,21 @@ export function compilerHistorique(historique: OperationKernel[]): CompilationKe
           solidAs = cut.solidAs
         }
       }
-      yMax = Math.max(yMax, profondeur * 1000)
+      yMax = Math.max(yMax, profondeur * scale)
       yMin = Math.min(yMin, 0)
       esquisse = null
       continue
     }
     if (operation.type === 'revolution') {
       if (!esquisse) throw new Error('revolution sans esquisse')
-      const profil = profilRevolutionMm(esquisse.segments, parametres)
+      const profil = profilRevolution(esquisse.segments, parametres, scale)
       const feat = opsRevolution(profil, String(uid++))
       ops.push(...feat.ops)
       const attach = accrocherSolide(solidAs, feat.as, String(uid++))
       ops.push(...attach.ops)
       solidAs = attach.solidAs
       for (const s of esquisse.segments) {
-        if (s.hauteur) yMax = Math.max(yMax, evaluer(s.hauteur, parametres) * 1000)
+        if (s.hauteur) yMax = Math.max(yMax, evaluer(s.hauteur, parametres) * scale)
       }
       yMin = Math.min(yMin, 0)
       esquisse = null
@@ -243,9 +257,9 @@ export function compilerHistorique(historique: OperationKernel[]): CompilationKe
       const resolue = resoudreEsquisse(sketch, parametres)
       exigerContraint(resolue)
       const marge = 0.4
-      const yCut = yMax - profondeur * 1000
-      const dirY = profondeur * 1000 + marge
-      const polys = polylinesDepuisResolue(resolue, { yPlan: yCut, echelle: 1000 })
+      const yCut = yMax - profondeur * scale
+      const dirY = profondeur * scale + marge
+      const polys = polylinesDepuisResolue(resolue, { yPlan: yCut, echelle: scale })
       for (const poly of polys) {
         const outil = opsExtrude(poly, [0, dirY, 0], String(uid++))
         ops.push(...outil.ops)
@@ -258,7 +272,7 @@ export function compilerHistorique(historique: OperationKernel[]): CompilationKe
     }
     if (operation.type === 'fillet') {
       if (!solidAs) throw new Error('fillet sans solide')
-      const rayon = evaluer(operation.rayon, parametres) * 1000
+      const rayon = evaluer(operation.rayon, parametres) * scale
       if (!(rayon > 0)) throw new Error('rayon fillet doit être positif')
       const indices = operation.indices === undefined ? null : operation.indices
       const feat = opsFillet(solidAs, rayon, indices, String(uid++))

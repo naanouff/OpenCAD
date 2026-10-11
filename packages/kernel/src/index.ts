@@ -45,6 +45,7 @@ export {
   compilerHistorique,
   type OperationKernel,
   type CompilationKernel,
+  type OptionsCompilation,
 } from './compilerHistorique.ts'
 export { evaluer } from './evaluateur.ts'
 export {
