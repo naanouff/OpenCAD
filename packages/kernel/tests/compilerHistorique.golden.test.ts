@@ -121,6 +121,62 @@ describe('O2-3/O2-4 compiler historique', () => {
     expect(out.bbox.xmax - out.bbox.xmin).toBeCloseTo(100, 0)
   }, 120_000)
 
+  it('O2-15: pas hybride — 1re révolution omise, tête + Pozi OCCT', async () => {
+    const occt = await chargerKernel()
+    const compilation = compilerHistorique(
+      [
+        { type: 'param', nom: 'longueur', expression: '30' },
+        { type: 'ouvrir', support: 'plan.12h' },
+        { type: 'segment', id: 's0' },
+        { type: 'cote', cible: 'rayon', expression: '0' },
+        { type: 'cote', cible: 'hauteur', expression: '0' },
+        { type: 'segment', id: 's1' },
+        { type: 'cote', cible: 'rayon', expression: '1.75' },
+        { type: 'cote', cible: 'hauteur', expression: '3.031' },
+        { type: 'segment', id: 's2' },
+        { type: 'cote', cible: 'rayon', expression: '1.75' },
+        { type: 'cote', cible: 'hauteur', expression: '27' },
+        { type: 'segment', id: 's3' },
+        { type: 'cote', cible: 'rayon', expression: '0' },
+        { type: 'cote', cible: 'hauteur', expression: '27' },
+        { type: 'revolution' },
+        { type: 'pas' },
+        { type: 'ouvrir', support: 'plan.12h' },
+        { type: 'segment', id: 't0' },
+        { type: 'cote', cible: 'rayon', expression: '0' },
+        { type: 'cote', cible: 'hauteur', expression: '27' },
+        { type: 'segment', id: 't1' },
+        { type: 'cote', cible: 'rayon', expression: '3' },
+        { type: 'cote', cible: 'hauteur', expression: '27' },
+        { type: 'segment', id: 't2' },
+        { type: 'cote', cible: 'rayon', expression: '6' },
+        { type: 'cote', cible: 'hauteur', expression: '30' },
+        { type: 'segment', id: 't3' },
+        { type: 'cote', cible: 'rayon', expression: '0' },
+        { type: 'cote', cible: 'hauteur', expression: '30' },
+        { type: 'revolution' },
+        { type: 'ouvrir', support: 'plan.dessus' },
+        { type: 'rectangle', id: 'p1' },
+        { type: 'cote', cible: 'largeur', expression: '1.65' },
+        { type: 'cote', cible: 'longueur', expression: '6.6' },
+        { type: 'rectangle', id: 'p2' },
+        { type: 'cote', cible: 'largeur', expression: '6.6' },
+        { type: 'cote', cible: 'longueur', expression: '1.65' },
+        { type: 'enlever', profondeur: '2.39' },
+      ],
+      { unite: 'mm' },
+    )
+    expect(compilation.pas).toBe(true)
+    expect(compilation.entitesPas).toHaveLength(4)
+    expect(compilation.solidAs).toBeTruthy()
+    const out = tessellerSolide(occt, compilation.ops, compilation.solidAs!)
+    expect(out.ok).toBe(true)
+    if (!out.ok) return
+    // Tête seule (corps omis) : hauteur ≈ 3 mm, rayon max ≈ 6
+    expect(out.bbox.ymax - out.bbox.ymin).toBeCloseTo(3, 0)
+    expect(Math.max(Math.abs(out.bbox.xmax), Math.abs(out.bbox.xmin))).toBeCloseTo(6, 0)
+  }, 120_000)
+
   it('O2-14: cornes + élévation (plongee) après anneau', async () => {
     const occt = await chargerKernel()
     const compilation = compilerHistorique(

@@ -51,6 +51,7 @@ export {
   type OperationKernel,
   type CompilationKernel,
   type OptionsCompilation,
+  type ProfilPas,
 } from './compilerHistorique.ts'
 export {
   faceDepuisBornesY,

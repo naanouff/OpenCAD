@@ -27,7 +27,8 @@ OpenCAD B-Rep kernel package (K3).
 | O2-12 barrettes pédagogiques | done (`opsBarrettesPedagogiques`, plan.12h traverse) |
 | O2-13 concentrique | done (`concentrique` op + anneau extrude) |
 | O2-14 corne + symétrie + élévation | done (`geometriePlan`, GCS, `opsElevationCornes`) |
-| O2 suite (pas hybride) | later |
+| O2-15 pas hybride | done (`pas` skip 1ʳᵉ révolution, `entitesPas`) |
+| O2 suite | complete (extract pipeline) |
 
 Bootstrap engine: **`occt-kernel`** ([spec](../../documentation/specification/opencad-kernel-v0.md)).
 
