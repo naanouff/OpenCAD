@@ -107,6 +107,23 @@ describe('O2-3/O2-4 compiler historique', () => {
     expect(Math.max(...xs)).toBeCloseTo(10, 0)
   })
 
+  it('O2-7: hexagone + extrude → bbox entreplat', async () => {
+    const occt = await chargerKernel()
+    const compilation = compilerHistorique([
+      { type: 'ouvrir' },
+      { type: 'hexagone', id: 'h' },
+      { type: 'cote', cible: 'entreplat', expression: '0.02' },
+      { type: 'extrude', profondeur: '0.01' },
+    ])
+    const out = tessellerSolide(occt, compilation.ops, compilation.solidAs!)
+    expect(out.ok).toBe(true)
+    if (!out.ok) return
+    expect(out.bbox.ymax - out.bbox.ymin).toBeCloseTo(10, 0)
+    // Enveloppe = 2R = entreplat / cos(π/6) (sommets, pas pans)
+    const span = 20 / Math.cos(Math.PI / 6)
+    expect(out.bbox.zmax - out.bbox.zmin).toBeCloseTo(span, 0)
+  }, 120_000)
+
   it('O2-6: extrude cercle GCS → cylindre bbox', async () => {
     const occt = await chargerKernel()
     const compilation = compilerHistorique([

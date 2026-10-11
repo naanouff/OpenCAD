@@ -20,7 +20,7 @@ Doctrine (binding for product direction): [`documentation/opencad-doctrine.md`](
 - **cadombrep:** stub v0 — [`documentation/specification/cadombrep-v0.md`](documentation/specification/cadombrep-v0.md)
 - **cadompart:** **v0.3** — expression dialect `opencad.expr.v0` ([#57](https://github.com/naanouff/OpenCAD/issues/57))
 - **Kernel:** `@opencad/kernel` (K3-2…K3-8) — [`packages/kernel`](packages/kernel); spec [`documentation/specification/opencad-kernel-v0.md`](documentation/specification/opencad-kernel-v0.md); backlog [`documentation/sprint-kernel-k3.md`](documentation/sprint-kernel-k3.md)
-- **Next:** O2 suite (polygone GCS / editor pipeline); graph SDK (TDD / O4)
+- **Next:** O2 suite (editor pipeline consume); graph SDK (TDD / O4)
 - Process: [SWOT-2 (current)](documentation/cadom-spec-swot.md) · [remediation](documentation/sprint-swot-remediation.md)
 
 ## Goals

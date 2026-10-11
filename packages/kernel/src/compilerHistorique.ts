@@ -13,6 +13,7 @@ import {
   resoudreEsquisse,
   type CercleEsquisse,
   type EsquisseKernel,
+  type PolygoneEsquisse,
   type RectangleEsquisse,
 } from './sketchSolve.ts'
 import type { KernelBatchOp } from './types.ts'
@@ -27,9 +28,12 @@ export type OperationKernel =
   | { type: 'rectangle'; id?: string }
   | { type: 'segment'; id?: string }
   | { type: 'cercle'; id?: string }
+  | { type: 'polygone'; pans: number; id?: string }
+  | { type: 'hexagone'; id?: string }
+  | { type: 'octogone'; id?: string }
   | {
       type: 'cote'
-      cible: 'longueur' | 'largeur' | 'rayon' | 'hauteur' | 'diametre'
+      cible: 'longueur' | 'largeur' | 'rayon' | 'hauteur' | 'diametre' | 'entreplat'
       expression: string
     }
   | { type: 'extrude'; profondeur: string }
@@ -50,6 +54,7 @@ type EsquisseEnCours = {
   rectangles: RectangleEsquisse[]
   segments: SegmentProfil[]
   cercles: CercleEsquisse[]
+  polygones: PolygoneEsquisse[]
 }
 
 function rayonApprox(poly: Polyline3): number {
@@ -113,6 +118,7 @@ export function compilerHistorique(historique: OperationKernel[]): CompilationKe
         rectangles: [],
         segments: [],
         cercles: [],
+        polygones: [],
       }
       continue
     }
@@ -131,6 +137,14 @@ export function compilerHistorique(historique: OperationKernel[]): CompilationKe
       esquisse.cercles.push({ id: operation.id ?? `c${uid++}` })
       continue
     }
+    if (operation.type === 'polygone' || operation.type === 'hexagone' || operation.type === 'octogone') {
+      if (!esquisse) throw new Error('polygone hors esquisse')
+      const pans =
+        operation.type === 'polygone' ? operation.pans : operation.type === 'hexagone' ? 6 : 8
+      if (!(pans >= 3)) throw new Error('polygone pans invalide')
+      esquisse.polygones.push({ id: operation.id ?? `p${uid++}`, pans })
+      continue
+    }
     if (operation.type === 'cote') {
       if (!esquisse) throw new Error('cote hors esquisse')
       if (operation.cible === 'longueur' || operation.cible === 'largeur') {
@@ -147,6 +161,12 @@ export function compilerHistorique(historique: OperationKernel[]): CompilationKe
         else dernier.hauteur = operation.expression
         continue
       }
+      if (operation.cible === 'entreplat') {
+        const dernier = esquisse.polygones.at(-1)
+        if (!dernier) throw new Error('cote entreplat sans polygone')
+        dernier.entreplat = operation.expression
+        continue
+      }
       const cercle = esquisse.cercles.at(-1)
       if (!cercle) throw new Error('cote diametre sans cercle')
       cercle.diametre = operation.expression
@@ -159,6 +179,7 @@ export function compilerHistorique(historique: OperationKernel[]): CompilationKe
       const sketch: EsquisseKernel = {
         rectangles: esquisse.rectangles.map((r) => ({ ...r })),
         cercles: esquisse.cercles.map((c) => ({ ...c })),
+        polygones: esquisse.polygones.map((p) => ({ ...p })),
       }
       const resolue = resoudreEsquisse(sketch, parametres)
       exigerContraint(resolue)
