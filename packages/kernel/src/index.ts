@@ -35,6 +35,7 @@ export {
   opsFillet,
   accrocherSolide,
   type Polyline3,
+  type DirectionExtrusion,
 } from './opsDepuisFonction.ts'
 export { polylinesDepuisResolue } from './polylinesDepuisResolue.ts'
 export {
