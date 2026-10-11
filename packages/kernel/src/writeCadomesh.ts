@@ -1,21 +1,12 @@
-import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
 import protobuf from 'protobufjs'
+import { CADOMESH_PROTO_SOURCE } from './cadomeshProtoSource.ts'
 import type { KernelMesh } from './types.ts'
-
-const protoPath = join(
-  dirname(fileURLToPath(import.meta.url)),
-  '..',
-  '..',
-  'cadomesh-proto',
-  'cadomesh.proto',
-)
 
 let CadomeshFileType: protobuf.Type | null = null
 
 function typeCadomesh(): protobuf.Type {
   if (!CadomeshFileType) {
-    const root = protobuf.loadSync(protoPath)
+    const { root } = protobuf.parse(CADOMESH_PROTO_SOURCE, { keepCase: false })
     CadomeshFileType = root.lookupType('cadomesh.v0.CadomeshFile')
   }
   return CadomeshFileType
