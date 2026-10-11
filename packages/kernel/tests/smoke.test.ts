@@ -7,6 +7,7 @@ describe('@opencad/kernel smoke', () => {
       name: 'OpenCAD Kernel',
       bootstrap: 'occt-kernel',
       dialect: EXPRESSION_DIALECT_V0,
+      version: '0.0.0',
     })
   })
 

@@ -28,7 +28,7 @@ Ship an **OpenCAD B-Rep kernel** as a first-class product component that rebuild
 | K3-5 | Sketch constraints (Required set) | **Done** (#65) — rectangle H/V/distance ; sous/sur fail |
 | K3-6 | Id scheme faces/edges | **Done** (#67) — `face:{i}` / `edge:{i}` snapshot ids |
 | K3-7 | Tessellate → `.cadomesh` writer | **Done** (#69) — `ecrireCadomesh` / `lireCadomesh` |
-| K3-8 | Export → `.cadombrep` writer | Dead exact; provenance + `OCCT_BREP` bootstrap — #55 |
+| K3-8 | Export → `.cadombrep` writer | **Done** (#71) — provenance + topo + `OCCT_BREP` |
 
 ## Conformance badges
 
