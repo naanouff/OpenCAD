@@ -8,6 +8,19 @@ importers:
 
   .: {}
 
+  packages/cadom:
+    dependencies:
+      protobufjs:
+        specifier: ^8.8.0
+        version: 8.8.0
+    devDependencies:
+      typescript:
+        specifier: ^5.6.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.9
+        version: 2.1.9
+
   packages/kernel:
     dependencies:
       protobufjs:
