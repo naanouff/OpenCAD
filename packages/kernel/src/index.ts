@@ -1,11 +1,15 @@
 /**
  * OpenCAD Kernel — public surface.
- * K3-3: extrude plate golden via occt-kernel. O2 extracts the editor pipeline.
+ * Required badge path: K3-3…K3-5 + K3-7; Complete export: K3-8.
  */
 
-export const KERNEL_NAME = 'OpenCAD Kernel'
-export const KERNEL_BOOTSTRAP = 'occt-kernel'
-export const EXPRESSION_DIALECT_V0 = 'opencad.expr.v0'
+export {
+  KERNEL_NAME,
+  KERNEL_BOOTSTRAP,
+  EXPRESSION_DIALECT_V0,
+  KERNEL_PRODUCT_VERSION,
+  identity,
+} from './identity.ts'
 
 export { chargerKernel, runBatch } from './chargerKernel.ts'
 export { rebuildExtrudePlate, type ExtrudePlateIntent, type ExtrudePlateResult } from './extrudePlate.ts'
@@ -35,11 +39,18 @@ export {
   type TopoResult,
 } from './topoIds.ts'
 export { ecrireCadomesh, lireCadomesh, type CadomeshWriteOptions } from './writeCadomesh.ts'
+export {
+  ecrireCadombrep,
+  ecrireCadombrepPlaque,
+  lireCadombrep,
+  importerBrep,
+  type CadombrepWriteOptions,
+} from './writeCadombrep.ts'
+
+import { EXPRESSION_DIALECT_V0 } from './identity.ts'
 
 export type KernelIntent = {
-  /** cadompart `expression_dialect`, if any */
   expressionDialect?: string
-  /** Parameter name → expression or literal string */
   parameters?: Record<string, string>
 }
 
@@ -47,7 +58,7 @@ export type KernelRebuildResult =
   | { ok: true; status: 'stub' }
   | { ok: false; code: string; error: string }
 
-/** Validates intent contract; solid rebuild is not implemented in K3-2. */
+/** Validates intent contract; solid rebuild uses typed rebuild* helpers. */
 export function rebuild(intent: KernelIntent): KernelRebuildResult {
   const dialect = intent.expressionDialect?.trim()
   if (dialect && dialect !== EXPRESSION_DIALECT_V0) {
@@ -72,12 +83,4 @@ export function rebuild(intent: KernelIntent): KernelRebuildResult {
     }
   }
   return { ok: true, status: 'stub' }
-}
-
-export function identity() {
-  return {
-    name: KERNEL_NAME,
-    bootstrap: KERNEL_BOOTSTRAP,
-    dialect: EXPRESSION_DIALECT_V0,
-  }
 }
