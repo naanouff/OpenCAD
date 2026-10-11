@@ -61,7 +61,7 @@ A `.cadom` document alone **MAY** be valid as a graph. A **Complete OpenCAD prod
 - **Required** engine (first badge): sketch (base constraints) + extrude, revolve, hole, boolean.
 - Method: **TDD**, mass golden tests (`cadompart` → kernel solid → `cadomesh` / `.cadombrep` asserts).
 - Broader catalogue in cadompart remains **exchange vocabulary**; not a conformance claim until badges grow.
-- Expressions: forbidden until a versioned dialect exists.
+- Expressions: allowed when `expression_dialect` is declared (`opencad.expr.v0` — [`specification/cadompart-expression-v0.md`](specification/cadompart-expression-v0.md)).
 - `default_active_layers` on `.cadom`: **kept** (exchangeable default override view).
 
 ---
@@ -75,9 +75,9 @@ Normative kernel work (separate specs / packages, later issues) **MUST** cover:
 3. Stable entity id scheme for faces/edges used by later features **and** by `.cadombrep`.
 4. Tessellation export to `.cadomesh`.
 5. **Dead B-Rep export to `.cadombrep`** (B2 / #55).
-6. Distribution as an OpenCAD product dependency (licence/dep choice documented when selected).
+6. Distribution as an OpenCAD product dependency — **K3-1 decided** ([`specification/opencad-kernel-v0.md`](specification/opencad-kernel-v0.md)): bootstrap **`occt-kernel`** (`@naanouff/occt-wasm`); OCCT **LGPL-2.1**.
 
-Until the kernel package exists, cadompart §11.4 points here: **reference engine = OpenCAD Kernel (K3)**; implementation may bootstrap on OCCT but the **product contract** is OpenCAD’s kernel, not “bring your own”.
+Until the extracted OpenCAD kernel package exists (O2), cadompart §11.4 points here: **reference engine = OpenCAD Kernel (K3)**; bootstrap on OCCT is documented; the **product contract** remains OpenCAD’s kernel, not “bring your own”.
 
 ---
 

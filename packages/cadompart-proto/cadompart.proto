@@ -526,7 +526,7 @@ message Configuration {
 
 message CadompartFile {
   uint32 version_major = 1; // writers MUST set 0
-  uint32 version_minor = 2; // writers MUST set 2 for this revision
+  uint32 version_minor = 2; // writers MUST set 3 for this revision (cadompart v0.3)
   string name = 3;
   string description = 4;
   LengthUnit units = 5;
@@ -539,4 +539,6 @@ message CadompartFile {
   repeated Feature features = 12; // ordered history
   repeated Configuration configurations = 13;
   string active_configuration_id = 14;
+  // When non-empty expressions are present, MUST be "opencad.expr.v0" (see cadompart-expression-v0.md).
+  string expression_dialect = 15;
 }

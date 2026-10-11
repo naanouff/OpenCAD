@@ -1,6 +1,6 @@
-# CADOMPART Specification v0.2.2
+# CADOMPART Specification v0.3
 
-**Status:** draft (v0.2.2) — OpenCAD doctrine B3′ + K3 (intent = cadompart; exact runtime = kernel; exact dead = cadombrep; viz = cadomesh)  
+**Status:** draft (v0.3) — OpenCAD doctrine B3′ + K3 (intent = cadompart; exact runtime = kernel; exact dead = cadombrep; viz = cadomesh)  
 **File extension:** `.cadompart`  
 **Serialization:** Protocol Buffers — [`packages/cadompart-proto/cadompart.proto`](../../packages/cadompart-proto/cadompart.proto)  
 **Language:** English (normative)  
@@ -24,7 +24,7 @@ The catalogue in §8 remains broad for industrial coverage; **Required** rebuild
 
 ### 1.1 In scope
 
-- Parameters (typed, bounded; expressions deferred — §4.1)
+- Parameters (typed, bounded; optional expressions via dialect — §4.1)
 - Datums (planes, axes, points, coordinate systems)
 - 2D sketches (curves, loops, geometric & dimensional constraints)
 - Solid modeling features listed in §8
@@ -105,7 +105,7 @@ Parameters are the editable design variables.
 | `type` | **MUST NOT** be `UNSPECIFIED` |
 | value_* | **SHOULD** match type |
 | `unit` | Hint (`m`, `mm`, `in`, `deg`…); angles still stored in radians in `float_value` when `type = ANGLE` |
-| `expression` | **MUST NOT** be relied upon. Writers **MUST NOT** emit a non-empty `expression` until a versioned dialect is specified. Engines **MUST** ignore `expression` if present and use the typed value fields. |
+| `expression` | **MAY** be non-empty only if `CadompartFile.expression_dialect` is a published dialect id. For dialect `opencad.expr.v0`, see [`cadompart-expression-v0.md`](cadompart-expression-v0.md). Writers **MUST NOT** emit a non-empty `expression` when `expression_dialect` is empty. Engines that do not implement the dialect **MUST** ignore `expression` and use the typed value fields. |
 | `driven` | If true, value is output of constraints/solve — writers **MUST NOT** expect user edits to stick without re-solve |
 | `has_min` / `min_value`, `has_max` / `max_value` | Optional bounds; engines **SHOULD** clamp or reject out-of-range edits |
 
@@ -438,3 +438,4 @@ Occurrence nodes **SHOULD** bind:
 | 0.2.1 | 2026-09-15 | SWOT P2 posture: geometric truth = STEP/mesh; narrow Required; forbid expressions until dialect; OCCT reference engine (#49) |
 | 0.2.2 | 2026-09-15 | Doctrine B3+K3: cadompart+OpenCAD Kernel = truth; viz = cadomesh; STEP out of model (#51) |
 | 0.2.2+ | 2026-09-16 | Align B3′: dead exact = `.cadombrep` on Complete (#55) — schema unchanged |
+| 0.3 | 2026-10-11 | Expression dialect `opencad.expr.v0`; field `expression_dialect`; writers MAY emit expressions when declared (#57) |
