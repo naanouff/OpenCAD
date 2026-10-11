@@ -25,6 +25,8 @@ export {
   exigerContraint,
   type EsquisseKernel,
   type EsquisseResolue,
+  type CercleEsquisse,
+  type RectangleEsquisse,
   type StatutContrainte,
 } from './sketchSolve.ts'
 export { rebuildExtrudeFromRectangle } from './extrudeFromSketch.ts'

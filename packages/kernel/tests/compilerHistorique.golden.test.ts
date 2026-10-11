@@ -4,6 +4,8 @@ import { compilerHistorique } from '../src/compilerHistorique.ts'
 import { tessellerSolide } from '../src/meshUtils.ts'
 import { rebuildExtrudeFromRectangle } from '../src/extrudeFromSketch.ts'
 import { rebuildExtrudePlate } from '../src/extrudePlate.ts'
+import { polylinesDepuisResolue } from '../src/polylinesDepuisResolue.ts'
+import { resoudreEsquisse } from '../src/sketchSolve.ts'
 import { rebuildRevolveCylinder } from '../src/revolveSolid.ts'
 
 describe('O2-3/O2-4 compiler historique', () => {
@@ -91,6 +93,32 @@ describe('O2-3/O2-4 compiler historique', () => {
     expect(direct.ok).toBe(true)
     if (!direct.ok) return
     expect(out.bbox.ymax - out.bbox.ymin).toBeCloseTo(direct.bbox.ymax - direct.bbox.ymin, 0)
+    const rx = Math.max(Math.abs(out.bbox.xmin), Math.abs(out.bbox.xmax))
+    expect(rx).toBeCloseTo(10, 0)
+  }, 120_000)
+
+  it('O2-6: densifie un cercle GCS en polyline fermée', () => {
+    const resolue = resoudreEsquisse({ cercles: [{ id: 'c', diametre: '0.02' }] })
+    const polys = polylinesDepuisResolue(resolue, { echelle: 1000, segmentsCercle: 32 })
+    expect(polys).toHaveLength(1)
+    expect(polys[0]!.length).toBeGreaterThanOrEqual(32 * 3)
+    const xs = []
+    for (let i = 0; i < polys[0]!.length; i += 3) xs.push(Math.abs(polys[0]![i]!))
+    expect(Math.max(...xs)).toBeCloseTo(10, 0)
+  })
+
+  it('O2-6: extrude cercle GCS → cylindre bbox', async () => {
+    const occt = await chargerKernel()
+    const compilation = compilerHistorique([
+      { type: 'ouvrir' },
+      { type: 'cercle', id: 'c' },
+      { type: 'cote', cible: 'diametre', expression: '0.02' },
+      { type: 'extrude', profondeur: '0.03' },
+    ])
+    const out = tessellerSolide(occt, compilation.ops, compilation.solidAs!)
+    expect(out.ok).toBe(true)
+    if (!out.ok) return
+    expect(out.bbox.ymax - out.bbox.ymin).toBeCloseTo(30, 0)
     const rx = Math.max(Math.abs(out.bbox.xmin), Math.abs(out.bbox.xmax))
     expect(rx).toBeCloseTo(10, 0)
   }, 120_000)

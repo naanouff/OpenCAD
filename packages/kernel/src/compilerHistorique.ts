@@ -11,6 +11,7 @@ import { polylinesDepuisResolue } from './polylinesDepuisResolue.ts'
 import {
   exigerContraint,
   resoudreEsquisse,
+  type CercleEsquisse,
   type EsquisseKernel,
   type RectangleEsquisse,
 } from './sketchSolve.ts'
@@ -43,13 +44,20 @@ export type CompilationKernel = {
 }
 
 type SegmentProfil = { id: string; rayon?: string; hauteur?: string }
-type CercleEsquisse = { id: string; diametre?: string }
 
 type EsquisseEnCours = {
   support: string
   rectangles: RectangleEsquisse[]
   segments: SegmentProfil[]
   cercles: CercleEsquisse[]
+}
+
+function rayonApprox(poly: Polyline3): number {
+  let max = 0
+  for (let i = 0; i < poly.length; i += 3) {
+    max = Math.max(max, Math.hypot(poly[i]!, poly[i + 2]!))
+  }
+  return max
 }
 
 function fermerXy(xyz: Polyline3): Polyline3 {
@@ -77,16 +85,6 @@ function profilRevolutionMm(
       throw new Error('segment sans rayon/hauteur')
     }
     xyz.push(evaluer(s.rayon, parametres) * 1000, evaluer(s.hauteur, parametres) * 1000, 0)
-  }
-  return fermerXy(xyz)
-}
-
-/** Cercle XZ (mm) pour coupe — même convention plaque O2-1. */
-function cercleXzMm(rayonMm: number, y: number, segments = 48): Polyline3 {
-  const xyz: number[] = []
-  for (let i = 0; i < segments; i++) {
-    const a = (i / segments) * Math.PI * 2
-    xyz.push(Math.cos(a) * rayonMm, y, Math.sin(a) * rayonMm)
   }
   return fermerXy(xyz)
 }
@@ -158,15 +156,43 @@ export function compilerHistorique(historique: OperationKernel[]): CompilationKe
       if (!esquisse) throw new Error('extrude sans esquisse')
       const profondeur = evaluer(operation.profondeur, parametres)
       if (!(profondeur > 0)) throw new Error('profondeur doit être positive')
-      const sketch: EsquisseKernel = { rectangles: esquisse.rectangles.map((r) => ({ ...r })) }
+      const sketch: EsquisseKernel = {
+        rectangles: esquisse.rectangles.map((r) => ({ ...r })),
+        cercles: esquisse.cercles.map((c) => ({ ...c })),
+      }
       const resolue = resoudreEsquisse(sketch, parametres)
       exigerContraint(resolue)
       const polys = polylinesDepuisResolue(resolue, { yPlan: 0, echelle: 1000 })
-      const feat = opsExtrude(polys[0] as Polyline3, [0, profondeur * 1000, 0], String(uid++))
-      ops.push(...feat.ops)
-      const attach = accrocherSolide(solidAs, feat.as, String(uid++))
-      ops.push(...attach.ops)
-      solidAs = attach.solidAs
+      const dir: readonly [number, number, number] = [0, profondeur * 1000, 0]
+      if (polys.length === 1) {
+        const feat = opsExtrude(polys[0] as Polyline3, dir, String(uid++))
+        ops.push(...feat.ops)
+        const attach = accrocherSolide(solidAs, feat.as, String(uid++))
+        ops.push(...attach.ops)
+        solidAs = attach.solidAs
+      } else {
+        // Anneau : extrude extérieur puis coupe les intérieurs (GCS multi-cercles).
+        const classes = polys
+          .map((poly) => ({ poly, r: rayonApprox(poly) }))
+          .sort((a, b) => b.r - a.r)
+        const exterieur = classes[0]!
+        const feat = opsExtrude(exterieur.poly, dir, String(uid++))
+        ops.push(...feat.ops)
+        const attach = accrocherSolide(solidAs, feat.as, String(uid++))
+        ops.push(...attach.ops)
+        solidAs = attach.solidAs
+        for (const interieur of classes.slice(1)) {
+          const outil = opsExtrude(
+            interieur.poly,
+            [dir[0], dir[1] + Math.sign(dir[1] || 1) * 0.4, dir[2]],
+            String(uid++),
+          )
+          ops.push(...outil.ops)
+          const cut = opsCouper(solidAs!, outil.as, String(uid++))
+          ops.push(...cut.ops)
+          solidAs = cut.solidAs
+        }
+      }
       yMax = Math.max(yMax, profondeur * 1000)
       yMin = Math.min(yMin, 0)
       esquisse = null
@@ -192,17 +218,20 @@ export function compilerHistorique(historique: OperationKernel[]): CompilationKe
       if (!esquisse) throw new Error('enlever sans esquisse')
       const profondeur = evaluer(operation.profondeur, parametres)
       if (!(profondeur > 0)) throw new Error('profondeur enlever doit être positive')
-      const cercle = [...esquisse.cercles].reverse().find((c) => c.diametre)
-      if (!cercle?.diametre) throw new Error('enlever sans cercle coté')
-      const rayonMm = (evaluer(cercle.diametre, parametres) * 1000) / 2
+      const sketch: EsquisseKernel = { cercles: esquisse.cercles.map((c) => ({ ...c })) }
+      const resolue = resoudreEsquisse(sketch, parametres)
+      exigerContraint(resolue)
       const marge = 0.4
       const yCut = yMax - profondeur * 1000
       const dirY = profondeur * 1000 + marge
-      const outil = opsExtrude(cercleXzMm(rayonMm, yCut), [0, dirY, 0], String(uid++))
-      ops.push(...outil.ops)
-      const cut = opsCouper(solidAs, outil.as, String(uid++))
-      ops.push(...cut.ops)
-      solidAs = cut.solidAs
+      const polys = polylinesDepuisResolue(resolue, { yPlan: yCut, echelle: 1000 })
+      for (const poly of polys) {
+        const outil = opsExtrude(poly, [0, dirY, 0], String(uid++))
+        ops.push(...outil.ops)
+        const cut = opsCouper(solidAs, outil.as, String(uid++))
+        ops.push(...cut.ops)
+        solidAs = cut.solidAs
+      }
       esquisse = null
       continue
     }

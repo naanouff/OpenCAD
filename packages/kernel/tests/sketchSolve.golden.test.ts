@@ -68,4 +68,19 @@ describe('K3-5 sketch constraints', () => {
     expect(out.bbox.zmax - out.bbox.zmin).toBeCloseTo(80, 0)
     expect(out.bbox.ymax - out.bbox.ymin).toBeCloseTo(10, 0)
   }, 120_000)
+
+  it('O2-6: cercle coté → contrainte rayon, centre à l’origine', () => {
+    const out = resoudreEsquisse({ cercles: [{ id: 'c1', diametre: '0.02' }] })
+    expect(out.statut).toBe('contraint')
+    expect(out.degres).toBe(0)
+    const pts = Object.fromEntries(out.points.map((p) => [p.id, p]))
+    expect(pts['c1.o']!.u).toBeCloseTo(0)
+    expect(pts['c1.p']!.u).toBeCloseTo(0.01)
+    expect(out.polylines[0]!.points).toEqual(['c1.p'])
+  })
+
+  it('O2-6: cercle sans diamètre → sous-contraint', () => {
+    const out = resoudreEsquisse({ cercles: [{ id: 'c1' }] })
+    expect(out.statut).toBe('sous-contraint')
+  })
 })
