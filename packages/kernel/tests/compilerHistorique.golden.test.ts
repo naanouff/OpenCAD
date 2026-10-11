@@ -121,6 +121,42 @@ describe('O2-3/O2-4 compiler historique', () => {
     expect(out.bbox.xmax - out.bbox.xmin).toBeCloseTo(100, 0)
   }, 120_000)
 
+  it('O2-13: anneau deux cercles concentriques + extrude', async () => {
+    const occt = await chargerKernel()
+    const compilation = compilerHistorique(
+      [
+        { type: 'ouvrir' },
+        { type: 'cercle', id: 'ext' },
+        { type: 'cote', cible: 'diametre', expression: '40' },
+        { type: 'cercle', id: 'int' },
+        { type: 'concentrique', cible: 'cercle.exterieur' },
+        { type: 'cote', cible: 'diametre', expression: '35' },
+        { type: 'extrude', profondeur: '8' },
+      ],
+      { unite: 'mm' },
+    )
+    const out = tessellerSolide(occt, compilation.ops, compilation.solidAs!)
+    expect(out.ok).toBe(true)
+    if (!out.ok) return
+    expect(out.bbox.ymax - out.bbox.ymin).toBeCloseTo(8, 0)
+    const rx = Math.max(Math.abs(out.bbox.xmin), Math.abs(out.bbox.xmax))
+    expect(rx).toBeCloseTo(20, 0)
+    // Anneau : plus de triangles qu’un disque plein de même enveloppe.
+    const plein = compilerHistorique(
+      [
+        { type: 'ouvrir' },
+        { type: 'cercle', id: 'c' },
+        { type: 'cote', cible: 'diametre', expression: '40' },
+        { type: 'extrude', profondeur: '8' },
+      ],
+      { unite: 'mm' },
+    )
+    const a = tessellerSolide(occt, plein.ops, plein.solidAs!)
+    expect(a.ok).toBe(true)
+    if (!a.ok) return
+    expect(out.mesh.triangleCount).toBeGreaterThan(a.mesh.triangleCount)
+  }, 120_000)
+
   it('O2-12: plaque + enlever traverse plan.12h → quatre trous de barrette', async () => {
     const occt = await chargerKernel()
     const plein = compilerHistorique(
