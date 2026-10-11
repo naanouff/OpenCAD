@@ -14,7 +14,10 @@ This directory is the **source of truth** for CADOM wire formats. Product doctri
 | [cadomesh-v0.md](cadomesh-v0.md) | **v0 draft** | Tessellated mesh companion (`MESH`) |
 | [cadombrep-v0.md](cadombrep-v0.md) | **v0 stub** | Dead B-Rep envelope (`EXACT`) |
 | [cadomat-v0.md](cadomat-v0.md) | **v0 draft** | PBR material (Khronos / glTF MR) |
-| [cadompart-v0.md](cadompart-v0.md) | **v0.2.2 draft** | Parametric + OpenCAD Kernel Required |
+| [cadompart-v0.md](cadompart-v0.md) | **v0.3 draft** | Parametric + expressions dialect |
+| [cadompart-expression-v0.md](cadompart-expression-v0.md) | **v0 draft** | Dialect `opencad.expr.v0` |
+| [opencad-kernel-v0.md](opencad-kernel-v0.md) | **v0 stub** | Kernel identity + K3-1 licence |
+| [v0.3.4-amendment.md](v0.3.4-amendment.md) | Amendment | cadompart v0.3 / K3-1 |
 | [cadometa-v0.md](cadometa-v0.md) | **v0 draft** | Metadata companion |
 | [native-assets-v0-freeze.md](native-assets-v0-freeze.md) | **Frozen** | Gate lifted — SDK allowed |
 

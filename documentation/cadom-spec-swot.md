@@ -287,7 +287,7 @@ Ne **pas** ré-ouvrir P0.1–P0.10 filaires. Priorité = **faire exister K3**, p
 | Reco | Quoi | Où | Pourquoi |
 |------|------|----|----------|
 | P0-K.1 | Spec stub `opencad-kernel-v0.md` : identité, versioning, non-goals, lien cadompart §11.2, schéma d’IDs, tolerances **TBD numériques** | nouveau spec + K3-0 | W-K, T-K |
-| P0-K.2 | Choisir la base + licence (OCCT wrap vs autre) **par écrit** | K3-1, doctrine §5 item 5 | T-lic |
+| P0-K.2 | Choisir la base + licence (OCCT wrap vs autre) **par écrit** | **Clos** (#57) — `opencad-kernel-v0.md` | T-lic |
 | P0-K.3 | Badge **Required v0** : goldens extrude → revolve/hole/boolean + sketch contraintes de base **et** tessellation writer (K3-7) | K3-3…K3-5 **et** K3-7 | T-K, S6 |
 | P0-K.4 | Métadonnées de tessellation sur cadomesh : `kernel_id`, `kernel_version`, `source_cadompart_id` (ou hash) | cadomesh proto/spec + K3-7 | W24, T-B3 |
 | P0-K.5 | Clause **import** : les outils **MAY** lire STEP/JT pour *produire* cadomesh/cadompart ; les writers OpenCAD **MUST NOT** émettre STEP/EXACT comme vérité | doctrine + SDK lint | T1, O-imp, W19 |

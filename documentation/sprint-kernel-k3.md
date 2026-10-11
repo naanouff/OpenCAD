@@ -20,8 +20,8 @@ Ship an **OpenCAD B-Rep kernel** as a first-class product component that rebuild
 
 | ID | Title | Notes |
 |----|-------|-------|
-| K3-0 | Spec stub `opencad-kernel-v0.md` | Scope, versioning, non-goals, link to cadompart Required |
-| K3-1 | Choose implementation base | e.g. OCCT wrap vs other — document licence |
+| K3-0 | Spec stub `opencad-kernel-v0.md` | **Done** (#57) — [`specification/opencad-kernel-v0.md`](specification/opencad-kernel-v0.md) |
+| K3-1 | Choose implementation base | **Done** (#57) — bootstrap `occt-kernel` / OCCT LGPL-2.1 |
 | K3-2 | Package skeleton + CI | Monorepo package, TDD harness |
 | K3-3 | Extrude golden corpus | cadompart → solid → mesh asserts |
 | K3-4 | Revolve + hole + boolean | Same harness |
