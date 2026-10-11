@@ -19,7 +19,8 @@ OpenCAD B-Rep kernel package (K3).
 | O2-4 revolve + enlever | done (`revolution`, `cercle`/`enlever`) |
 | O2-5 editor consume | done (OpenCadEditor `vendor/opencad` → ops re-export) |
 | O2-6 GCS cercle | done (`CercleEsquisse`, densify polylines) |
-| O2 suite (polygone / pipeline editor) | later |
+| O2-7 GCS polygone | done (`PolygoneEsquisse`, hex/octo) |
+| O2 suite (editor pipeline consume) | later |
 
 Bootstrap engine: **`occt-kernel`** ([spec](../../documentation/specification/opencad-kernel-v0.md)).
 

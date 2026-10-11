@@ -83,4 +83,16 @@ describe('K3-5 sketch constraints', () => {
     const out = resoudreEsquisse({ cercles: [{ id: 'c1' }] })
     expect(out.statut).toBe('sous-contraint')
   })
+
+  it('O2-7: hexagone entreplat → 6 sommets, rayon circonscrit', () => {
+    const out = resoudreEsquisse({
+      polygones: [{ id: 'h', pans: 6, entreplat: '0.02' }],
+    })
+    expect(out.statut).toBe('contraint')
+    expect(out.points).toHaveLength(6)
+    const R = 0.02 / (2 * Math.cos(Math.PI / 6))
+    for (const p of out.points) {
+      expect(Math.hypot(p.u, p.v)).toBeCloseTo(R, 6)
+    }
+  })
 })

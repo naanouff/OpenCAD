@@ -24,9 +24,20 @@ export type CercleEsquisse = {
   diametre?: string
 }
 
+/**
+ * Polygone régulier à pans plats ; `entreplat` = distance entre pans opposés.
+ * Extrait éditeur `resoudrePolygoneRegulier`.
+ */
+export type PolygoneEsquisse = {
+  id: string
+  pans: number
+  entreplat?: string
+}
+
 export type EsquisseKernel = {
   rectangles?: RectangleEsquisse[]
   cercles?: CercleEsquisse[]
+  polygones?: PolygoneEsquisse[]
 }
 
 export type EsquisseResolue = {
@@ -172,9 +183,55 @@ function fusionner(parties: EsquisseResolue[]): EsquisseResolue {
   }
 }
 
+function resoudrePolygoneRegulier(
+  entite: PolygoneEsquisse,
+  parametres: Map<string, string>,
+): EsquisseResolue {
+  const n = entite.pans
+  if (!(n >= 3) || !Number.isFinite(n)) {
+    return {
+      points: [],
+      polylines: [],
+      degres: 1,
+      ferme: true,
+      statut: 'sous-contraint',
+      contraintes: [],
+    }
+  }
+  if (!entite.entreplat) {
+    return {
+      points: [],
+      polylines: [],
+      degres: 1,
+      ferme: true,
+      statut: 'sous-contraint',
+      contraintes: [],
+    }
+  }
+  const entreplat = evaluer(entite.entreplat, parametres)
+  const rayon = entreplat / (2 * Math.cos(Math.PI / n))
+  const points: PointResolu[] = []
+  const ids: string[] = []
+  for (let i = 0; i < n; i++) {
+    const angle = Math.PI / n + (i * 2 * Math.PI) / n
+    const id = `${entite.id}.${i}`
+    points.push({ id, u: rayon * Math.cos(angle), v: rayon * Math.sin(angle) })
+    ids.push(id)
+  }
+  if (ids[0]) ids.push(ids[0])
+  return {
+    points,
+    polylines: [{ points: ids }],
+    degres: 0,
+    ferme: true,
+    statut: 'contraint',
+    contraintes: [],
+  }
+}
+
 /**
- * Required sketch solve (K3-5 + O2-6):
- * rectangle H/V + distance ; cercle diamètre / contrainte rayon.
+ * Required sketch solve (K3-5 + O2-6/7):
+ * rectangle ; cercle ; polygone régulier (entreplat).
  */
 export function resoudreEsquisse(
   esquisse: EsquisseKernel,
@@ -184,8 +241,9 @@ export function resoudreEsquisse(
   const extra = options.contraintesExtra ?? []
   const rectangles = esquisse.rectangles ?? []
   const cercles = esquisse.cercles ?? []
+  const polygones = esquisse.polygones ?? []
 
-  if (rectangles.length === 0 && cercles.length === 0) {
+  if (rectangles.length === 0 && cercles.length === 0 && polygones.length === 0) {
     return {
       points: [],
       polylines: [],
@@ -196,22 +254,31 @@ export function resoudreEsquisse(
     }
   }
 
-  if (cercles.length >= 1 && rectangles.length === 0) {
+  if (polygones.length === 1 && rectangles.length === 0 && cercles.length === 0) {
+    return resoudrePolygoneRegulier(polygones[0]!, parametres)
+  }
+
+  if (polygones.length > 0 && rectangles.length === 0 && cercles.length === 0) {
+    return fusionner(polygones.map((p) => resoudrePolygoneRegulier(p, parametres)))
+  }
+
+  if (cercles.length >= 1 && rectangles.length === 0 && polygones.length === 0) {
     return fusionner(cercles.map((c) => resoudreCercle(c, parametres)))
   }
 
-  if (rectangles.length === 1 && cercles.length === 0) {
+  if (rectangles.length === 1 && cercles.length === 0 && polygones.length === 0) {
     return resoudreRectangle(rectangles[0]!, parametres, extra)
   }
 
-  if (rectangles.length > 0 && cercles.length === 0) {
+  if (rectangles.length > 0 && cercles.length === 0 && polygones.length === 0) {
     return fusionner(rectangles.map((r) => resoudreRectangle(r, parametres, [])))
   }
 
-  // Anneau / plaque+trous : rectangle(s) + cercle(s) résolus séparément (concentriques v1).
+  // Anneau / plaque+trous : rectangle(s) + cercle(s) (+ polygones) séparés.
   return fusionner([
     ...rectangles.map((r) => resoudreRectangle(r, parametres, [])),
     ...cercles.map((c) => resoudreCercle(c, parametres)),
+    ...polygones.map((p) => resoudrePolygoneRegulier(p, parametres)),
   ])
 }
 

@@ -26,6 +26,7 @@ export {
   type EsquisseKernel,
   type EsquisseResolue,
   type CercleEsquisse,
+  type PolygoneEsquisse,
   type RectangleEsquisse,
   type StatutContrainte,
 } from './sketchSolve.ts'
