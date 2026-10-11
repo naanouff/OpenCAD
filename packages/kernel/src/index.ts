@@ -25,6 +25,15 @@ export {
 } from './sketchSolve.ts'
 export { rebuildExtrudeFromRectangle } from './extrudeFromSketch.ts'
 export { evaluer } from './evaluateur.ts'
+export {
+  listerTopo,
+  listerTopoPlaque,
+  idFace,
+  idEdge,
+  idBody,
+  type TopoSnapshot,
+  type TopoResult,
+} from './topoIds.ts'
 
 export type KernelIntent = {
   /** cadompart `expression_dialect`, if any */
