@@ -9,7 +9,8 @@ OpenCAD B-Rep kernel package (K3).
 | K3-4 revolve + hole | done (`rebuildRevolveCylinder`, `rebuildPlateWithHole`) |
 | K3-5 sketch constraints | done (`resoudreEsquisse`, `rebuildExtrudeFromRectangle`) |
 | K3-6 id faces/edges | done (`listerTopo`, `face:{i}` / `edge:{i}`) |
-| K3-7 cadomesh writer | next |
+| K3-7 cadomesh writer | done (`ecrireCadomesh`) |
+| K3-8 cadombrep writer | next |
 | O2 editor pipeline extract | later |
 
 Bootstrap engine: **`occt-kernel`** ([spec](../../documentation/specification/opencad-kernel-v0.md)).
