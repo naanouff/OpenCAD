@@ -9,6 +9,8 @@ export type KernelMesh = {
   triangleCount: number
   positions: number[]
   indices: number[]
+  /** Packed XYZ; length MUST equal positions when present. */
+  normales?: number[]
 }
 
 export type BBox = {

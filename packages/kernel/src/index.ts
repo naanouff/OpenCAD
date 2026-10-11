@@ -34,6 +34,7 @@ export {
   type TopoSnapshot,
   type TopoResult,
 } from './topoIds.ts'
+export { ecrireCadomesh, lireCadomesh, type CadomeshWriteOptions } from './writeCadomesh.ts'
 
 export type KernelIntent = {
   /** cadompart `expression_dialect`, if any */

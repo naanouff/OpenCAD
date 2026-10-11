@@ -22,18 +22,28 @@ export function bboxFromPositions(positions: number[]): BBox {
   return { xmin, xmax, ymin, ymax, zmin, zmax }
 }
 
-export function flattenMeshes(meshes: Array<{ positions?: number[]; indices?: number[] }>): KernelMesh {
+export function flattenMeshes(
+  meshes: Array<{ positions?: number[]; normals?: number[]; indices?: number[] }>,
+): KernelMesh {
   const positions: number[] = []
+  const normales: number[] = []
   const indices: number[] = []
   for (const mesh of meshes) {
     const base = positions.length / 3
-    positions.push(...(mesh.positions ?? []))
+    const pos = mesh.positions ?? []
+    const nor = mesh.normals ?? []
+    positions.push(...pos)
+    if (nor.length === pos.length) normales.push(...nor)
+    else {
+      for (let i = 0; i < pos.length; i += 3) normales.push(0, 1, 0)
+    }
     for (const i of mesh.indices ?? []) indices.push(base + i)
   }
   return {
     triangleCount: indices.length / 3,
     positions,
     indices,
+    normales,
   }
 }
 
@@ -58,7 +68,7 @@ export function tessellerSolide(
   const payload = out.aliases?.mesh as {
     ok?: boolean
     error?: string
-    meshes?: Array<{ positions?: number[]; indices?: number[] }>
+    meshes?: Array<{ positions?: number[]; normals?: number[]; indices?: number[] }>
   }
   if (!payload || payload.ok === false) {
     return { ok: false, code: 'TessellateFailed', error: payload?.error ?? 'tessellate failed' }
