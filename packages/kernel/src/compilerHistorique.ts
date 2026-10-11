@@ -1,5 +1,10 @@
 import { evaluer } from './evaluateur.ts'
 import {
+  CHEVAUCHE_TUBE,
+  datumParId,
+  directionDatum,
+} from './datumsKernel.ts'
+import {
   accrocherSolide,
   opsCouper,
   opsExtrude,
@@ -46,7 +51,7 @@ export type OperationKernel =
     }
   | { type: 'extrude'; profondeur: string }
   | { type: 'revolution' }
-  | { type: 'enlever'; profondeur: string }
+  | { type: 'enlever'; profondeur: string; traverse?: boolean }
   | { type: 'fillet'; rayon: string; indices?: number[] | null }
 
 export type CompilationKernel = {
@@ -103,6 +108,39 @@ function profilRevolution(
   return fermerXy(xyz)
 }
 
+function altitudeDatum(
+  support: string,
+  parametres: Map<string, string>,
+  scale: number,
+): number {
+  if (support === 'plan.3h' && parametres.has('diametre_boite')) {
+    return evaluer('diametre_boite', parametres) * scale * 0.5 - CHEVAUCHE_TUBE
+  }
+  return 0
+}
+
+function decalageTube(
+  support: string,
+  parametres: Map<string, string>,
+  scale: number,
+): readonly [number, number, number] {
+  if (support === 'plan.3h' && parametres.has('hauteur_carrure')) {
+    return [0, (evaluer('hauteur_carrure', parametres) * scale) / 2, 0]
+  }
+  return [0, 0, 0]
+}
+
+function decalerPolylines(polys: Polyline3[], dx: number, dy: number, dz: number): Polyline3[] {
+  if (dx === 0 && dy === 0 && dz === 0) return polys
+  return polys.map((poly) => {
+    const out: number[] = []
+    for (let i = 0; i < poly.length; i += 3) {
+      out.push(poly[i]! + dx, poly[i + 1]! + dy, poly[i + 2]! + dz)
+    }
+    return out
+  })
+}
+
 export type OptionsCompilation = {
   /**
    * Unité des expressions sketch / profondeur / rayons.
@@ -114,7 +152,7 @@ export type OptionsCompilation = {
 
 /**
  * Compile un préfixe d’historique (param / esquisse / extrude / revolution / enlever / fillet)
- * en batch occt-kernel. Hors scope : carrure barrettes, pas hybride.
+ * en batch occt-kernel. Hors scope : carrure barrettes, pas hybride, concentrique.
  */
 export function compilerHistorique(
   historique: OperationKernel[],
@@ -208,11 +246,23 @@ export function compilerHistorique(
       exigerContraint(resolue)
       const profondeurMm = profondeur * scale
       const face = faces.get(esquisse.support)
-      const yPlan = face ? yPlanFace(face) : 0
+      const tubeLateral = esquisse.support === 'plan.3h'
+      const longueurExtrude = tubeLateral ? profondeurMm + CHEVAUCHE_TUBE : profondeurMm
+      const yPlan = face
+        ? yPlanFace(face)
+        : altitudeDatum(esquisse.support, parametres, scale)
       const dir = face
-        ? directionExtrude(face, profondeurMm)
-        : ([0, profondeurMm, 0] as const)
-      const polys = polylinesDepuisResolue(resolue, { yPlan, echelle: scale })
+        ? directionExtrude(face, longueurExtrude)
+        : directionDatum(esquisse.support, longueurExtrude)
+      let polys = polylinesDepuisResolue(resolue, {
+        yPlan,
+        echelle: scale,
+        support: datumParId(esquisse.support) ? esquisse.support : undefined,
+      })
+      if (tubeLateral) {
+        const [dx, dy, dz] = decalageTube(esquisse.support, parametres, scale)
+        polys = decalerPolylines(polys, dx, dy, dz)
+      }
       if (polys.length === 1) {
         const feat = opsExtrude(polys[0] as Polyline3, dir, String(uid++))
         ops.push(...feat.ops)
@@ -242,15 +292,17 @@ export function compilerHistorique(
           solidAs = cut.solidAs
         }
       }
-      if (face) {
-        const yFin = face.origin[1] + face.normal[1] * profondeurMm
-        yMax = Math.max(yMax, yFin, face.origin[1])
-        yMin = Math.min(yMin, yFin, face.origin[1])
-      } else {
-        yMax = Math.max(yMax, profondeurMm)
-        yMin = Math.min(yMin, 0)
+      if (!tubeLateral) {
+        if (face) {
+          const yFin = face.origin[1] + face.normal[1] * profondeurMm
+          yMax = Math.max(yMax, yFin, face.origin[1])
+          yMin = Math.min(yMin, yFin, face.origin[1])
+        } else {
+          yMax = Math.max(yMax, profondeurMm)
+          yMin = Math.min(yMin, 0)
+        }
+        faces = faceDepuisBornesY(yMin, yMax)
       }
-      faces = faceDepuisBornesY(yMin, yMax)
       esquisse = null
       continue
     }
@@ -280,11 +332,34 @@ export function compilerHistorique(
       exigerContraint(resolue)
       const profondeurMm = profondeur * scale
       const face = faces.get(esquisse.support)
-      const yCut = face ? yPlanCoupe(face, profondeurMm) : yMax - profondeurMm
-      const dir = face
-        ? directionCoupe(face, profondeurMm)
-        : ([0, profondeurMm + 0.4, 0] as const)
-      const polys = polylinesDepuisResolue(resolue, { yPlan: yCut, echelle: scale })
+      const tubeLateral = esquisse.support === 'plan.3h'
+      let yCut: number
+      let dir: readonly [number, number, number]
+      if (face) {
+        yCut = yPlanCoupe(face, profondeurMm)
+        dir = directionCoupe(face, profondeurMm)
+      } else if (tubeLateral && operation.traverse) {
+        yCut = -CHEVAUCHE_TUBE
+        const portee =
+          (parametres.has('diametre_boite')
+            ? (evaluer('diametre_boite', parametres) * scale) / 2
+            : 0) +
+          profondeurMm +
+          CHEVAUCHE_TUBE * 2
+        dir = directionDatum(esquisse.support, portee)
+      } else {
+        yCut = yMax - profondeurMm
+        dir = directionDatum(esquisse.support, profondeurMm + 0.4)
+      }
+      let polys = polylinesDepuisResolue(resolue, {
+        yPlan: yCut,
+        echelle: scale,
+        support: datumParId(esquisse.support) ? esquisse.support : undefined,
+      })
+      if (tubeLateral) {
+        const [dx, dy, dz] = decalageTube(esquisse.support, parametres, scale)
+        polys = decalerPolylines(polys, dx, dy, dz)
+      }
       for (const poly of polys) {
         const outil = opsExtrude(poly, dir, String(uid++))
         ops.push(...outil.ops)

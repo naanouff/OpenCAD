@@ -1,15 +1,22 @@
+import { datumParId, gcsVersMonde } from './datumsKernel.ts'
 import type { EsquisseResolue } from './sketchSolve.ts'
 import type { Polyline3 } from './opsDepuisFonction.ts'
 
 /**
- * UV sketch → world XYZ (mm): U→X, V→Z, Y = yPlan.
- * Aligné éditeur `plan.dessus` / face.* (`esquissePolylines`).
+ * UV sketch → world XYZ (mm).
+ * Sans datum (`face.*`) : U→X, V→Z, Y = yPlan.
+ * Avec `support` datum : `gcsVersMonde` (O2-11 plan.3h).
  * Cercle (polyline 1 point `.p`) → densifié (O2-6).
  * `echelle` : metres sketch → mm (1000) or 1 if already mm.
  */
 export function polylinesDepuisResolue(
   resolue: EsquisseResolue,
-  options: { yPlan?: number; echelle?: number; segmentsCercle?: number } = {},
+  options: {
+    yPlan?: number
+    echelle?: number
+    segmentsCercle?: number
+    support?: string
+  } = {},
 ): Polyline3[] {
   if (resolue.statut !== 'contraint') {
     throw new Error(resolue.statut === 'surcontraint' ? 'esquisse surcontrainte' : 'esquisse sous-contrainte')
@@ -17,6 +24,7 @@ export function polylinesDepuisResolue(
   const yPlan = options.yPlan ?? 0
   const echelle = options.echelle ?? 1000
   const segmentsCercle = options.segmentsCercle ?? 48
+  const datum = options.support ? datumParId(options.support) : undefined
   const pts = new Map(resolue.points.map((p) => [p.id, p]))
   const sortie: Polyline3[] = []
   for (const poly of resolue.polylines) {
@@ -28,25 +36,38 @@ export function polylinesDepuisResolue(
       const r = Math.hypot(bord.u - centre.u, bord.v - centre.v) * echelle
       const cu = centre.u * echelle
       const cv = centre.v * echelle
-      sortie.push(cercleXz(cu, cv, r, yPlan, segmentsCercle))
+      sortie.push(cercleDensifie(cu, cv, r, yPlan, segmentsCercle, datum))
       continue
     }
     const xyz: number[] = []
     for (const id of poly.points) {
       const p = pts.get(id)
       if (!p) throw new Error(`point inconnu ${id}`)
-      xyz.push(p.u * echelle, yPlan, p.v * echelle)
+      const u = p.u * echelle
+      const v = p.v * echelle
+      if (datum) xyz.push(...gcsVersMonde(datum, u, v, yPlan))
+      else xyz.push(u, yPlan, v)
     }
     sortie.push(fermer(xyz))
   }
   return sortie
 }
 
-function cercleXz(cx: number, cz: number, rayon: number, y: number, segments: number): Polyline3 {
+function cercleDensifie(
+  cu: number,
+  cv: number,
+  rayon: number,
+  altitude: number,
+  segments: number,
+  datum: ReturnType<typeof datumParId>,
+): Polyline3 {
   const xyz: number[] = []
   for (let i = 0; i < segments; i++) {
     const a = (i / segments) * Math.PI * 2
-    xyz.push(cx + Math.cos(a) * rayon, y, cz + Math.sin(a) * rayon)
+    const u = cu + Math.cos(a) * rayon
+    const v = cv + Math.sin(a) * rayon
+    if (datum) xyz.push(...gcsVersMonde(datum, u, v, altitude))
+    else xyz.push(u, altitude, v)
   }
   return fermer(xyz)
 }

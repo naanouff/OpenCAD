@@ -8,7 +8,8 @@
     "./ops": "./src/opsDepuisFonction.ts",
     "./sketch": "./src/sketchSolve.ts",
     "./polylines": "./src/polylinesDepuisResolue.ts",
-    "./compiler": "./src/compilerHistorique.ts"
+    "./compiler": "./src/compilerHistorique.ts",
+    "./datums": "./src/datumsKernel.ts"
   },
   "scripts": {
     "fetch:occt": "node ../../scripts/fetch-occt-kernel.mjs",
