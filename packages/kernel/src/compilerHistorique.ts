@@ -1,4 +1,5 @@
 import { opsBarrettesPedagogiques } from './barrettesKernel.ts'
+import { opsElevationCornes } from './elevationCornes.ts'
 import { evaluer } from './evaluateur.ts'
 import {
   CHEVAUCHE_TUBE,
@@ -25,10 +26,13 @@ import {
 import {
   exigerContraint,
   resoudreEsquisse,
+  type ArcEsquisse,
   type CercleEsquisse,
   type EsquisseKernel,
   type PolygoneEsquisse,
   type RectangleEsquisse,
+  type SegmentEsquisse,
+  type SymetrieAxe,
 } from './sketchSolve.ts'
 import type { KernelBatchOp } from './types.ts'
 
@@ -41,16 +45,26 @@ export type OperationKernel =
   | { type: 'ouvrir'; support?: string }
   | { type: 'rectangle'; id?: string }
   | { type: 'segment'; id?: string }
+  | { type: 'arc'; id?: string }
   | { type: 'cercle'; id?: string }
   | { type: 'polygone'; pans: number; id?: string }
   | { type: 'hexagone'; id?: string }
   | { type: 'octogone'; id?: string }
   | {
       type: 'cote'
-      cible: 'longueur' | 'largeur' | 'rayon' | 'hauteur' | 'diametre' | 'entreplat'
+      cible:
+        | 'longueur'
+        | 'largeur'
+        | 'rayon'
+        | 'hauteur'
+        | 'diametre'
+        | 'entreplat'
+        | 'ecart'
+        | 'debord'
       expression: string
     }
   | { type: 'concentrique'; cible: string }
+  | { type: 'symetrie'; axe: SymetrieAxe }
   | { type: 'extrude'; profondeur: string }
   | { type: 'revolution' }
   | { type: 'enlever'; profondeur: string; traverse?: boolean }
@@ -62,14 +76,21 @@ export type CompilationKernel = {
   parametres: Map<string, string>
 }
 
-type SegmentProfil = { id: string; rayon?: string; hauteur?: string }
-
 type EsquisseEnCours = {
   support: string
   rectangles: RectangleEsquisse[]
-  segments: SegmentProfil[]
+  segments: SegmentEsquisse[]
+  arcs: ArcEsquisse[]
   cercles: CercleEsquisse[]
   polygones: PolygoneEsquisse[]
+  symetries: SymetrieAxe[]
+  dernier:
+    | { sorte: 'rectangle'; ref: RectangleEsquisse }
+    | { sorte: 'segment'; ref: SegmentEsquisse }
+    | { sorte: 'arc'; ref: ArcEsquisse }
+    | { sorte: 'cercle'; ref: CercleEsquisse }
+    | { sorte: 'polygone'; ref: PolygoneEsquisse }
+    | null
 }
 
 function rayonApprox(poly: Polyline3): number {
@@ -95,7 +116,7 @@ function fermerXy(xyz: Polyline3): Polyline3 {
 
 /** Profil révolution XY (mm OCCT) depuis segments rayon/hauteur (unités sketch). */
 function profilRevolution(
-  segments: SegmentProfil[],
+  segments: SegmentEsquisse[],
   parametres: Map<string, string>,
   scale: number,
 ): Polyline3 {
@@ -154,7 +175,7 @@ export type OptionsCompilation = {
 
 /**
  * Compile un préfixe d’historique (param / esquisse / extrude / revolution / enlever / fillet)
- * en batch occt-kernel. Hors scope : cornes / elevation, pas hybride, symétrie.
+ * en batch occt-kernel. Hors scope : pas hybride.
  */
 export function compilerHistorique(
   historique: OperationKernel[],
@@ -180,24 +201,40 @@ export function compilerHistorique(
         support: operation.support ?? 'plan.dessus',
         rectangles: [],
         segments: [],
+        arcs: [],
         cercles: [],
         polygones: [],
+        symetries: [],
+        dernier: null,
       }
       continue
     }
     if (operation.type === 'rectangle') {
       if (!esquisse) throw new Error('rectangle hors esquisse')
-      esquisse.rectangles.push({ id: operation.id ?? `r${uid++}` })
+      const ref = { id: operation.id ?? `r${uid++}` }
+      esquisse.rectangles.push(ref)
+      esquisse.dernier = { sorte: 'rectangle', ref }
       continue
     }
     if (operation.type === 'segment') {
       if (!esquisse) throw new Error('segment hors esquisse')
-      esquisse.segments.push({ id: operation.id ?? `s${uid++}` })
+      const ref = { id: operation.id ?? `s${uid++}` }
+      esquisse.segments.push(ref)
+      esquisse.dernier = { sorte: 'segment', ref }
+      continue
+    }
+    if (operation.type === 'arc') {
+      if (!esquisse) throw new Error('arc hors esquisse')
+      const ref = { id: operation.id ?? `a${uid++}` }
+      esquisse.arcs.push(ref)
+      esquisse.dernier = { sorte: 'arc', ref }
       continue
     }
     if (operation.type === 'cercle') {
       if (!esquisse) throw new Error('cercle hors esquisse')
-      esquisse.cercles.push({ id: operation.id ?? `c${uid++}` })
+      const ref = { id: operation.id ?? `c${uid++}` }
+      esquisse.cercles.push(ref)
+      esquisse.dernier = { sorte: 'cercle', ref }
       continue
     }
     if (operation.type === 'polygone' || operation.type === 'hexagone' || operation.type === 'octogone') {
@@ -205,41 +242,60 @@ export function compilerHistorique(
       const pans =
         operation.type === 'polygone' ? operation.pans : operation.type === 'hexagone' ? 6 : 8
       if (!(pans >= 3)) throw new Error('polygone pans invalide')
-      esquisse.polygones.push({ id: operation.id ?? `p${uid++}`, pans })
+      const ref = { id: operation.id ?? `p${uid++}`, pans }
+      esquisse.polygones.push(ref)
+      esquisse.dernier = { sorte: 'polygone', ref }
       continue
     }
     if (operation.type === 'cote') {
-      if (!esquisse) throw new Error('cote hors esquisse')
-      if (operation.cible === 'longueur' || operation.cible === 'largeur') {
-        const dernier = esquisse.rectangles.at(-1)
-        if (!dernier) throw new Error('cote sans rectangle')
-        if (operation.cible === 'longueur') dernier.longueur = operation.expression
-        else dernier.largeur = operation.expression
+      if (!esquisse?.dernier) throw new Error('cote hors esquisse')
+      const d = esquisse.dernier
+      const { cible, expression } = operation
+      if (cible === 'longueur' && d.sorte === 'rectangle') {
+        d.ref.longueur = expression
         continue
       }
-      if (operation.cible === 'rayon' || operation.cible === 'hauteur') {
-        const dernier = esquisse.segments.at(-1)
-        if (!dernier) throw new Error('cote sans segment')
-        if (operation.cible === 'rayon') dernier.rayon = operation.expression
-        else dernier.hauteur = operation.expression
+      if (cible === 'largeur' && (d.sorte === 'rectangle' || d.sorte === 'segment')) {
+        d.ref.largeur = expression
         continue
       }
-      if (operation.cible === 'entreplat') {
-        const dernier = esquisse.polygones.at(-1)
-        if (!dernier) throw new Error('cote entreplat sans polygone')
-        dernier.entreplat = operation.expression
+      if (cible === 'rayon' && (d.sorte === 'segment' || d.sorte === 'arc')) {
+        d.ref.rayon = expression
         continue
       }
-      const cercle = esquisse.cercles.at(-1)
-      if (!cercle) throw new Error('cote diametre sans cercle')
-      cercle.diametre = operation.expression
-      continue
+      if (cible === 'hauteur' && d.sorte === 'segment') {
+        d.ref.hauteur = expression
+        continue
+      }
+      if (cible === 'ecart' && d.sorte === 'segment') {
+        d.ref.ecart = expression
+        continue
+      }
+      if (cible === 'debord' && d.sorte === 'segment') {
+        d.ref.debord = expression
+        continue
+      }
+      if (cible === 'entreplat' && d.sorte === 'polygone') {
+        d.ref.entreplat = expression
+        continue
+      }
+      if (cible === 'diametre' && d.sorte === 'cercle') {
+        d.ref.diametre = expression
+        continue
+      }
+      throw new Error(`cote ${cible} incompatible avec ${d.sorte}`)
     }
     if (operation.type === 'concentrique') {
-      if (!esquisse) throw new Error('concentrique hors esquisse')
-      const dernier = esquisse.cercles.at(-1)
-      if (!dernier) throw new Error('concentrique sans cercle')
-      dernier.concentrique = operation.cible
+      if (!esquisse?.dernier) throw new Error('concentrique hors esquisse')
+      if (esquisse.dernier.sorte === 'cercle' || esquisse.dernier.sorte === 'arc') {
+        esquisse.dernier.ref.concentrique = operation.cible
+        continue
+      }
+      throw new Error('concentrique sans cercle/arc')
+    }
+    if (operation.type === 'symetrie') {
+      if (!esquisse) throw new Error('symetrie hors esquisse')
+      esquisse.symetries.push(operation.axe)
       continue
     }
     if (operation.type === 'extrude') {
@@ -250,6 +306,9 @@ export function compilerHistorique(
         rectangles: esquisse.rectangles.map((r) => ({ ...r })),
         cercles: esquisse.cercles.map((c) => ({ ...c })),
         polygones: esquisse.polygones.map((p) => ({ ...p })),
+        segments: esquisse.segments.map((s) => ({ ...s })),
+        arcs: esquisse.arcs.map((a) => ({ ...a })),
+        symetries: [...esquisse.symetries],
       }
       const resolue = resoudreEsquisse(sketch, parametres)
       exigerContraint(resolue)
@@ -272,9 +331,9 @@ export function compilerHistorique(
         const [dx, dy, dz] = decalageTube(esquisse.support, parametres, scale)
         polys = decalerPolylines(polys, dx, dy, dz)
       }
-      // Anneau (plan horizontal) : extrude extérieur puis coupe intérieurs.
-      // Tube latéral / mono-polyline : fuse chaque extrude (aligné éditeur).
-      const anneau = polys.length >= 2 && !tubeLateral
+      // Anneau : ≥2 cercles. Cornes (4 polylines) : fuse chaque extrude.
+      const anneau = esquisse.cercles.length >= 2 && polys.length >= 2 && !tubeLateral
+      const profilCorne = esquisse.segments.some((s) => s.ecart !== undefined)
       if (!anneau) {
         for (const poly of polys) {
           const feat = opsExtrude(poly, dir, String(uid++))
@@ -282,6 +341,11 @@ export function compilerHistorique(
           const attach = accrocherSolide(solidAs, feat.as, String(uid++))
           ops.push(...attach.ops)
           solidAs = attach.solidAs
+        }
+        if (profilCorne && solidAs) {
+          const elev = opsElevationCornes(solidAs, parametres, scale, () => String(uid++))
+          ops.push(...elev.ops)
+          solidAs = elev.solidAs
         }
       } else {
         const classes = polys

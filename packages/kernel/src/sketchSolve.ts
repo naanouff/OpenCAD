@@ -1,4 +1,5 @@
 import { evaluer } from './evaluateur.ts'
+import { geometriePlan } from './geometriePlanCorne.ts'
 
 export type StatutContrainte = 'sous-contraint' | 'contraint' | 'surcontraint'
 
@@ -36,10 +37,31 @@ export type PolygoneEsquisse = {
   entreplat?: string
 }
 
+/** Segment profil révolution (rayon/hauteur) ou corne (ecart/debord/largeur). */
+export type SegmentEsquisse = {
+  id: string
+  rayon?: string
+  hauteur?: string
+  ecart?: string
+  debord?: string
+  largeur?: string
+}
+
+export type ArcEsquisse = {
+  id: string
+  rayon?: string
+  concentrique?: string
+}
+
+export type SymetrieAxe = 'vertical' | 'horizontal'
+
 export type EsquisseKernel = {
   rectangles?: RectangleEsquisse[]
   cercles?: CercleEsquisse[]
   polygones?: PolygoneEsquisse[]
+  segments?: SegmentEsquisse[]
+  arcs?: ArcEsquisse[]
+  symetries?: SymetrieAxe[]
 }
 
 export type EsquisseResolue = {
@@ -231,9 +253,124 @@ function resoudrePolygoneRegulier(
   }
 }
 
+const SEGMENTS_ARC = 24
+
+function densifierArcCourt(
+  cx: number,
+  cy: number,
+  rayon: number,
+  angle0: number,
+  angle1: number,
+): { u: number; v: number }[] {
+  let delta = angle1 - angle0
+  while (delta > Math.PI) delta -= Math.PI * 2
+  while (delta < -Math.PI) delta += Math.PI * 2
+  const n = Math.max(4, Math.ceil((Math.abs(delta) / (Math.PI * 2)) * SEGMENTS_ARC * 8))
+  const pts: { u: number; v: number }[] = []
+  for (let i = 0; i <= n; i++) {
+    const a = angle0 + (delta * i) / n
+    pts.push({ u: cx + Math.cos(a) * rayon, v: cy + Math.sin(a) * rayon })
+  }
+  return pts
+}
+
+function contourCorne(
+  ecart: number,
+  debord: number,
+  largeurBout: number,
+  largeurRacine: number,
+  rayonRacine: number,
+  rayonPeau: number,
+): { u: number; v: number }[] {
+  const a0 = ecart / 2
+  const u1 = rayonPeau + debord
+  const geo = geometriePlan({
+    a0,
+    u1,
+    plan: { largeurBout, largeurRacine, rayonRacine },
+    rayonPeau,
+  })
+  const uInterieur = Math.sqrt(Math.max(0, rayonPeau * rayonPeau - a0 * a0))
+  const angleA = Math.atan2(uInterieur, a0)
+  const anglePeauOrigine = Math.atan2(geo.peau[1], geo.peau[0])
+  const fillet = densifierArcCourt(geo.C[0], geo.C[1], geo.Rr, geo.anglePeau, geo.angleQt)
+  const skin = densifierArcCourt(0, 0, rayonPeau, angleA, anglePeauOrigine)
+  return [
+    { u: geo.peau[0], v: geo.peau[1] },
+    ...fillet.slice(1),
+    { u: geo.Ptip[0], v: geo.Ptip[1] },
+    { u: a0, v: u1 },
+    { u: a0, v: uInterieur },
+    ...skin.slice(1, -1),
+  ]
+}
+
+function appliquerSymetries(
+  base: { u: number; v: number }[],
+  symetries: SymetrieAxe[],
+): { u: number; v: number }[][] {
+  const vertical = symetries.includes('vertical')
+  const horizontal = symetries.includes('horizontal')
+  const copies: { u: number; v: number }[][] = [base]
+  if (vertical) copies.push(base.map((p) => ({ u: -p.u, v: p.v })))
+  if (horizontal) copies.push(base.map((p) => ({ u: p.u, v: -p.v })))
+  if (vertical && horizontal) copies.push(base.map((p) => ({ u: -p.u, v: -p.v })))
+  return copies
+}
+
+/** Contour corne Oyster + copies par symétrie (extrait éditeur `resoudreCorne`). */
+function resoudreCorne(esquisse: EsquisseKernel, parametres: Map<string, string>): EsquisseResolue | null {
+  const segments = esquisse.segments ?? []
+  const arcs = esquisse.arcs ?? []
+  if (segments.length < 3 || arcs.length < 1) return null
+  const ecartExpr = segments.find((e) => e.ecart)?.ecart
+  const debordExpr = segments.find((e) => e.debord)?.debord
+  const largeurs = segments.filter((e) => e.largeur).map((e) => e.largeur!)
+  const rayonExpr = arcs.find((e) => e.rayon)?.rayon
+  if (!ecartExpr || !debordExpr || largeurs.length < 2 || !rayonExpr) return null
+  if (!parametres.has('diametre_boite')) {
+    return {
+      points: [],
+      polylines: [],
+      degres: 1,
+      ferme: true,
+      statut: 'sous-contraint',
+      contraintes: [],
+    }
+  }
+  const ecart = evaluer(ecartExpr, parametres)
+  const debord = evaluer(debordExpr, parametres)
+  const largeurBout = evaluer(largeurs[0]!, parametres)
+  const largeurRacine = evaluer(largeurs[1]!, parametres)
+  const rayonRacine = evaluer(rayonExpr, parametres)
+  const rayonPeau = evaluer('diametre_boite', parametres) / 2
+  const base = contourCorne(ecart, debord, largeurBout, largeurRacine, rayonRacine, rayonPeau)
+  const regions = appliquerSymetries(base, esquisse.symetries ?? [])
+  const points: PointResolu[] = []
+  const polylines: { points: string[] }[] = []
+  regions.forEach((region, r) => {
+    const ids: string[] = []
+    region.forEach((p, i) => {
+      const id = `corne.${r}.${i}`
+      points.push({ id, u: p.u, v: p.v })
+      ids.push(id)
+    })
+    if (ids[0]) ids.push(ids[0])
+    polylines.push({ points: ids })
+  })
+  return {
+    points,
+    polylines,
+    degres: 0,
+    ferme: true,
+    statut: 'contraint',
+    contraintes: [],
+  }
+}
+
 /**
- * Required sketch solve (K3-5 + O2-6/7/13):
- * rectangle ; cercle (+ concentrique v1) ; polygone régulier (entreplat).
+ * Required sketch solve (K3-5 + O2-6/7/13/14):
+ * rectangle ; cercle (+ concentrique v1) ; polygone ; corne + symétrie.
  */
 export function resoudreEsquisse(
   esquisse: EsquisseKernel,
@@ -244,8 +381,19 @@ export function resoudreEsquisse(
   const rectangles = esquisse.rectangles ?? []
   const cercles = esquisse.cercles ?? []
   const polygones = esquisse.polygones ?? []
+  const segments = esquisse.segments ?? []
+  const arcs = esquisse.arcs ?? []
 
-  if (rectangles.length === 0 && cercles.length === 0 && polygones.length === 0) {
+  const corne = resoudreCorne(esquisse, parametres)
+  if (corne) return corne
+
+  if (
+    rectangles.length === 0 &&
+    cercles.length === 0 &&
+    polygones.length === 0 &&
+    segments.length === 0 &&
+    arcs.length === 0
+  ) {
     return {
       points: [],
       polylines: [],
@@ -264,7 +412,7 @@ export function resoudreEsquisse(
     return fusionner(polygones.map((p) => resoudrePolygoneRegulier(p, parametres)))
   }
 
-  if (cercles.length >= 1 && rectangles.length === 0 && polygones.length === 0) {
+  if (cercles.length >= 1 && rectangles.length === 0 && polygones.length === 0 && segments.length === 0) {
     return fusionner(cercles.map((c) => resoudreCercle(c, parametres)))
   }
 

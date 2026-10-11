@@ -121,6 +121,49 @@ describe('O2-3/O2-4 compiler historique', () => {
     expect(out.bbox.xmax - out.bbox.xmin).toBeCloseTo(100, 0)
   }, 120_000)
 
+  it('O2-14: cornes + élévation (plongee) après anneau', async () => {
+    const occt = await chargerKernel()
+    const compilation = compilerHistorique(
+      [
+        { type: 'param', nom: 'diametre_boite', expression: '40' },
+        { type: 'param', nom: 'hauteur_carrure', expression: '8' },
+        { type: 'param', nom: 'entrecorne', expression: '20' },
+        { type: 'param', nom: 'longueur_corne', expression: '4.2' },
+        { type: 'param', nom: 'largeur_racine', expression: '6' },
+        { type: 'param', nom: 'plongee_bout', expression: '1.2' },
+        { type: 'param', nom: 'epaisseur_bout', expression: '2' },
+        { type: 'ouvrir' },
+        { type: 'cercle', id: 'ext' },
+        { type: 'cote', cible: 'diametre', expression: '40' },
+        { type: 'cercle', id: 'int' },
+        { type: 'concentrique', cible: 'cercle.exterieur' },
+        { type: 'cote', cible: 'diametre', expression: '35' },
+        { type: 'extrude', profondeur: '8' },
+        { type: 'ouvrir' },
+        { type: 'segment', id: 's0' },
+        { type: 'cote', cible: 'ecart', expression: '20' },
+        { type: 'segment', id: 's1' },
+        { type: 'cote', cible: 'debord', expression: '4.2' },
+        { type: 'cote', cible: 'largeur', expression: '2.2' },
+        { type: 'segment', id: 's2' },
+        { type: 'cote', cible: 'largeur', expression: '6' },
+        { type: 'arc', id: 'a0' },
+        { type: 'cote', cible: 'rayon', expression: '3' },
+        { type: 'arc', id: 'a1' },
+        { type: 'concentrique', cible: 'cercle.exterieur' },
+        { type: 'symetrie', axe: 'vertical' },
+        { type: 'symetrie', axe: 'horizontal' },
+        { type: 'extrude', profondeur: '8' },
+      ],
+      { unite: 'mm' },
+    )
+    const out = tessellerSolide(occt, compilation.ops, compilation.solidAs!)
+    expect(out.ok).toBe(true)
+    if (!out.ok) return
+    expect(out.bbox.ymax - out.bbox.ymin).toBeCloseTo(8, 0)
+    expect(Math.max(Math.abs(out.bbox.zmax), Math.abs(out.bbox.zmin))).toBeGreaterThan(22)
+  }, 120_000)
+
   it('O2-13: anneau deux cercles concentriques + extrude', async () => {
     const occt = await chargerKernel()
     const compilation = compilerHistorique(

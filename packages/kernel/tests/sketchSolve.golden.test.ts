@@ -79,6 +79,24 @@ describe('K3-5 sketch constraints', () => {
     expect(out.polylines[0]!.points).toEqual(['c1.p'])
   })
 
+  it('O2-14: corne + symétries → 4 polylines contraintes', () => {
+    const out = resoudreEsquisse(
+      {
+        segments: [
+          { id: 's0', ecart: '20' },
+          { id: 's1', debord: '4.2', largeur: '2.2' },
+          { id: 's2', largeur: '6' },
+        ],
+        arcs: [{ id: 'a0', rayon: '3' }, { id: 'a1', concentrique: 'cercle.exterieur' }],
+        symetries: ['vertical', 'horizontal'],
+      },
+      new Map([['diametre_boite', '40']]),
+    )
+    expect(out.statut).toBe('contraint')
+    expect(out.polylines).toHaveLength(4)
+    expect(out.polylines[0]!.points.length).toBeGreaterThan(4)
+  })
+
   it('O2-13: deux cercles concentriques → centres coincidents, deux polylines', () => {
     const out = resoudreEsquisse({
       cercles: [
