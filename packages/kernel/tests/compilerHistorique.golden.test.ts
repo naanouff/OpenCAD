@@ -121,6 +121,50 @@ describe('O2-3/O2-4 compiler historique', () => {
     expect(out.bbox.xmax - out.bbox.xmin).toBeCloseTo(100, 0)
   }, 120_000)
 
+  it('O2-12: plaque + enlever traverse plan.12h → quatre trous de barrette', async () => {
+    const occt = await chargerKernel()
+    const plein = compilerHistorique(
+      [
+        { type: 'param', nom: 'diametre_boite', expression: '40' },
+        { type: 'param', nom: 'longueur_corne', expression: '4.2' },
+        { type: 'param', nom: 'hauteur_carrure', expression: '8' },
+        { type: 'param', nom: 'entrecorne', expression: '20' },
+        { type: 'param', nom: 'largeur_racine', expression: '6' },
+        { type: 'ouvrir' },
+        { type: 'rectangle', id: 'r' },
+        { type: 'cote', cible: 'longueur', expression: '50' },
+        { type: 'cote', cible: 'largeur', expression: '50' },
+        { type: 'extrude', profondeur: '8' },
+      ],
+      { unite: 'mm' },
+    )
+    const bars = compilerHistorique(
+      [
+        { type: 'param', nom: 'diametre_boite', expression: '40' },
+        { type: 'param', nom: 'longueur_corne', expression: '4.2' },
+        { type: 'param', nom: 'hauteur_carrure', expression: '8' },
+        { type: 'param', nom: 'entrecorne', expression: '20' },
+        { type: 'param', nom: 'largeur_racine', expression: '6' },
+        { type: 'ouvrir' },
+        { type: 'rectangle', id: 'r' },
+        { type: 'cote', cible: 'longueur', expression: '50' },
+        { type: 'cote', cible: 'largeur', expression: '50' },
+        { type: 'extrude', profondeur: '8' },
+        { type: 'ouvrir', support: 'plan.12h' },
+        { type: 'cercle', id: 'b' },
+        { type: 'cote', cible: 'diametre', expression: '1.1' },
+        { type: 'enlever', profondeur: '6', traverse: true },
+      ],
+      { unite: 'mm' },
+    )
+    const a = tessellerSolide(occt, plein.ops, plein.solidAs!)
+    const b = tessellerSolide(occt, bars.ops, bars.solidAs!)
+    expect(a.ok && b.ok).toBe(true)
+    if (!a.ok || !b.ok) return
+    expect(b.mesh.triangleCount).toBeGreaterThan(a.mesh.triangleCount)
+    expect(b.bbox.ymax - b.bbox.ymin).toBeCloseTo(8, 0)
+  }, 120_000)
+
   it('O2-11: tube plan.3h — axe X, altitude peau, décalage mi-hauteur', async () => {
     const occt = await chargerKernel()
     const compilation = compilerHistorique(

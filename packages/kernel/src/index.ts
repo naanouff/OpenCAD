@@ -64,6 +64,7 @@ export {
   type DatumPlan,
   type Vecteur3,
 } from './datumsKernel.ts'
+export { cerclePlanYZ, opsBarrettesPedagogiques } from './barrettesKernel.ts'
 export { evaluer } from './evaluateur.ts'
 export {
   listerTopo,

@@ -1,3 +1,4 @@
+import { opsBarrettesPedagogiques } from './barrettesKernel.ts'
 import { evaluer } from './evaluateur.ts'
 import {
   CHEVAUCHE_TUBE,
@@ -152,7 +153,7 @@ export type OptionsCompilation = {
 
 /**
  * Compile un préfixe d’historique (param / esquisse / extrude / revolution / enlever / fillet)
- * en batch occt-kernel. Hors scope : carrure barrettes, pas hybride, concentrique.
+ * en batch occt-kernel. Hors scope : cornes / elevation, pas hybride, concentrique.
  */
 export function compilerHistorique(
   historique: OperationKernel[],
@@ -327,10 +328,22 @@ export function compilerHistorique(
       if (!esquisse) throw new Error('enlever sans esquisse')
       const profondeur = evaluer(operation.profondeur, parametres)
       if (!(profondeur > 0)) throw new Error('profondeur enlever doit être positive')
+      const profondeurMm = profondeur * scale
+      if (operation.traverse && esquisse.support === 'plan.12h') {
+        const cercle = [...esquisse.cercles].reverse().find((c) => c.diametre)
+        if (!cercle?.diametre) throw new Error('barrette sans diamètre')
+        const rayonMm = (evaluer(cercle.diametre, parametres) * scale) / 2
+        const bars = opsBarrettesPedagogiques(solidAs, rayonMm, parametres, scale, () =>
+          String(uid++),
+        )
+        ops.push(...bars.ops)
+        solidAs = bars.solidAs
+        esquisse = null
+        continue
+      }
       const sketch: EsquisseKernel = { cercles: esquisse.cercles.map((c) => ({ ...c })) }
       const resolue = resoudreEsquisse(sketch, parametres)
       exigerContraint(resolue)
-      const profondeurMm = profondeur * scale
       const face = faces.get(esquisse.support)
       const tubeLateral = esquisse.support === 'plan.3h'
       let yCut: number
