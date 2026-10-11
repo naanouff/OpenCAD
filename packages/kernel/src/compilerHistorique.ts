@@ -1,4 +1,5 @@
 import { opsBarrettesPedagogiques } from './barrettesKernel.ts'
+import { opsElevationCornes } from './elevationCornes.ts'
 import { evaluer } from './evaluateur.ts'
 import {
   CHEVAUCHE_TUBE,
@@ -174,7 +175,7 @@ export type OptionsCompilation = {
 
 /**
  * Compile un préfixe d’historique (param / esquisse / extrude / revolution / enlever / fillet)
- * en batch occt-kernel. Hors scope : elevation cornes (plongee), pas hybride.
+ * en batch occt-kernel. Hors scope : pas hybride.
  */
 export function compilerHistorique(
   historique: OperationKernel[],
@@ -332,6 +333,7 @@ export function compilerHistorique(
       }
       // Anneau : ≥2 cercles. Cornes (4 polylines) : fuse chaque extrude.
       const anneau = esquisse.cercles.length >= 2 && polys.length >= 2 && !tubeLateral
+      const profilCorne = esquisse.segments.some((s) => s.ecart !== undefined)
       if (!anneau) {
         for (const poly of polys) {
           const feat = opsExtrude(poly, dir, String(uid++))
@@ -339,6 +341,11 @@ export function compilerHistorique(
           const attach = accrocherSolide(solidAs, feat.as, String(uid++))
           ops.push(...attach.ops)
           solidAs = attach.solidAs
+        }
+        if (profilCorne && solidAs) {
+          const elev = opsElevationCornes(solidAs, parametres, scale, () => String(uid++))
+          ops.push(...elev.ops)
+          solidAs = elev.solidAs
         }
       } else {
         const classes = polys

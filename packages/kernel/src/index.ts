@@ -34,6 +34,7 @@ export {
   type StatutContrainte,
 } from './sketchSolve.ts'
 export { geometriePlan, type PlanCorne } from './geometriePlanCorne.ts'
+export { opsElevationCornes } from './elevationCornes.ts'
 export { rebuildExtrudeFromRectangle } from './extrudeFromSketch.ts'
 export {
   opsExtrude,

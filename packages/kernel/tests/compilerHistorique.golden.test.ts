@@ -121,11 +121,17 @@ describe('O2-3/O2-4 compiler historique', () => {
     expect(out.bbox.xmax - out.bbox.xmin).toBeCloseTo(100, 0)
   }, 120_000)
 
-  it('O2-14: cornes prismatiques (symétrie) après anneau', async () => {
+  it('O2-14: cornes + élévation (plongee) après anneau', async () => {
     const occt = await chargerKernel()
     const compilation = compilerHistorique(
       [
         { type: 'param', nom: 'diametre_boite', expression: '40' },
+        { type: 'param', nom: 'hauteur_carrure', expression: '8' },
+        { type: 'param', nom: 'entrecorne', expression: '20' },
+        { type: 'param', nom: 'longueur_corne', expression: '4.2' },
+        { type: 'param', nom: 'largeur_racine', expression: '6' },
+        { type: 'param', nom: 'plongee_bout', expression: '1.2' },
+        { type: 'param', nom: 'epaisseur_bout', expression: '2' },
         { type: 'ouvrir' },
         { type: 'cercle', id: 'ext' },
         { type: 'cote', cible: 'diametre', expression: '40' },
@@ -155,7 +161,6 @@ describe('O2-3/O2-4 compiler historique', () => {
     expect(out.ok).toBe(true)
     if (!out.ok) return
     expect(out.bbox.ymax - out.bbox.ymin).toBeCloseTo(8, 0)
-    // Débord corne : rayon peau 20 + 4.2
     expect(Math.max(Math.abs(out.bbox.zmax), Math.abs(out.bbox.zmin))).toBeGreaterThan(22)
   }, 120_000)
 

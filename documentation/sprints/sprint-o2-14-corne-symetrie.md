@@ -4,8 +4,8 @@ Branche: `feature/o2-14-corne-symetrie`.
 
 ## But
 
-Extraire `geometriePlan` + `resoudreCorne` + `appliquerSymetries` dans `@opencad/kernel` ; ops `arc` / `symetrie` / cotes `ecart`/`debord` dans `compilerHistorique`. Extrusion prismatique des quatre quarts.
+Extraire `geometriePlan` + `resoudreCorne` + `appliquerSymetries` + `opsElevationCornes` dans `@opencad/kernel` ; ops `arc` / `symetrie` / cotes `ecart`/`debord` dans `compilerHistorique`.
 
 ## Hors scope
 
-`opsElevationCornes` (plongee / épaisseur bout), `pas` hybride.
+`pas` hybride.
