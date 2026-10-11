@@ -20,8 +20,8 @@ Doctrine (binding for product direction): [`documentation/opencad-doctrine.md`](
 - **cadombrep:** stub v0 — [`documentation/specification/cadombrep-v0.md`](documentation/specification/cadombrep-v0.md)
 - **cadompart:** **v0.3** — expression dialect `opencad.expr.v0` ([#57](https://github.com/naanouff/OpenCAD/issues/57))
 - **Kernel:** `@opencad/kernel` (K3 + O2-1…O2-15) — [`packages/kernel`](packages/kernel); spec [`documentation/specification/opencad-kernel-v0.md`](documentation/specification/opencad-kernel-v0.md)
-- **CADOM SDK:** `@opencad/cadom` (O4-1/2 decode, fixtures, layers) — [`packages/cadom`](packages/cadom)
-- **Next:** O4 late-load / resolved node adapter; W1 helix (occt-wasm)
+- **CADOM SDK:** `@opencad/cadom` (O4-1…3 decode, fixtures, late-load / adapter resolve, writer lint) — [`packages/cadom`](packages/cadom)
+- **Next:** W1 helix (occt-wasm); P3 editor assemblage `.cadom`
 - Process: [SWOT-2 (current)](documentation/cadom-spec-swot.md) · [remediation](documentation/sprint-swot-remediation.md)
 
 ## Goals
