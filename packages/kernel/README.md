@@ -13,7 +13,8 @@ OpenCAD B-Rep kernel package (K3).
 | K3-8 cadombrep writer | done (`ecrireCadombrep`) |
 | Required badge v0 | K3-3…K3-5 + K3-7 |
 | Complete export v0 | Required + K3-8 |
-| O2 editor pipeline extract | later |
+| O2-1 wire/extrude extract | done (`opsExtrude`, `polylinesDepuisResolue`) |
+| O2 suite (full pipeline) | later |
 
 Bootstrap engine: **`occt-kernel`** ([spec](../../documentation/specification/opencad-kernel-v0.md)).
 

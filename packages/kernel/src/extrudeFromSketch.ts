@@ -1,5 +1,8 @@
 import type { OcctKernelModule } from './chargerKernel.ts'
-import { rebuildExtrudePlate, type ExtrudePlateResult } from './extrudePlate.ts'
+import type { ExtrudePlateResult } from './extrudePlate.ts'
+import { tessellerSolide } from './meshUtils.ts'
+import { opsExtrude } from './opsDepuisFonction.ts'
+import { polylinesDepuisResolue } from './polylinesDepuisResolue.ts'
 import {
   etatEsquisse,
   exigerContraint,
@@ -9,7 +12,7 @@ import {
 
 /**
  * Extrude a constrained rectangle sketch (metres) by `thickness` (metres).
- * Fails explicitly if sous/sur-contraint (K3-5).
+ * Path: GCS → wire polyline → face → extrude (O2 extract, not make_box).
  */
 export function rebuildExtrudeFromRectangle(
   occt: OcctKernelModule,
@@ -27,18 +30,24 @@ export function rebuildExtrudeFromRectangle(
       error: e instanceof Error ? e.message : String(e),
     }
   }
-  const rect = esquisse.rectangles[0]
-  if (!rect?.longueur || !rect.largeur) {
-    return { ok: false, code: 'UnderConstrained', error: 'esquisse non contrainte' }
+  if (!(thickness > 0)) {
+    return { ok: false, code: 'InvalidPlate', error: 'thickness must be positive' }
   }
-  // Solved half-extents → full width/depth in sketch units (metres for plate fixture).
-  const pts = Object.fromEntries(resolue.points.map((p) => [p.id, p]))
-  const a = pts[`${rect.id}.a`]!
-  const b = pts[`${rect.id}.b`]!
-  const d = pts[`${rect.id}.d`]!
-  const width = Math.hypot(b.u - a.u, b.v - a.v)
-  const depth = Math.hypot(d.u - a.u, d.v - a.v)
-  return rebuildExtrudePlate(occt, { width, depth, thickness })
+  let polys
+  try {
+    polys = polylinesDepuisResolue(resolue, { yPlan: 0, echelle: 1000 })
+  } catch (e) {
+    return {
+      ok: false,
+      code: 'SketchFailed',
+      error: e instanceof Error ? e.message : String(e),
+    }
+  }
+  const dy = thickness * 1000
+  const feat = opsExtrude(polys[0]!, [0, dy, 0], '0')
+  const out = tessellerSolide(occt, feat.ops, feat.as)
+  if (!out.ok) return out
+  return { ok: true, mesh: out.mesh, bbox: out.bbox, unit: 'mm' }
 }
 
 export { etatEsquisse, resoudreEsquisse, exigerContraint }
