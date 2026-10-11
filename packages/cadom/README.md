@@ -6,6 +6,7 @@ CADOM graph SDK (O4). Decode / encode `.cadom`, flat UUID `CadomDocument`, non-d
 |-----------|--------|
 | O4-1 decode/encode + document + overrides | done |
 | O4-2 binary fixtures + layer helpers | done |
+| O4-3 late-load plan + adapter resolve + writer lint | done |
 
 Spec: [`documentation/specification/cadom-v0.1.md`](../../documentation/specification/cadom-v0.1.md) (document v0.3.3, `version_minor = 6`).
 
