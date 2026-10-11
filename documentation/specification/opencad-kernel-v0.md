@@ -46,7 +46,26 @@ Sketch (base constraints) + extrude, revolve, hole, boolean — see cadompart §
 - Assembly mates solver
 - Expression evaluation **inside** the kernel binary (dialect is host / cadompart; see [`cadompart-expression-v0.md`](cadompart-expression-v0.md))
 
-## 6. Outbound writers (later)
+## 6. Topology ids (K3-6)
+
+After a rebuild snapshot (one solid handle), the kernel **MUST** enumerate entities with string ids:
+
+| Entity | Id form | Source |
+|--------|---------|--------|
+| Body | `body:{n}` | Body index in the snapshot (`n` usually `0`) |
+| Face | `face:{i}` | `list_faces` shape-local 0-based index `i` |
+| Edge | `edge:{i}` | `list_edges` shape-local 0-based index `i` |
+
+Rules:
+
+1. Ids **MUST** be unique within each list of a snapshot.
+2. Indices are **shape-local** to the current solid handle. After any topology-changing op (boolean, fillet, extrude fuse), writers **MUST** re-list; previous ids are invalid.
+3. These ids are what `.cadombrep` `face_ids` / `edge_ids` **SHOULD** store for a dead envelope of that snapshot.
+4. Persistent naming across parametric rebuilds (geometric selectors) is **out of scope** for K3-6.
+
+API: `listerTopo` / `listerTopoPlaque` in `@opencad/kernel`.
+
+## 7. Outbound writers (later)
 
 | Writer | Backlog |
 |--------|---------|
