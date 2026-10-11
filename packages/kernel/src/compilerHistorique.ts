@@ -67,13 +67,23 @@ export type OperationKernel =
   | { type: 'symetrie'; axe: SymetrieAxe }
   | { type: 'extrude'; profondeur: string }
   | { type: 'revolution' }
+  | { type: 'pas' }
   | { type: 'enlever'; profondeur: string; traverse?: boolean }
   | { type: 'fillet'; rayon: string; indices?: number[] | null }
+
+/** Profil corps pour filet hôte (expressions sketch, non évaluées). */
+export type ProfilPas = { id: string; rayon?: string; hauteur?: string }
 
 export type CompilationKernel = {
   ops: KernelBatchOp[]
   solidAs: string | null
   parametres: Map<string, string>
+  /** `pas` : 1re revolution omise cote OCCT (filet Session). */
+  pas: boolean
+  /** Segments du 1er profil revolution quand `pas` (pour filetHote). */
+  entitesPas: ProfilPas[] | null
+  yMin: number
+  yMax: number
 }
 
 type EsquisseEnCours = {
@@ -174,8 +184,8 @@ export type OptionsCompilation = {
 }
 
 /**
- * Compile un préfixe d’historique (param / esquisse / extrude / revolution / enlever / fillet)
- * en batch occt-kernel. Hors scope : pas hybride.
+ * Compile un préfixe d’historique (param / esquisse / extrude / revolution / pas / enlever / fillet)
+ * en batch occt-kernel. `pas` : corps omis en OCCT, profil exposé pour filet hôte.
  */
 export function compilerHistorique(
   historique: OperationKernel[],
@@ -190,6 +200,9 @@ export function compilerHistorique(
   let yMax = 0
   let yMin = 0
   let faces: RegistreFaces = new Map()
+  const pas = historique.some((op) => op.type === 'pas')
+  let entitesPas: ProfilPas[] | null = null
+  let revolutions = 0
 
   for (const operation of historique) {
     if (operation.type === 'param') {
@@ -383,16 +396,34 @@ export function compilerHistorique(
       esquisse = null
       continue
     }
+    if (operation.type === 'pas') {
+      continue
+    }
     if (operation.type === 'revolution') {
       if (!esquisse) throw new Error('revolution sans esquisse')
       const profil = profilRevolution(esquisse.segments, parametres, scale)
       const feat = opsRevolution(profil, String(uid++))
-      ops.push(...feat.ops)
-      const attach = accrocherSolide(solidAs, feat.as, String(uid++))
-      ops.push(...attach.ops)
-      solidAs = attach.solidAs
+      revolutions += 1
       for (const s of esquisse.segments) {
         if (s.hauteur) yMax = Math.max(yMax, evaluer(s.hauteur, parametres) * scale)
+      }
+      if (revolutions === 1) {
+        entitesPas = esquisse.segments.map((s) => ({
+          id: s.id,
+          rayon: s.rayon,
+          hauteur: s.hauteur,
+        }))
+        if (!pas) {
+          ops.push(...feat.ops)
+          const attach = accrocherSolide(solidAs, feat.as, String(uid++))
+          ops.push(...attach.ops)
+          solidAs = attach.solidAs
+        }
+      } else {
+        ops.push(...feat.ops)
+        const attach = accrocherSolide(solidAs, feat.as, String(uid++))
+        ops.push(...attach.ops)
+        solidAs = attach.solidAs
       }
       yMin = Math.min(yMin, 0)
       faces = faceDepuisBornesY(yMin, yMax)
@@ -417,7 +448,11 @@ export function compilerHistorique(
         esquisse = null
         continue
       }
-      const sketch: EsquisseKernel = { cercles: esquisse.cercles.map((c) => ({ ...c })) }
+      const sketch: EsquisseKernel = {
+        rectangles: esquisse.rectangles.map((r) => ({ ...r })),
+        cercles: esquisse.cercles.map((c) => ({ ...c })),
+        polygones: esquisse.polygones.map((p) => ({ ...p })),
+      }
       const resolue = resoudreEsquisse(sketch, parametres)
       exigerContraint(resolue)
       const face = faces.get(esquisse.support)
@@ -471,5 +506,5 @@ export function compilerHistorique(
     }
   }
 
-  return { ops, solidAs, parametres }
+  return { ops, solidAs, parametres, pas, entitesPas, yMin, yMax }
 }
