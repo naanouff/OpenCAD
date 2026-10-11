@@ -3,8 +3,10 @@ import { chargerKernel } from '../src/chargerKernel.ts'
 import { compilerHistorique } from '../src/compilerHistorique.ts'
 import { tessellerSolide } from '../src/meshUtils.ts'
 import { rebuildExtrudeFromRectangle } from '../src/extrudeFromSketch.ts'
+import { rebuildExtrudePlate } from '../src/extrudePlate.ts'
+import { rebuildRevolveCylinder } from '../src/revolveSolid.ts'
 
-describe('O2-3 compiler historique', () => {
+describe('O2-3/O2-4 compiler historique', () => {
   it('compile param + rectangle + cotes + extrude → même bbox que rebuildExtrudeFromRectangle', async () => {
     const occt = await chargerKernel()
     const compilation = compilerHistorique([
@@ -63,4 +65,62 @@ describe('O2-3 compiler historique', () => {
       ]),
     ).toThrow(/sous-contraint|UnderConstrained|contraint/i)
   })
+
+  it('O2-4: revolution profil → même bbox que rebuildRevolveCylinder', async () => {
+    const occt = await chargerKernel()
+    const pts: Array<{ r: string; h: string }> = [
+      { r: '0', h: '0' },
+      { r: '0.01', h: '0' },
+      { r: '0.01', h: '0.03' },
+      { r: '0', h: '0.03' },
+    ]
+    const historique = [
+      { type: 'ouvrir' as const, support: 'plan.12h' },
+      ...pts.flatMap((p, i) => [
+        { type: 'segment' as const, id: `s${i}` },
+        { type: 'cote' as const, cible: 'rayon' as const, expression: p.r },
+        { type: 'cote' as const, cible: 'hauteur' as const, expression: p.h },
+      ]),
+      { type: 'revolution' as const },
+    ]
+    const compilation = compilerHistorique(historique)
+    const out = tessellerSolide(occt, compilation.ops, compilation.solidAs!)
+    expect(out.ok).toBe(true)
+    if (!out.ok) return
+    const direct = rebuildRevolveCylinder(occt, { radius: 0.01, height: 0.03 })
+    expect(direct.ok).toBe(true)
+    if (!direct.ok) return
+    expect(out.bbox.ymax - out.bbox.ymin).toBeCloseTo(direct.bbox.ymax - direct.bbox.ymin, 0)
+    const rx = Math.max(Math.abs(out.bbox.xmin), Math.abs(out.bbox.xmax))
+    expect(rx).toBeCloseTo(10, 0)
+  }, 120_000)
+
+  it('O2-4: extrude + cercle + enlever → bbox plaque, plus de triangles', async () => {
+    const occt = await chargerKernel()
+    const compilation = compilerHistorique([
+      { type: 'ouvrir' },
+      { type: 'rectangle', id: 'r' },
+      { type: 'cote', cible: 'longueur', expression: '0.1' },
+      { type: 'cote', cible: 'largeur', expression: '0.06' },
+      { type: 'extrude', profondeur: '0.008' },
+      { type: 'ouvrir' },
+      { type: 'cercle', id: 'trou' },
+      { type: 'cote', cible: 'diametre', expression: '0.01' },
+      { type: 'enlever', profondeur: '0.008' },
+    ])
+    const out = tessellerSolide(occt, compilation.ops, compilation.solidAs!)
+    expect(out.ok).toBe(true)
+    if (!out.ok) return
+    const plein = rebuildExtrudePlate(occt, {
+      width: 0.1,
+      depth: 0.06,
+      thickness: 0.008,
+    })
+    expect(plein.ok).toBe(true)
+    if (!plein.ok) return
+    expect(out.bbox.xmax - out.bbox.xmin).toBeCloseTo(100, 0)
+    expect(out.bbox.zmax - out.bbox.zmin).toBeCloseTo(60, 0)
+    expect(out.bbox.ymax - out.bbox.ymin).toBeCloseTo(8, 0)
+    expect(out.mesh.triangleCount).toBeGreaterThan(plein.mesh.triangleCount)
+  }, 120_000)
 })
