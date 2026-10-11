@@ -1,11 +1,14 @@
 /**
- * OpenCAD Kernel — public surface (K3-2 skeleton).
- * Rebuild against occt-kernel lands in K3-3+; O2 extracts the editor pipeline.
+ * OpenCAD Kernel — public surface.
+ * K3-3: extrude plate golden via occt-kernel. O2 extracts the editor pipeline.
  */
 
 export const KERNEL_NAME = 'OpenCAD Kernel'
 export const KERNEL_BOOTSTRAP = 'occt-kernel'
 export const EXPRESSION_DIALECT_V0 = 'opencad.expr.v0'
+
+export { chargerKernel, runBatch } from './chargerKernel.ts'
+export { rebuildExtrudePlate, type ExtrudePlateIntent, type ExtrudePlateResult } from './extrudePlate.ts'
 
 export type KernelIntent = {
   /** cadompart `expression_dialect`, if any */

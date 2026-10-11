@@ -7,6 +7,7 @@
     ".": "./src/index.ts"
   },
   "scripts": {
+    "fetch:occt": "node ../../scripts/fetch-occt-kernel.mjs",
     "test": "vitest run"
   },
   "devDependencies": {

@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "fetch:occt": "pnpm --filter @opencad/kernel fetch:occt",
     "test": "pnpm -r test"
   },
   "engines": {
