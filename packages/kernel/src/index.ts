@@ -28,7 +28,13 @@ export {
   type StatutContrainte,
 } from './sketchSolve.ts'
 export { rebuildExtrudeFromRectangle } from './extrudeFromSketch.ts'
-export { opsExtrude, opsRevolution, type Polyline3 } from './opsDepuisFonction.ts'
+export {
+  opsExtrude,
+  opsRevolution,
+  opsCouper,
+  accrocherSolide,
+  type Polyline3,
+} from './opsDepuisFonction.ts'
 export { polylinesDepuisResolue } from './polylinesDepuisResolue.ts'
 export { evaluer } from './evaluateur.ts'
 export {
