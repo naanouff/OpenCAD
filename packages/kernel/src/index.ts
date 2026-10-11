@@ -28,8 +28,12 @@ export {
   type CercleEsquisse,
   type PolygoneEsquisse,
   type RectangleEsquisse,
+  type SegmentEsquisse,
+  type ArcEsquisse,
+  type SymetrieAxe,
   type StatutContrainte,
 } from './sketchSolve.ts'
+export { geometriePlan, type PlanCorne } from './geometriePlanCorne.ts'
 export { rebuildExtrudeFromRectangle } from './extrudeFromSketch.ts'
 export {
   opsExtrude,
