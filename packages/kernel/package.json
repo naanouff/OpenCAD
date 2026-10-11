@@ -5,7 +5,9 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./ops": "./src/opsDepuisFonction.ts"
+    "./ops": "./src/opsDepuisFonction.ts",
+    "./sketch": "./src/sketchSolve.ts",
+    "./polylines": "./src/polylinesDepuisResolue.ts"
   },
   "scripts": {
     "fetch:occt": "node ../../scripts/fetch-occt-kernel.mjs",
