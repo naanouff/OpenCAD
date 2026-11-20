@@ -5,6 +5,74 @@ export type Polyline3 = number[]
 
 export type DirectionExtrusion = readonly [number, number, number]
 
+type Point3 = [number, number, number]
+
+/** Cercle exact derrière une polyligne densifiée : `radial` va du centre au premier sommet (longueur = rayon). */
+export type CercleExact = { centre: Point3; radial: Point3 }
+
+const cerclesExacts = new WeakMap<Polyline3, CercleExact>()
+
+/** Retient que `poly` densifie un cercle, pour que `opsProfil` le balaie en vraie surface. */
+export function marquerCercle(poly: Polyline3, cercle: CercleExact): Polyline3 {
+  cerclesExacts.set(poly, cercle)
+  return poly
+}
+
+export function cercleDe(poly: Polyline3): CercleExact | undefined {
+  return cerclesExacts.get(poly)
+}
+
+/** Translation d’une polyligne ; le cercle exact suit. */
+export function decalerPolyline(poly: Polyline3, dx: number, dy: number, dz: number): Polyline3 {
+  const out: number[] = []
+  for (let i = 0; i < poly.length; i += 3) out.push(poly[i]! + dx, poly[i + 1]! + dy, poly[i + 2]! + dz)
+  const cercle = cerclesExacts.get(poly)
+  if (cercle) {
+    const [cx, cy, cz] = cercle.centre
+    cerclesExacts.set(out, { centre: [cx + dx, cy + dy, cz + dz], radial: cercle.radial })
+  }
+  return out
+}
+
+/**
+ * Profil d’esquisse balayé selon `direction`. Un cercle est tourné autour de son axe plutôt qu’extrudé :
+ * le noyau n’a ni cercle ni placement de cylindre, et un polygone extrudé donne une face par pan.
+ */
+export function opsProfil(
+  polyline: Polyline3,
+  direction: DirectionExtrusion,
+  uid: string,
+): { ops: KernelBatchOp[]; as: string } {
+  const cercle = cerclesExacts.get(polyline)
+  const longueur = Math.hypot(direction[0], direction[1], direction[2])
+  if (!cercle || longueur === 0) return opsExtrude(polyline, direction, uid)
+  const [cx, cy, cz] = cercle.centre
+  const [rx, ry, rz] = cercle.radial
+  const [dx, dy, dz] = direction
+  const rectangle = [
+    cx, cy, cz,
+    cx + rx, cy + ry, cz + rz,
+    cx + rx + dx, cy + ry + dy, cz + rz + dz,
+    cx + dx, cy + dy, cz + dz,
+    cx, cy, cz,
+  ]
+  const w = `w${uid}`
+  const f = `f${uid}`
+  const s = `s${uid}`
+  return {
+    ops: [
+      { op: 'make_wire_polyline', args: [rectangle], as: w },
+      { op: 'make_face_from_wire', args: [{ handle: w }], as: f },
+      {
+        op: 'revolve',
+        args: [{ handle: f }, cx, cy, cz, dx / longueur, dy / longueur, dz / longueur, Math.PI * 2],
+        as: s,
+      },
+    ],
+    as: s,
+  }
+}
+
 /** Wire → face → extrude (extrait éditeur `opsDepuisFonction`). */
 export function opsExtrude(
   polyline: Polyline3,

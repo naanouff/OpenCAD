@@ -1,6 +1,6 @@
 import { datumParId, gcsVersMonde } from './datumsKernel.ts'
 import type { EsquisseResolue } from './sketchSolve.ts'
-import type { Polyline3 } from './opsDepuisFonction.ts'
+import { marquerCercle, type Polyline3 } from './opsDepuisFonction.ts'
 
 /**
  * UV sketch → world XYZ (mm).
@@ -61,15 +61,19 @@ function cercleDensifie(
   segments: number,
   datum: ReturnType<typeof datumParId>,
 ): Polyline3 {
+  const versMonde = (u: number, v: number): [number, number, number] =>
+    datum ? (gcsVersMonde(datum, u, v, altitude) as [number, number, number]) : [u, altitude, v]
   const xyz: number[] = []
   for (let i = 0; i < segments; i++) {
     const a = (i / segments) * Math.PI * 2
-    const u = cu + Math.cos(a) * rayon
-    const v = cv + Math.sin(a) * rayon
-    if (datum) xyz.push(...gcsVersMonde(datum, u, v, altitude))
-    else xyz.push(u, altitude, v)
+    xyz.push(...versMonde(cu + Math.cos(a) * rayon, cv + Math.sin(a) * rayon))
   }
-  return fermer(xyz)
+  const centre = versMonde(cu, cv)
+  const bord = versMonde(cu + rayon, cv)
+  return marquerCercle(fermer(xyz), {
+    centre,
+    radial: [bord[0] - centre[0], bord[1] - centre[1], bord[2] - centre[2]],
+  })
 }
 
 function fermer(xyz: Polyline3): Polyline3 {
