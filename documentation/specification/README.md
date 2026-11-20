@@ -4,7 +4,8 @@ This directory is the **source of truth** for CADOM wire formats. Product doctri
 
 | Document | Status | Description |
 |----------|--------|-------------|
-| [cadom-v0.1.md](cadom-v0.1.md) | **v0.3.3 draft** | Normative core (filename historical; `version_minor = 6`) |
+| [cadom-v0.1.md](cadom-v0.1.md) | **v0.3.5 draft** | Normative core (filename historical; `version_minor = 7` when fab/ctrl are emitted) |
+| [v0.3.5-amendment.md](v0.3.5-amendment.md) | Amendment | CADOMFAB + CADOMCTRL; roles MANUFACTURING and CONTROL |
 | [v0.3.3-amendment.md](v0.3.3-amendment.md) | Amendment | CADOMBREP + EXACT dead envelope; Complete MUST |
 | [v0.3.2-amendment.md](v0.3.2-amendment.md) | Amendment | Doctrine B3+K3; STEP out of truth model |
 | [v0.3.1-amendment.md](v0.3.1-amendment.md) | Amendment | SWOT hygiene (superseded in part by later minors) |
@@ -16,10 +17,12 @@ This directory is the **source of truth** for CADOM wire formats. Product doctri
 | [cadomat-v0.md](cadomat-v0.md) | **v0 draft** | PBR material (Khronos / glTF MR) |
 | [cadompart-v0.md](cadompart-v0.md) | **v0.3 draft** | Parametric + expressions dialect |
 | [cadompart-expression-v0.md](cadompart-expression-v0.md) | **v0 draft** | Dialect `opencad.expr.v0` |
-| [opencad-kernel-v0.md](opencad-kernel-v0.md) | **v0 stub** | Kernel identity + K3-1 licence |
+| [opencad-kernel-v0.md](opencad-kernel-v0.md) | **v0 stub** | Kernel identity + K3-1 licence; API shipped in `@opencad/kernel` |
 | [v0.3.4-amendment.md](v0.3.4-amendment.md) | Amendment | cadompart v0.3 / K3-1 |
 | [cadometa-v0.md](cadometa-v0.md) | **v0 draft** | Metadata companion |
-| [native-assets-v0-freeze.md](native-assets-v0-freeze.md) | **Frozen** | Gate lifted — SDK allowed |
+| [cadomfab-v0.md](cadomfab-v0.md) | **v0 draft** | Nominal manufacturing process (`MANUFACTURING`) |
+| [cadomctrl-v0.md](cadomctrl-v0.md) | **v0 draft** | Control adjustments for that process (`CONTROL`) |
+| [native-assets-v0-freeze.md](native-assets-v0-freeze.md) | **Frozen** | Gate lifted — SDK O4 landed on `develop` |
 
 Process: [../opencad-doctrine.md](../opencad-doctrine.md), [../sprint-kernel-k3.md](../sprint-kernel-k3.md), [../cadom-spec-swot.md](../cadom-spec-swot.md) (SWOT-2).
 
@@ -32,4 +35,4 @@ Process: [../opencad-doctrine.md](../opencad-doctrine.md), [../sprint-kernel-k3.
 
 ## Identity (fil rouge)
 
-> OpenCAD carries orchestration (`.cadom`) and parametric rebuild (`.cadompart`) on the **OpenCAD Kernel** as co-primary. Viz without kernel = **cadomesh**. Dead exact = **cadombrep**. STEP is outside the OpenCAD truth model.
+> OpenCAD carries orchestration (`.cadom`) and parametric rebuild (`.cadompart`) on the **OpenCAD Kernel** as co-primary. Viz without kernel = **cadomesh**. Dead exact = **cadombrep**. Nominal manufacturing = **cadomfab**. Control adjustments = **cadomctrl**. STEP is outside the OpenCAD truth model.

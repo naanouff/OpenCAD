@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package cadomctrl.v0;
+
+option java_package = "dev.opencad.cadomctrl.v0";
+option csharp_namespace = "OpenCad.Cadomctrl.V0";
+
+// CADOMCTRL v0 — control adjustments for a .cadomfab gamme (.cadomctrl).
+// Assigns values to parameter ids declared by manufacturing.
+// MUST NOT redefine tools, setups, or toolpaths.
+// Entire file body MUST be a serialized CadomctrlFile message.
+
+message Adjustment {
+  string parameter_id = 1; // MUST match AdjustableParameter.id in the linked .cadomfab
+  double value = 2;        // replaces the nominal for replay and display
+  optional double measured_deviation = 3; // optional, same length unit as the fab file
+}
+
+message CadomctrlFile {
+  uint32 version_major = 1; // v0 writers MUST set 0
+  uint32 version_minor = 2; // v0 writers MUST set 0
+  string name = 3;
+  // Asset id of the MANUFACTURING binding on the same node, when known.
+  string fab_asset_id = 4;
+  repeated Adjustment adjustments = 5;
+}

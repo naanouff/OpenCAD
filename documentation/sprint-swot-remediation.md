@@ -1,12 +1,11 @@
 # Sprint backlog — SWOT remediations (post v0.3.1)
 
-**Status:** process backlog (non-normative)  
-**Current analysis:** [cadom-spec-swot.md](cadom-spec-swot.md) (SWOT-2, #53)  
+**Status:** process backlog (non-normative) — kernel and graph SDK **landed on `develop`** (2026-10-11); P1/P3 and P0-K.4 still open  
+**Current analysis:** [cadom-spec-swot.md](cadom-spec-swot.md) (SWOT-2, #53, plus the 2026-11-20 progress note)  
 **Product doctrine (wins on conflict):** [opencad-doctrine.md](opencad-doctrine.md)  
-**Done:** P0 hygiene (#49) · Doctrine B3+K3 / purge STEP-as-truth (#51) · **B3′ + cadombrep stub (#55)**  
-**Kernel track (new P0):** [sprint-kernel-k3.md](sprint-kernel-k3.md) — SWOT-2 P0-K + K3-8 cadombrep
+**Done:** P0 hygiene (#49) · Doctrine B3+K3 / purge STEP-as-truth (#51) · **B3′ + cadombrep stub (#55)** · **Kernel K3-2…K3-8** ([sprint-kernel-k3.md](sprint-kernel-k3.md)) · **O2-1…O2-15** · **Graph SDK O4-1…O4-3** (`@opencad/cadom`) · writer lint P0-K.5
 
-Items below remain useful for **P1/P3**. P2 STEP-as-truth is **superseded** by doctrine. **Complete** product requires parametric + mesh + **cadombrep**, blocked on kernel writers — not on more assembly prose alone.
+Items below remain useful for **P1/P3** and **P0-K.4**. P2 STEP-as-truth is **superseded** by doctrine. A **Complete** product still needs parametric + mesh + **cadombrep**; those writers exist in `@opencad/kernel` on `develop`. `main` does not include them past O2-5 (PR #80).
 
 ---
 
@@ -14,9 +13,9 @@ Items below remain useful for **P1/P3**. P2 STEP-as-truth is **superseded** by d
 
 | ID | Item | Notes |
 |----|------|-------|
-| P0-K.4 | Tessellation provenance on `.cadomesh` | `kernel_id`, `kernel_version`, `source_cadompart_id` / hash — with K3-7 |
-| P0-K.5 | Writer lint anti-STEP/EXACT + import-as-sas note | SDK + doctrine; tools MAY ingest STEP, MUST NOT emit as truth |
-| P0-K.6 | Align `native-assets-v0-freeze.md` | Point at K3 + cadompart v0.2.2 |
+| P0-K.4 | Tessellation provenance on `.cadomesh` | **Open.** `cadomesh.proto` has no `kernel_id`, `kernel_version`, or source hash. K3-7 writer ships mesh bytes only |
+| P0-K.5 | Writer lint anti-STEP/EXACT + import-as-sas note | **Done** on `develop` — `lintWriterTruth` in `@opencad/cadom` (O4-3) |
+| P0-K.6 | Align `native-assets-v0-freeze.md` | **Done** — freeze note points at shipped kernel + SDK; cadompart spec is v0.3 |
 
 ---
 
@@ -40,8 +39,8 @@ Items below remain useful for **P1/P3**. P2 STEP-as-truth is **superseded** by d
 |----|------|-------|
 | P2-comm | Catalogue §8 banner / annex | Recommended ≠ rebuild conformance claim |
 | P2.x | Geometric selectors for fillet/shell | Point + direction / nearest — after K3-6 |
-| P2.x | Published **OpenCAD Kernel** reference profile | Version, tolerances, id scheme (bootstrap MAY be OCCT; contract is OpenCAD Kernel) |
-| P2.x | Expression dialect (if ever) | Numbers, `+ - * /`, `param.id` refs — versioned |
+| P2.x | Published **OpenCAD Kernel** reference profile | **Partial.** Identity, licence, and snapshot ids shipped ([opencad-kernel-v0.md](specification/opencad-kernel-v0.md), K3-6). Numeric tolerances still TBD |
+| P2.x | Expression dialect | **Done** (O1, #57) — `opencad.expr.v0` |
 
 ## P3 — Mesh / material polish
 
@@ -55,5 +54,5 @@ Items below remain useful for **P1/P3**. P2 STEP-as-truth is **superseded** by d
 ## Sequencing reminder
 
 1. Doctrine + purge STEP-as-truth (#51) — done.  
-2. Graph SDK decode/encode in parallel with **OpenCAD Kernel Required** badge (TDD).  
-3. P1 container / occurrence when packing real assemblies.
+2. Graph SDK decode/encode and **OpenCAD Kernel Required** badge — done on `develop` (O4, K3-3…K3-8). Not on `main` past O2-5.  
+3. P0-K.4 tessellation provenance, then P1 container / occurrence when packing real assemblies. Helix (W1) stays outside the Required badge.

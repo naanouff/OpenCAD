@@ -1,0 +1,131 @@
+syntax = "proto3";
+
+package cadomfab.v0;
+
+option java_package = "dev.opencad.cadomfab.v0";
+option csharp_namespace = "OpenCad.Cadomfab.V0";
+
+// CADOMFAB v0 — nominal manufacturing process (.cadomfab).
+// Stock, tools, setups, ordered operations, and adjustable parameters.
+// Control corrections live in .cadomctrl and MUST NOT be written here.
+// Entire file body MUST be a serialized CadomfabFile message.
+
+enum LengthUnit {
+  LENGTH_UNIT_UNSPECIFIED = 0;
+  LENGTH_UNIT_METRES = 1;
+  LENGTH_UNIT_MILLIMETRES = 2;
+  LENGTH_UNIT_INCHES = 3;
+}
+
+enum UpAxis {
+  UP_AXIS_UNSPECIFIED = 0;
+  UP_AXIS_Y = 1;
+  UP_AXIS_Z = 2;
+}
+
+enum ToolKind {
+  TOOL_KIND_UNSPECIFIED = 0;
+  TOOL_KIND_END_MILL = 1;
+  TOOL_KIND_BALL_MILL = 2;
+  TOOL_KIND_DRILL = 3;
+  TOOL_KIND_FACE_MILL = 4;
+}
+
+enum MotionKind {
+  MOTION_KIND_UNSPECIFIED = 0;
+  MOTION_KIND_RAPID = 1; // no material removal
+  MOTION_KIND_FEED = 2;  // removes material along the polyline
+}
+
+enum AdjustmentTarget {
+  ADJUSTMENT_TARGET_UNSPECIFIED = 0;
+  ADJUSTMENT_TARGET_TOOL = 1;
+  ADJUSTMENT_TARGET_SETUP = 2;
+  ADJUSTMENT_TARGET_OPERATION = 3;
+}
+
+enum AdjustmentQuantity {
+  ADJUSTMENT_QUANTITY_UNSPECIFIED = 0;
+  ADJUSTMENT_QUANTITY_TOOL_LENGTH_WEAR = 1;
+  ADJUSTMENT_QUANTITY_SETUP_SHIFT_X = 2;
+  ADJUSTMENT_QUANTITY_SETUP_SHIFT_Y = 3;
+  ADJUSTMENT_QUANTITY_SETUP_SHIFT_Z = 4;
+  ADJUSTMENT_QUANTITY_STOCK_ALLOWANCE = 5;
+}
+
+message BoxStock {
+  double size_x = 1;
+  double size_y = 2;
+  double size_z = 3;
+}
+
+message CylinderStock {
+  double diameter = 1;
+  double height = 2;
+}
+
+message Stock {
+  oneof blank {
+    string cadombrep_uri = 1;
+    BoxStock box = 2;
+    CylinderStock cylinder = 3;
+  }
+}
+
+message Tool {
+  string id = 1;
+  string name = 2;
+  ToolKind kind = 3;
+  double diameter = 4;
+  double corner_radius = 5;
+  double flute_length = 6;
+}
+
+message Setup {
+  string id = 1;
+  string name = 2;
+  // Column-major 4x4, part frame to setup frame. Empty means identity.
+  repeated float part_to_setup = 3 [packed = true];
+  string fixture = 4;
+}
+
+message Vec3 {
+  double x = 1;
+  double y = 2;
+  double z = 3;
+}
+
+message Motion {
+  MotionKind kind = 1;
+  repeated Vec3 points = 2; // polyline in the setup frame
+}
+
+message Operation {
+  string id = 1;
+  string name = 2;
+  string setup_id = 3;
+  string tool_id = 4;
+  repeated Motion motions = 5;
+}
+
+message AdjustableParameter {
+  string id = 1;
+  string name = 2;
+  AdjustmentTarget target = 3;
+  string target_id = 4; // tool, setup, or operation id
+  AdjustmentQuantity quantity = 5;
+  double nominal = 6;
+}
+
+message CadomfabFile {
+  uint32 version_major = 1; // v0 writers MUST set 0
+  uint32 version_minor = 2; // v0 writers MUST set 0
+  string name = 3;
+  LengthUnit units = 4;
+  UpAxis up_axis = 5;
+  Stock stock = 6;
+  repeated Tool tools = 7;
+  repeated Setup setups = 8;
+  repeated Operation operations = 9; // gamme, document order
+  repeated AdjustableParameter parameters = 10;
+}

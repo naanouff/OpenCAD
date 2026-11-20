@@ -63,4 +63,4 @@ SPEC-02 à SPEC-08 peuvent avancer en parallèle après SPEC-01. SPEC-09 consoli
 
 ## Hors sprint
 
-Implémentation monorepo, SDK TypeScript, viewer w3dts — sprints suivants (voir [plan-mvp-a-cadom.md](plan-mvp-a-cadom.md)).
+Implémentation monorepo et SDK TypeScript : livrés sur `develop` (`@opencad/cadom`, O4). Viewer w3dts : toujours hors dépôt (voir [plan-mvp-a-cadom.md](plan-mvp-a-cadom.md)).

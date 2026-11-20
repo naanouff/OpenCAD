@@ -101,7 +101,7 @@ Couvrir : identité du format, unités/axes, modèle de nœuds plat, assets exte
 
 ## Gate specs
 
-Native asset specs v0 are **frozen** — see [native-assets-v0-freeze.md](specification/native-assets-v0-freeze.md). SDK sprint may proceed.
+Native asset specs v0 are **frozen** — see [native-assets-v0-freeze.md](specification/native-assets-v0-freeze.md). The SDK sprint has landed on `develop` as `@opencad/cadom` (O4-1…O4-3). Viewer / w3dts adapter remains out of scope.
 
 ## Ordre d’implémentation
 
@@ -114,8 +114,10 @@ Native asset specs v0 are **frozen** — see [native-assets-v0-freeze.md](specif
 
 ## Todos
 
-- [ ] Initialiser monorepo pnpm OpenCAD (workspaces, tsconfig, README)
-- [ ] Écrire `cadom.proto` (File, Node, Asset, Override, Extension) et générer le code TS
-- [ ] Implémenter `CadomDocument`, decode/encode, maps UUID, Float32Array transforms
-- [ ] Overrides non destructifs + registre extensions pass-through opaque
-- [ ] Spec v0.1, fixtures `.cadom`, tests round-trip / overrides / extensions
+État au 2026-11-20, branche `develop` (pas encore sur `main`, dernier sync PR #80) :
+
+- [x] Initialiser monorepo pnpm OpenCAD (workspaces, tsconfig, README)
+- [x] Écrire `cadom.proto` (File, Node, Asset, Override, Extension) et générer le code TS
+- [x] Implémenter `CadomDocument`, decode/encode, maps UUID, Float32Array transforms (`@opencad/cadom`, O4-1)
+- [x] Overrides non destructifs + registre extensions pass-through opaque (O4-1)
+- [x] Spec v0.1+, fixtures `.cadom` binaires, tests round-trip / overrides / extensions (O4-2)

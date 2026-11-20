@@ -35,6 +35,8 @@ enum AssetKind {
   ASSET_KIND_CADOMAT = 7;
   ASSET_KIND_CADOMETA = 8;
   ASSET_KIND_CADOMBREP = 9;  // dead B-Rep envelope (.cadombrep) — role EXACT
+  ASSET_KIND_CADOMFAB = 10;  // nominal manufacturing process (.cadomfab) — role MANUFACTURING
+  ASSET_KIND_CADOMCTRL = 11; // control adjustments (.cadomctrl) — role CONTROL
 }
 
 // Role of an asset binding on a node (at most one binding per role).
@@ -45,6 +47,8 @@ enum AssetRole {
   ASSET_ROLE_MATERIAL = 3;   // CADOMAT
   ASSET_ROLE_METADATA = 4;   // CADOMETA / OTHER
   ASSET_ROLE_EXACT = 5;      // dead exact solid: CADOMBREP only (not STEP)
+  ASSET_ROLE_MANUFACTURING = 6; // CADOMFAB nominal gamme
+  ASSET_ROLE_CONTROL = 7;       // CADOMCTRL adjustments for that gamme
 }
 
 message CadomFile {

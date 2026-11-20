@@ -16,7 +16,7 @@ The key words **MUST**, **MUST NOT**, **SHOULD**, **MAY** are as in [RFC 2119](h
 
 CADOMPART is the CADOM **parametric solid part definition** (feature history / rebuild recipe). Under OpenCAD doctrine it is **co-primary** with assembly orchestration: intent lives here; exact solids at runtime are produced by the **OpenCAD Kernel (K3)**; exact solids for exchange / metrology / archive are persisted as **`.cadombrep`**.
 
-A **graph-only** `.cadom` **MAY** omit `.cadompart`. A **Design** OpenCAD product **MUST** provide `.cadompart` for part occurrences that claim parametric design. A **Complete** product **MUST** also bind `.cadomesh` and `.cadombrep` (see doctrine). Kernel-free **Viz** profiles use `.cadomesh` only.
+A **graph-only** `.cadom` **MAY** omit `.cadompart`. A **Design** OpenCAD product **MUST** provide `.cadompart` for part occurrences that claim parametric design. A **Complete** product **MUST** also bind `.cadomesh` and `.cadombrep` (see doctrine). Kernel-free **Viz** profiles use `.cadomesh` only. **Control** and **Manufacturing** do not read `.cadompart` as their truth: control adjusts parameters of a `.cadomfab` gamme against the dead exact solid, and manufacturing stores that nominal gamme.
 
 A `.cadompart` file **MUST** be sufficient for the **OpenCAD Kernel** Required profile (§11.2) to reconstruct design intent expressed by its **ordered feature history**, using the vocabulary in this document. Other kernels remain **best-effort**.
 
@@ -369,6 +369,8 @@ Narrow profile (agile / TDD): enough for credible golden files without claiming 
 - [ ] Tessellation export path to `.cadomesh` for Viz/Complete profiles
 - [ ] Dead B-Rep export path to `.cadombrep` for Complete profiles (see cadombrep-v0 stub)
 
+*Informative implementation (2026-11-20, `@opencad/kernel` on `develop`).* The boxes above stay open as a **cadompart-file** conformance claim: the kernel does not decode `.cadompart` bytes. What it does ship, on a history DTO and golden intents: parameters, a `plan.3h` datum path, rectangle constraints (horizontal, vertical, distance, radius), circle, regular polygon, concentric, extrude, revolve, hole/boolean, explicit under/over-constraint errors, `.cadomesh` and `.cadombrep` writers. Coincident, parallel, and perpendicular are not in `sketchSolve`. Fillet exists on the compiler (`opsFillet`) and is not part of the Required badge.
+
 ### 11.3 Rebuild engine — Recommended (industrial catalogue)
 
 Catalogue features in §8 beyond Required remain available for authors. Cross-kernel interchange of these is **best-effort** until OpenCAD Kernel badges cover them:
@@ -387,7 +389,7 @@ Catalogue features in §8 beyond Required remain available for authors. Cross-ke
 
 1. The **reference rebuild engine** for OpenCAD **MUST** be the **OpenCAD Kernel** product component (see [`../opencad-doctrine.md`](../opencad-doctrine.md) and [`../sprint-kernel-k3.md`](../sprint-kernel-k3.md)).
 2. Implementation **MAY** bootstrap on Open CASCADE Technology (or another library); the **product contract** is OpenCAD Kernel versioning, tolerances, and id scheme — not “bring your own kernel”.
-3. Until the first Required badge ships, claims of full industrial rebuild interop **MUST NOT** be made; Required demos **MAY** ship with golden **cadomesh** outputs.
+3. `@opencad/kernel` on `develop` ships the **Required v0** badge (rectangle sketch + extrude / revolve / hole / boolean + `.cadomesh`) and the **Complete export v0** badge (plus `.cadombrep`). Claims of full industrial rebuild interop (§11.3) **MUST NOT** be made. Rebuild entry today is a history DTO and golden intents, not a `.cadompart` decode.
 4. Third-party kernels **MAY** consume `.cadompart` on a **best-effort** basis; failures on topology-sensitive features **MUST** be explicit errors.
 
 ### 11.5 Feature history = intent under kernel rebuild
