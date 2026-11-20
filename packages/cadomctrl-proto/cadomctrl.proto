@@ -11,9 +11,10 @@ option csharp_namespace = "OpenCad.Cadomctrl.V0";
 // Entire file body MUST be a serialized CadomctrlFile message.
 
 message Adjustment {
-  string parameter_id = 1; // MUST match AdjustableParameter.id in the linked .cadomfab
-  double value = 2;        // replaces the nominal for replay and display
-  optional double measured_deviation = 3; // optional, same length unit as the fab file
+  string variant_id = 1;   // GammeVariant.id in the linked .cadomfab
+  string parameter_id = 2; // AdjustableParameter.id inside that variant
+  double value = 3;        // replaces the nominal for replay and display
+  optional double measured_deviation = 4; // optional, same length unit as the fab file
 }
 
 message CadomctrlFile {

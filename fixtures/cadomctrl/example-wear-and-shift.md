@@ -8,10 +8,12 @@ version_minor: 0
 name: "plate-face-after-inspect"
 fab_asset_id: "asset-plate-fab"
 adjustments:
-  - parameter_id: "wear-em10"
+  - variant_id: "gamme-face"
+    parameter_id: "wear-em10"
     value: -0.04
     measured_deviation: -0.04
-  - parameter_id: "shift-z"
+  - variant_id: "gamme-face"
+    parameter_id: "shift-z"
     value: 0.02
     measured_deviation: 0.02
 ```

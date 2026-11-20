@@ -48,7 +48,7 @@ Neither is a second-class add-on for a **Complete** OpenCAD product.
 
 A `.cadom` document alone **MAY** be valid as a graph. A **Complete OpenCAD product** **MUST** provide parametric intent, display mesh, and **dead exact B-Rep** on part occurrences that claim geometric completeness.
 
-**Control** measures the dead exact solid and writes adjustment values. It **MUST NOT** rewrite the gamme. **Manufacturing** declares the nominal process and the adjustable parameter ids. A consumer that has both bindings on a node **MUST** apply `.cadomctrl` values over `.cadomfab` nominals before showing or replaying steps from stock to the finished `EXACT`. Neither profile is a subset of Complete. Specs: [`specification/cadomfab-v0.md`](specification/cadomfab-v0.md), [`specification/cadomctrl-v0.md`](specification/cadomctrl-v0.md). Material-removal simulation is a later consumer of those files, not part of the v0 schema.
+The graph and its `.cadompart` / `.cadombrep` are a **definition version**: the product in its ideal intent. **Manufacturing** inherits that definition and proposes **variants**, one per gamme, adapted to the process (stock, setups, program). Those variants **MUST NOT** replace the ideal definition. **Control** measures the ideal exact solid and writes adjustment values onto a variant. It **MUST NOT** rewrite the gamme. A consumer that has both bindings **MUST** apply `.cadomctrl` values over that variant’s nominals before showing, replaying, or posting steps from the variant stock toward the ideal `EXACT`. Neither profile is a subset of Complete. Specs: [`specification/cadomfab-v0.md`](specification/cadomfab-v0.md), [`specification/cadomctrl-v0.md`](specification/cadomctrl-v0.md). Material-removal simulation is a later consumer of those files, not part of the v0 schema.
 
 ---
 
@@ -58,7 +58,7 @@ A `.cadom` document alone **MAY** be valid as a graph. A **Complete OpenCAD prod
 > Intent lives in **cadompart**; exactness at runtime lives in the **kernel**; exactness for exchange, metrology, and archive lives in **`.cadombrep`** (dead B-Rep).  
 > Kernel-free visualization uses **cadomesh**.  
 > A **Complete** OpenCAD product binds graph + parametric + mesh + cadombrep.  
-> **Manufacturing** binds a nominal gamme (`.cadomfab`). **Control** binds adjustments (`.cadomctrl`) for parameter ids that gamme declared, without editing it.  
+> **Manufacturing** inherits that ideal definition and binds process variants (`.cadomfab`), one per gamme. **Control** binds adjustments (`.cadomctrl`) for a variant’s parameter ids, without editing the gamme or the definition.  
 > STEP/AP242 are not part of the OpenCAD truth model.
 
 ---

@@ -16,7 +16,7 @@ The key words **MUST**, **MUST NOT**, **SHOULD**, **MAY** are as in [RFC 2119](h
 
 CADOMCTRL carries **adjustment values** produced by control (inspection against the dead exact solid) for parameters declared in a [`.cadomfab`](cadomfab-v0.md) file.
 
-The control file **MUST NOT** redefine tools, setups, operations, or the instruction program. It assigns `parameter_id → value`. Manufacturing replay and step visualization **MUST** use those values in place of the fab nominals. The `.cadomfab` bytes **MUST** stay unchanged.
+The control file **MUST NOT** redefine tools, setups, operations, the instruction program, or the ideal definition. It assigns `variant_id` + `parameter_id → value`. Manufacturing replay and step visualization **MUST** use those values in place of that variant’s nominals. The `.cadomfab` bytes **MUST** stay unchanged.
 
 A Control product still requires the graph and role `EXACT` (`.cadombrep`) for the part that was measured. This file is the feedback, not a metrology report.
 
@@ -50,14 +50,15 @@ Media type **SHOULD** be `application/vnd.opencad.cadomctrl`.
 | Field | Rule |
 |-------|------|
 | `fab_asset_id` | **SHOULD** be the asset id of the `MANUFACTURING` binding on the same node |
-| `parameter_id` | Non-empty. **MUST** equal an `AdjustableParameter.id` in the linked `.cadomfab` |
+| `variant_id` | Non-empty. **MUST** equal a `GammeVariant.id` in the linked `.cadomfab` |
+| `parameter_id` | Non-empty. **MUST** equal an `AdjustableParameter.id` in that variant |
 | `value` | Replaces the nominal for replay and display. Same length unit as the fab file |
 | `measured_deviation` | Optional. When set, it is the measured offset that justified `value` |
 
 Rules:
 
-1. Duplicate `parameter_id` values in one file **MUST** be rejected.
-2. A consumer **MUST** report an explicit error when `parameter_id` is absent from the linked gamme. It **MUST NOT** invent a parameter.
+1. Duplicate `(variant_id, parameter_id)` pairs in one file **MUST** be rejected.
+2. A consumer **MUST** report an explicit error when the variant or the parameter is absent from the linked `.cadomfab`. It **MUST NOT** invent either.
 3. Parameters omitted from this file keep their `.cadomfab` nominal.
 4. Writers **MUST NOT** copy the gamme into this file to “apply” the correction.
 

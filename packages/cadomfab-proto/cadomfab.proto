@@ -5,8 +5,8 @@ package cadomfab.v0;
 option java_package = "dev.opencad.cadomfab.v0";
 option csharp_namespace = "OpenCad.Cadomfab.V0";
 
-// CADOMFAB v0 — nominal manufacturing process (.cadomfab).
-// Stock, tools, setups, ordered operations, and adjustable parameters.
+// CADOMFAB v0 — manufacturing variants inherited from the ideal definition.
+// The node’s cadompart / cadombrep stay the definition. Each variant is one gamme.
 // Control corrections live in .cadomctrl and MUST NOT be written here.
 // Entire file body MUST be a serialized CadomfabFile message.
 
@@ -104,15 +104,22 @@ message AdjustableParameter {
   double nominal = 6;
 }
 
+// One gamme adapted from the inherited ideal definition.
+message GammeVariant {
+  string id = 1;
+  string name = 2;
+  Stock stock = 3;
+  repeated Setup setups = 4;
+  repeated Operation operations = 5; // document order
+  repeated AdjustableParameter parameters = 6;
+}
+
 message CadomfabFile {
   uint32 version_major = 1; // v0 writers MUST set 0
   uint32 version_minor = 2; // v0 writers MUST set 0
   string name = 3;
   LengthUnit units = 4;
   UpAxis up_axis = 5;
-  Stock stock = 6;
-  repeated Tool tools = 7;
-  repeated Setup setups = 8;
-  repeated Operation operations = 9; // gamme, document order
-  repeated AdjustableParameter parameters = 10;
+  repeated Tool tools = 6; // shared by variants
+  repeated GammeVariant variants = 7;
 }

@@ -18,11 +18,18 @@ CADOMFAB is the CADOM **nominal manufacturing process**: stock, tools, setups (p
 
 It is process intent, **not** geometry truth. The finished solid remains `.cadombrep` under role `EXACT`. Design intent remains `.cadompart`. Control corrections **MUST NOT** be stored in this file; they live in [`.cadomctrl`](cadomctrl-v0.md).
 
-A Manufacturing consumer uses this file to display each step from stock to finished part. Material-removal simulation is a later consumer of the same data and is **out of scope** for v0 software in this repository.
+### 1.0 Definition and variants
+
+The assembly and part carried by the referencing `.cadom` node are a **definition version**: the product in its ideal intent (`.cadompart` for the recipe, `.cadombrep` for the ideal finished solid).
+
+`.cadomfab` **inherits** that definition. It **MUST NOT** copy it, fork it, or replace `EXACT` / `PARAMETRIC`. Each `GammeVariant` is a manufacturing variant **derived** from that ideal and adapted to one gamme: its own stock, setups, operations, and adjustable parameters. Several variants **MAY** share the tool list. A variant **MUST NOT** be stored as a second design intent.
+
+A Manufacturing consumer uses a variant to display each step from that variant’s stock toward the ideal finished part. Material-removal simulation is a later consumer and is **out of scope** for v0 software in this repository.
 
 ### 1.1 In scope
 
-- One stock blank (dead solid reference, or a box, or a cylinder)
+- One or more gamme variants inherited from the ideal definition
+- Per variant, one stock blank (dead solid reference, or a box, or a cylinder)
 - Tool records (end mill, ball mill, drill, face mill)
 - Setups: part-to-setup transform and a fixture description
 - Ordered operations, each bound to one setup and one tool
@@ -61,7 +68,7 @@ Media type **SHOULD** be `application/vnd.opencad.cadomfab`.
 
 ## 4. Stock
 
-`Stock.blank` **MUST** be set to exactly one of:
+Each variant’s `Stock.blank` **MUST** be set to exactly one of:
 
 | Case | Rule |
 |------|------|
@@ -73,9 +80,10 @@ Media type **SHOULD** be `application/vnd.opencad.cadomfab`.
 
 ## 5. Tools, setups, operations
 
-- Every `Tool.id`, `Setup.id`, `Operation.id`, and `AdjustableParameter.id` **MUST** be unique within the file and non-empty.
-- `Operation.setup_id` and `Operation.tool_id` **MUST** refer to ids in this file.
-- Document order of `operations` **MUST** be the gamme order.
+- The file **MUST** contain at least one variant. Variant ids **MUST** be unique and non-empty.
+- `Tool.id` **MUST** be unique in the file. `Setup.id`, `Operation.id`, and `AdjustableParameter.id` **MUST** be unique inside their variant and non-empty.
+- `Operation.setup_id` **MUST** refer to a setup in the same variant. `Operation.tool_id` **MUST** refer to a tool in the file.
+- Document order of `operations` inside a variant **MUST** be that gamme’s order. Document order of `variants` is the proposed order, not a machining sequence across variants.
 
 ### 5.1 Instruction program
 
@@ -114,7 +122,7 @@ Manufacturing **declares** the knobs. Control does not invent them.
 
 Rules:
 
-1. `target_id` **MUST** refer to a tool, setup, or operation id matching `target`.
+1. `target_id` **MUST** refer to a tool in the file, or to a setup or operation in the same variant, matching `target`.
 2. The nominal **MUST** stay in this file when a `.cadomctrl` assigns a new value.
 3. A Manufacturing consumer that also has a `CONTROL` binding on the same node **MUST** replace each listed nominal with the control value before display, replay, or post-processing.
 4. Without a control file, the consumer **MUST** use the nominals.
@@ -123,7 +131,7 @@ Rules:
 
 ## 7. Replay contract (informative)
 
-A later simulator **MUST** start from the stock, apply control adjustments when present, and execute the **neutral** instruction program in gamme order once the dialect exists. It **MUST NOT** require a machine post to preview removal. The finished `.cadombrep` is the target solid, not an output of this file. v0 does not define the dialect, the post-processor, or a simulator.
+A later simulator **MUST** start from the variant’s stock, apply control adjustments for that variant when present, and execute the **neutral** instruction program in gamme order once the dialect exists. It **MUST NOT** require a machine post to preview removal. The ideal `.cadombrep` stays the definition target, not an output of the variant. v0 does not define the dialect, the post-processor, or a simulator.
 
 ---
 
@@ -144,4 +152,4 @@ Worked example: [`fixtures/cadomfab/example-face-and-contour.md`](../../fixtures
 
 | Version | Date | Notes |
 |---------|------|-------|
-| 0.0 | 2026-11-20 | Initial draft: stock, tools, setups, adjustable parameters, instruction program reserved (`opencad.fab.instr.unspecified`) (#97) |
+| 0.0 | 2026-11-20 | Initial draft: variants inherited from the ideal definition; stock, tools, setups, parameters; instruction program reserved (`opencad.fab.instr.unspecified`) (#97) |
