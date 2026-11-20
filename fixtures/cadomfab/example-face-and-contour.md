@@ -21,6 +21,7 @@ variants:
     # Empty = not resolved yet. Not an identity matrix.
     product_to_machine: []
     stock:
+      frame: []   # unresolved placement in the product frame
       box: { size_x: 120, size_y: 80, size_z: 12 }
     setups:
       - id: "setup-top"

@@ -31,7 +31,7 @@ A Manufacturing consumer uses a variant to display each step from that variant�
 - One or more gamme variants inherited from the ideal definition
 - Per variant, one stock blank (dead solid reference, or a box, or a cylinder)
 - Tool records (end mill, ball mill, drill, face mill)
-- Setups: part-to-setup transform and a fixture description
+- Setups: a user-authored machine-to-setup matrix and a fixture description
 - Ordered operations, each bound to one setup and one tool
 - A slot for that instruction program (dialect id + bytes). The dialect itself is **not** defined in v0
 - Adjustable parameters that control **MAY** override (ids are stable)
@@ -41,6 +41,7 @@ A Manufacturing consumer uses a variant to display each step from that variant�
 - The syntax of the instruction dialect (opcodes, arcs, feeds, axis set)
 - Tool-change cycles, cycle time
 - Swept-volume or Boolean material removal
+- A gamme that spans several child parts of an assembly (later)
 - Editing `.cadompart` or `.cadombrep`
 - PMI / GD&T
 - STEP as a carrier for the gamme
@@ -64,11 +65,13 @@ Media type **SHOULD** be `application/vnd.opencad.cadomfab`.
 
 ### 3.1 Frames
 
-The product frame is the definition frame of the occurrence (the ideal part). The machine frame and the setup frame belong to the manufacturing environment of a gamme. They are **not** a fixed convention of the file. Which axes line up, where the part sits in the vise, and how the tool stands are decided by the **user methodology**.
+The product frame is the definition frame of the occurrence (the ideal part). The machine frame and the setup frame belong to the manufacturing environment of a gamme.
 
-A consumer that shows the product model on a machine or a setup **MUST** resolve that placement. v0 does not define the methodology or the resolver.
+The user authors, in this file, the **transposition from one matrix to the next**: product → machine → setup. That rule is the methodology. It is not a datum list, not a constraint system, and not a separate document. A consumer **MUST** apply those matrices to place the product model in the machine and in the setup. It **MUST NOT** invent another alignment.
 
-`product_to_machine` and `machine_to_setup` store the **result** of a resolution, not a universal kinematic rule. Each, when set, **MUST** be 16 floats, column-major. Empty **MUST** mean unresolved. Readers **MUST NOT** treat an empty transform as identity.
+`product_to_machine` and `machine_to_setup` are those transpositions. Each, when set, **MUST** be 16 floats, column-major. Empty **MUST** mean the user has not defined that step. Readers **MUST NOT** treat an empty transform as identity.
+
+Tool axis, the direction of `TOOL_LENGTH_WEAR`, and the axes of `SETUP_SHIFT_*` follow the same user-authored matrices. v0 does not add a further static axis rule.
 
 | Field | Resolved placement |
 |-------|--------------------|
@@ -81,13 +84,15 @@ Tool axis, the direction of `TOOL_LENGTH_WEAR`, and the axes of `SETUP_SHIFT_*` 
 
 ## 4. Stock
 
-Each variant’s `Stock.blank` **MUST** be set to exactly one of:
+Each variant’s `Stock.blank` **MUST** be set to exactly one of the shapes below. The blank has its own frame, `Stock.frame`: a positioned and oriented matrix in the product frame. There is no fixed part axis. Empty `frame` **MUST** mean unresolved, not identity.
+
+Local shape, expressed in that stock frame:
 
 | Case | Rule |
 |------|------|
-| `cadombrep_uri` | Non-empty URI of a `.cadombrep` blank. Relative URIs resolve like CADOM asset URIs |
-| `box` | `size_x`, `size_y`, and `size_z` **MUST** be > 0, centred on the part origin |
-| `cylinder` | `diameter` and `height` **MUST** be > 0. Axis is +Z of the part frame |
+| `cadombrep_uri` | Non-empty URI of a `.cadombrep` blank. Relative URIs resolve like CADOM asset URIs. The solid is placed by `Stock.frame` |
+| `box` | `size_x`, `size_y`, and `size_z` **MUST** be > 0, measured along the stock frame axes, centered on the stock frame origin |
+| `cylinder` | `diameter` and `height` **MUST** be > 0. The axis is +Z of the stock frame |
 
 ---
 
@@ -111,7 +116,7 @@ Until that dialect exists:
 
 Writers **MUST NOT** put G-code or any private encoding in `instructions` while the dialect is unspecified. Readers **MUST** reject a v0 file whose dialect is unspecified and whose `instructions` are not empty.
 
-The future dialect **MUST** be able to order consignes, to express them in the operation’s setup frame, and to distinguish a non-cutting move from a material-removal move. Opcodes, arcs, and the axis set are not decided here.
+The future dialect **MUST** be able to order consignes, to express them in the frames the user transposed (§3.1), and to distinguish a non-cutting move from a material-removal move. Opcodes, arcs, and the axis set are not decided here.
 
 ### 5.2 Post-processing
 
@@ -130,8 +135,7 @@ Manufacturing **declares** the knobs. Control does not invent them.
 | Quantity | Target | Meaning of `nominal` |
 |----------|--------|----------------------|
 | `TOOL_LENGTH_WEAR` | `TOOL` | Length correction of the tool. 0 = no wear. The axis and the sign are those of the resolved methodology (§3.1), not a fixed machine +Z |
-| `SETUP_SHIFT_X` / `Y` / `Z` | `SETUP` | Named translation of the setup. Which frame and which direction are resolved with the methodology (§3.1), not frozen in the file |
-| `STOCK_ALLOWANCE` | `OPERATION` or `SETUP` | Extra stock left on the blank for that target |
+| `SETUP_SHIFT_X` / `Y` / `Z` | `SETUP` | Named translation of the setup. Which frame and which direction follow the user-authored matrices (§3.1) |
 
 Rules:
 
@@ -155,6 +159,8 @@ In the referencing `.cadom`:
 - `Asset.kind` **MUST** be `CADOMFAB`
 - The node binding role **MUST** be `MANUFACTURING`
 - At most one `MANUFACTURING` binding per node (CADOM multi-asset rule)
+- The default view of the occurrence **MUST** be the ideal definition (`.cadompart` / `.cadombrep`), not a manufacturing variant. Variants are shown in the manufacturing context
+- `MANUFACTURING` **MAY** be absent when only `CONTROL` is bound, and the reverse. The consumer runs the manufacturing resolution only when a `.cadomfab` is present, and applies `.cadomctrl` only when both are present
 - OpenCAD writers **MUST NOT** store the gamme in an `Extension` or as `STEP`
 
 Worked example: [`fixtures/cadomfab/example-face-and-contour.md`](../../fixtures/cadomfab/example-face-and-contour.md).

@@ -44,7 +44,6 @@ enum AdjustmentQuantity {
   ADJUSTMENT_QUANTITY_SETUP_SHIFT_X = 2;
   ADJUSTMENT_QUANTITY_SETUP_SHIFT_Y = 3;
   ADJUSTMENT_QUANTITY_SETUP_SHIFT_Z = 4;
-  ADJUSTMENT_QUANTITY_STOCK_ALLOWANCE = 5;
 }
 
 message BoxStock {
@@ -59,10 +58,13 @@ message CylinderStock {
 }
 
 message Stock {
+  // Placement of the blank in the product frame (column-major 4x4).
+  // Empty means unresolved, not identity. No fixed world axis.
+  repeated float frame = 1 [packed = true];
   oneof blank {
-    string cadombrep_uri = 1;
-    BoxStock box = 2;
-    CylinderStock cylinder = 3;
+    string cadombrep_uri = 2;
+    BoxStock box = 3;
+    CylinderStock cylinder = 4;
   }
 }
 

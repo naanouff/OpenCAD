@@ -58,7 +58,7 @@ Media type **SHOULD** be `application/vnd.opencad.cadomctrl`.
 Rules:
 
 1. Duplicate `(variant_id, parameter_id)` pairs in one file **MUST** be rejected.
-2. A consumer **MUST** report an explicit error when the variant or the parameter is absent from the linked `.cadomfab`. It **MUST NOT** invent either.
+2. When a `MANUFACTURING` binding is present, a consumer **MUST** report an explicit error if `variant_id` or `parameter_id` is absent from that `.cadomfab`. It **MUST NOT** invent either. When no gamme is bound, the control file stays valid and no manufacturing resolution runs.
 3. Parameters omitted from this file keep their `.cadomfab` nominal.
 4. Writers **MUST NOT** copy the gamme into this file to “apply” the correction.
 
@@ -74,7 +74,7 @@ On the same node as the gamme and the exact solid:
 - Role `EXACT` **MUST** still be `.cadombrep` when the occurrence claims control
 - OpenCAD writers **MUST NOT** store adjustments in an `Extension` or as `STEP`
 
-A node **MAY** bind `MANUFACTURING` without `CONTROL` (nominal replay). A Control product that publishes adjustments **MUST** bind both `CONTROL` and `EXACT`.
+A node **MAY** bind `MANUFACTURING` without `CONTROL`, and **MAY** bind `CONTROL` without `MANUFACTURING`. Each file is valid alone. The consumer applies adjustments only when both bindings are present. A Control product that claims a measured part **MUST** still bind `EXACT`.
 
 Worked example: [`fixtures/cadomctrl/example-wear-and-shift.md`](../../fixtures/cadomctrl/example-wear-and-shift.md), applied to [`fixtures/cadomfab/example-face-and-contour.md`](../../fixtures/cadomfab/example-face-and-contour.md).
 

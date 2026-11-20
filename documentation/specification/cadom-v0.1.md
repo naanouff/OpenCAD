@@ -286,7 +286,7 @@ Rules:
 4. Kind/role pairing **SHOULD** follow the tables above; readers **MAY** warn on mismatched pairs but **MUST** still round-trip the binding.
 5. Structural nodes (e.g. pure assemblies) **MAY** omit all bindings.
 6. Complete OpenCAD products **MUST** bind `PARAMETRIC`, `MESH`, and `EXACT` (`CADOMBREP`) on part occurrences that claim geometric completeness.
-7. A node that claims manufacturing **MUST** bind `MANUFACTURING` (`CADOMFAB`) and `EXACT`. A node that publishes control feedback **MUST** also bind `CONTROL` (`CADOMCTRL`). Control values **MUST** apply on top of fab nominals; writers **MUST NOT** bake them into the `.cadomfab` asset.
+7. A node that claims manufacturing **MUST** bind `MANUFACTURING` (`CADOMFAB`). A node that publishes control feedback **MUST** bind `CONTROL` (`CADOMCTRL`). Either binding **MAY** exist without the other. When both are present, control values **MUST** apply on top of the named variant’s nominals. Writers **MUST NOT** bake them into the `.cadomfab` asset. The default view of the node **MUST** remain the ideal definition, not a manufacturing variant.
 
 #### 3.3.2 Legacy `asset_id`
 
