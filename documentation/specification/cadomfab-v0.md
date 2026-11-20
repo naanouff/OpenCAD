@@ -92,6 +92,14 @@ Writers **MUST NOT** put G-code or any private encoding in `instructions` while 
 
 The future dialect **MUST** be able to order consignes, to express them in the operation’s setup frame, and to distinguish a non-cutting move from a material-removal move. Opcodes, arcs, and the axis set are not decided here.
 
+### 5.2 Post-processing
+
+The bytes in `.cadomfab` are the **neutral** program. They are not the language of a machine.
+
+A post-processor **MUST** read that neutral program, after control adjustments have been applied, and emit the consignes of one controller. Two machines **MUST** be able to receive two different posts from the same `.cadomfab`. The posted program **MUST NOT** be written back into `instructions`, and it **MUST NOT** replace the neutral program as the manufacturing truth.
+
+v0 does not define the post-processor, the machine identity, or the controller dialect.
+
 ---
 
 ## 6. Adjustable parameters
@@ -108,14 +116,14 @@ Rules:
 
 1. `target_id` **MUST** refer to a tool, setup, or operation id matching `target`.
 2. The nominal **MUST** stay in this file when a `.cadomctrl` assigns a new value.
-3. A Manufacturing consumer that also has a `CONTROL` binding on the same node **MUST** replace each listed nominal with the control value before display or replay.
+3. A Manufacturing consumer that also has a `CONTROL` binding on the same node **MUST** replace each listed nominal with the control value before display, replay, or post-processing.
 4. Without a control file, the consumer **MUST** use the nominals.
 
 ---
 
 ## 7. Replay contract (informative)
 
-A later simulator **MUST** start from the stock, apply control adjustments when present, and execute the instruction program in gamme order once the dialect exists. The finished `.cadombrep` is the target solid, not an output of this file. v0 does not define the dialect and does not require a simulator.
+A later simulator **MUST** start from the stock, apply control adjustments when present, and execute the **neutral** instruction program in gamme order once the dialect exists. It **MUST NOT** require a machine post to preview removal. The finished `.cadombrep` is the target solid, not an output of this file. v0 does not define the dialect, the post-processor, or a simulator.
 
 ---
 

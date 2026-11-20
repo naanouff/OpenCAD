@@ -89,6 +89,7 @@ message Operation {
   string setup_id = 3;
   string tool_id = 4;
   // Neutral machine-instruction dialect. Not defined in v0.
+  // Machine-specific output is a post-process, not stored here.
   // Writers MUST set "opencad.fab.instr.unspecified" and leave instructions empty.
   string instruction_dialect = 5;
   bytes instructions = 6;
