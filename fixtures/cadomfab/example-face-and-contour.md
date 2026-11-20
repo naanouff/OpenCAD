@@ -1,6 +1,6 @@
 # Example — facing and contour `.cadomfab`
 
-*Informative logical document (not binary Protobuf).* One setup, one end mill, a facing feed, and two adjustable parameters. Units: millimetres.
+*Informative logical document (not binary Protobuf).* One setup, one end mill, an operation whose instruction program is empty (dialect not defined), and two adjustable parameters. Units: millimetres.
 
 ```yaml
 version_major: 0
@@ -27,11 +27,9 @@ operations:
     name: "face"
     setup_id: "setup-top"
     tool_id: "tool-em10"
-    motions:
-      - kind: RAPID
-        points: [{ x: 0, y: 0, z: 30 }, { x: -10, y: -10, z: 12 }]
-      - kind: FEED
-        points: [{ x: -10, y: -10, z: 10 }, { x: 130, y: 90, z: 10 }]
+    # Dialect not defined yet. Bytes stay empty; do not embed G-code.
+    instruction_dialect: "opencad.fab.instr.unspecified"
+    instructions: []
 parameters:
   - id: "wear-em10"
     name: "EM10 length wear"

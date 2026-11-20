@@ -31,12 +31,6 @@ enum ToolKind {
   TOOL_KIND_FACE_MILL = 4;
 }
 
-enum MotionKind {
-  MOTION_KIND_UNSPECIFIED = 0;
-  MOTION_KIND_RAPID = 1; // no material removal
-  MOTION_KIND_FEED = 2;  // removes material along the polyline
-}
-
 enum AdjustmentTarget {
   ADJUSTMENT_TARGET_UNSPECIFIED = 0;
   ADJUSTMENT_TARGET_TOOL = 1;
@@ -89,23 +83,15 @@ message Setup {
   string fixture = 4;
 }
 
-message Vec3 {
-  double x = 1;
-  double y = 2;
-  double z = 3;
-}
-
-message Motion {
-  MotionKind kind = 1;
-  repeated Vec3 points = 2; // polyline in the setup frame
-}
-
 message Operation {
   string id = 1;
   string name = 2;
   string setup_id = 3;
   string tool_id = 4;
-  repeated Motion motions = 5;
+  // Neutral machine-instruction dialect. Not defined in v0.
+  // Writers MUST set "opencad.fab.instr.unspecified" and leave instructions empty.
+  string instruction_dialect = 5;
+  bytes instructions = 6;
 }
 
 message AdjustableParameter {

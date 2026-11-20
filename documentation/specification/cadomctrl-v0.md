@@ -16,7 +16,7 @@ The key words **MUST**, **MUST NOT**, **SHOULD**, **MAY** are as in [RFC 2119](h
 
 CADOMCTRL carries **adjustment values** produced by control (inspection against the dead exact solid) for parameters declared in a [`.cadomfab`](cadomfab-v0.md) file.
 
-The control file **MUST NOT** redefine tools, setups, operations, or toolpaths. It assigns `parameter_id → value`. Manufacturing replay and step visualization **MUST** use those values in place of the fab nominals. The `.cadomfab` bytes **MUST** stay unchanged.
+The control file **MUST NOT** redefine tools, setups, operations, or the instruction program. It assigns `parameter_id → value`. Manufacturing replay and step visualization **MUST** use those values in place of the fab nominals. The `.cadomfab` bytes **MUST** stay unchanged.
 
 A Control product still requires the graph and role `EXACT` (`.cadombrep`) for the part that was measured. This file is the feedback, not a metrology report.
 
@@ -30,7 +30,7 @@ A Control product still requires the graph and role `EXACT` (`.cadombrep`) for t
 
 - PMI, GD&T, balloons, inspection plans
 - New parameter ids that the gamme did not declare
-- Toolpath edits, stock edits, fixture redesign
+- Instruction-program edits, stock edits, fixture redesign
 - STEP as a carrier for adjustments
 
 ---

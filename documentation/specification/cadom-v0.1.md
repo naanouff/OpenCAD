@@ -78,7 +78,7 @@ OpenCAD product doctrine (**B + B3′ + K3**) is defined in [`../opencad-doctrin
 | **Parametric** (`.cadompart`) | Feature history / intent | Co-primary for **Design** / **Complete** profiles |
 | **Viz** (`.cadomesh` / glTF) | Display tessellation | Co-primary for **Viz** / **Complete** without shipping a kernel to the client |
 | **Exact dead** (`.cadombrep`) | Frozen B-Rep snapshot | **MUST** for **Complete**; metrology / archive / exchange without live kernel |
-| **Manufacturing** (`.cadomfab`) | Nominal gamme: stock, tools, setups, toolpaths, adjustable parameters | Process intent, not geometry truth |
+| **Manufacturing** (`.cadomfab`) | Nominal gamme: stock, tools, setups, neutral instruction program, adjustable parameters | Process intent, not geometry truth. Instruction dialect not defined in v0 |
 | **Control** (`.cadomctrl`) | Values for parameters declared by `.cadomfab` | Feedback from inspection of `EXACT`; **MUST NOT** edit the gamme |
 | **OpenCAD Kernel** | Product B-Rep rebuild engine | Co-primary runtime for exact solids from cadompart; exports mesh + cadombrep |
 
@@ -267,7 +267,7 @@ A node **MAY** reference **multiple** assets, **at most one per role**:
 | `MESH` | `CADOMESH`, `GLB`, `GLTF` | Display tessellation for GPU / web visualization |
 | `PARAMETRIC` | `CADOMPART` | Parametric rebuild recipe for OpenCAD Kernel |
 | `EXACT` | `CADOMBREP` | Dead / frozen B-Rep envelope (metrology, archive, exact exchange) |
-| `MANUFACTURING` | `CADOMFAB` | Nominal process: stock, tools, setups, toolpaths, adjustable parameters |
+| `MANUFACTURING` | `CADOMFAB` | Nominal process: stock, tools, setups, unspecified instruction program, adjustable parameters |
 | `CONTROL` | `CADOMCTRL` | Adjustment values for parameters declared by the linked `.cadomfab` |
 | `MATERIAL` | `CADOMAT` | PBR material |
 | `METADATA` | `CADOMETA`, `OTHER` | Structured or opaque metadata payload |
@@ -478,7 +478,7 @@ A **cadombrep** asset is a CADOM-native **frozen exact solid** snapshot for metr
 
 ### 4.13 Native format: cadomfab (manufacturing process)
 
-A **cadomfab** asset is the nominal gamme: stock, tools, setups, polyline toolpaths, and the adjustable parameters control is allowed to set.
+A **cadomfab** asset is the nominal gamme: stock, tools, setups, a neutral machine-instruction program (dialect not defined in v0), and the adjustable parameters control is allowed to set.
 
 - Conventional file extension: `.cadomfab`
 - `Asset.kind` **MUST** be `CADOMFAB`

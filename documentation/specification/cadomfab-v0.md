@@ -14,7 +14,7 @@ The key words **MUST**, **MUST NOT**, **SHOULD**, **MAY** are as in [RFC 2119](h
 
 ## 1. Purpose
 
-CADOMFAB is the CADOM **nominal manufacturing process**: stock, tools, setups (posage), and an ordered sequence of operations (gamme) with toolpaths.
+CADOMFAB is the CADOM **nominal manufacturing process**: stock, tools, setups (posage), and an ordered sequence of operations (gamme). Each operation carries a program in a **neutral instruction dialect**, in the spirit of machine consignes, not a baked polyline and not a controller brand language.
 
 It is process intent, **not** geometry truth. The finished solid remains `.cadombrep` under role `EXACT`. Design intent remains `.cadompart`. Control corrections **MUST NOT** be stored in this file; they live in [`.cadomctrl`](cadomctrl-v0.md).
 
@@ -26,12 +26,13 @@ A Manufacturing consumer uses this file to display each step from stock to finis
 - Tool records (end mill, ball mill, drill, face mill)
 - Setups: part-to-setup transform and a fixture description
 - Ordered operations, each bound to one setup and one tool
-- Motions as polylines in the setup frame: rapid (no removal) or feed (removal)
+- A slot for that instruction program (dialect id + bytes). The dialect itself is **not** defined in v0
 - Adjustable parameters that control **MAY** override (ids are stable)
 
 ### 1.2 Out of scope
 
-- Arcs, splines, 5-axis poses, tool-change cycles, cycle time
+- The syntax of the instruction dialect (opcodes, arcs, feeds, axis set)
+- Tool-change cycles, cycle time
 - Swept-volume or Boolean material removal
 - Editing `.cadompart` or `.cadombrep`
 - PMI / GD&T
@@ -54,7 +55,7 @@ Media type **SHOULD** be `application/vnd.opencad.cadomfab`.
 - If `units` or `up_axis` is unspecified, consumers **MUST** inherit them from the referencing `.cadom` document.
 - Stock sizes, tool diameters, flute lengths, parameter values, and path coordinates **MUST** use this file’s length unit.
 - `Setup.part_to_setup`, when present, **MUST** contain 16 floats (column-major mat4) taking part coordinates into the setup frame. Empty **MUST** mean identity.
-- Motion polylines **MUST** be expressed in the setup frame of the operation’s `setup_id`.
+- When the instruction dialect is specified, coordinates in a program **MUST** be expressed in the setup frame of that operation’s `setup_id`. v0 has no syntax for those coordinates yet.
 
 ---
 
@@ -75,9 +76,21 @@ Media type **SHOULD** be `application/vnd.opencad.cadomfab`.
 - Every `Tool.id`, `Setup.id`, `Operation.id`, and `AdjustableParameter.id` **MUST** be unique within the file and non-empty.
 - `Operation.setup_id` and `Operation.tool_id` **MUST** refer to ids in this file.
 - Document order of `operations` **MUST** be the gamme order.
-- Each motion **MUST** set `kind` to `RAPID` or `FEED` and **MUST** contain at least two points.
-- `FEED` is a cutting move. `RAPID` **MUST NOT** be treated as material removal.
-- v0 paths are polylines only. Writers **MUST NOT** encode arcs by overloading point lists.
+
+### 5.1 Instruction program
+
+The path of an operation is a program of machine consignes. The language is neutral: it **MUST NOT** be a vendor G-code, ISO dialect, or a polyline standing in for one. OpenCAD will publish the dialect in a later specification.
+
+Until that dialect exists:
+
+| Field | Rule |
+|-------|------|
+| `instruction_dialect` | **MUST** be the token `opencad.fab.instr.unspecified` |
+| `instructions` | **MUST** be empty |
+
+Writers **MUST NOT** put G-code or any private encoding in `instructions` while the dialect is unspecified. Readers **MUST** reject a v0 file whose dialect is unspecified and whose `instructions` are not empty.
+
+The future dialect **MUST** be able to order consignes, to express them in the operation’s setup frame, and to distinguish a non-cutting move from a material-removal move. Opcodes, arcs, and the axis set are not decided here.
 
 ---
 
@@ -102,7 +115,7 @@ Rules:
 
 ## 7. Replay contract (informative)
 
-A later simulator **MUST** start from the stock, apply control adjustments when present, and subtract the tool sweep along `FEED` motions in gamme order. The finished `.cadombrep` is the target solid, not an output of this file. v0 does not require an implementation of that simulator.
+A later simulator **MUST** start from the stock, apply control adjustments when present, and execute the instruction program in gamme order once the dialect exists. The finished `.cadombrep` is the target solid, not an output of this file. v0 does not define the dialect and does not require a simulator.
 
 ---
 
@@ -123,4 +136,4 @@ Worked example: [`fixtures/cadomfab/example-face-and-contour.md`](../../fixtures
 
 | Version | Date | Notes |
 |---------|------|-------|
-| 0.0 | 2026-11-20 | Initial draft: stock, tools, setups, polyline motions, adjustable parameters (#97) |
+| 0.0 | 2026-11-20 | Initial draft: stock, tools, setups, adjustable parameters, instruction program reserved (`opencad.fab.instr.unspecified`) (#97) |

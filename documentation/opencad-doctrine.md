@@ -28,7 +28,7 @@ Neither is a second-class add-on for a **Complete** OpenCAD product.
 | Exact solid (runtime) | **OpenCAD kernel** rebuild of cadompart |
 | Exact solid (**dead** / exchange / metrology / archive) | **`.cadombrep`** — frozen B-Rep snapshot produced by the kernel |
 | Exchange / viz without kernel | `.cadomesh` (and optionally glTF/GLB) under role `MESH` |
-| Nominal manufacturing process | `.cadomfab` — stock, tools, setups, toolpaths, adjustable parameters |
+| Nominal manufacturing process | `.cadomfab` — stock, tools, setups, neutral instruction program (dialect not defined yet), adjustable parameters |
 | Control adjustments | `.cadomctrl` — values for parameters declared by `.cadomfab`; does not edit the gamme |
 | STEP / AP242 | **Out of the OpenCAD truth model** — import sas only; never normative exact |
 
