@@ -78,7 +78,8 @@ message Tool {
 message Setup {
   string id = 1;
   string name = 2;
-  // Column-major 4x4, machine frame to setup frame. Empty means identity.
+  // Resolved placement, machine frame to setup frame (column-major 4x4).
+  // Empty means unresolved, not identity. The axes come from the user methodology.
   repeated float machine_to_setup = 3 [packed = true];
   string fixture = 4;
 }
@@ -112,8 +113,8 @@ message GammeVariant {
   repeated Setup setups = 4;
   repeated Operation operations = 5; // document order
   repeated AdjustableParameter parameters = 6;
-  // Column-major 4x4, product definition frame to this gamme's machine frame.
-  // Empty means identity. The product datum and the machine datum are distinct.
+  // Resolved placement of the product model in this gamme's machine (column-major 4x4).
+  // Empty means unresolved, not identity. Not a static axis convention.
   repeated float product_to_machine = 7 [packed = true];
 }
 

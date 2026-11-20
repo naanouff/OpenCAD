@@ -64,18 +64,18 @@ Media type **SHOULD** be `application/vnd.opencad.cadomfab`.
 
 ### 3.1 Frames
 
-Three frames are distinct. The product frame is the definition frame of the occurrence (the ideal part). The machine frame belongs to the gamme. The setup frame is the posage on that machine. They **MUST NOT** be assumed equal.
+The product frame is the definition frame of the occurrence (the ideal part). The machine frame and the setup frame belong to the manufacturing environment of a gamme. They are **not** a fixed convention of the file. Which axes line up, where the part sits in the vise, and how the tool stands are decided by the **user methodology**.
 
-| Transform | Maps | Field |
-|-----------|------|-------|
-| `product_to_machine` | Product frame → machine frame of the variant | `GammeVariant.product_to_machine` |
-| `machine_to_setup` | Machine frame → setup frame | `Setup.machine_to_setup` |
+A consumer that shows the product model on a machine or a setup **MUST** resolve that placement. v0 does not define the methodology or the resolver.
 
-Each transform, when present, **MUST** be 16 floats, column-major. Empty **MUST** mean identity. The product→setup map **MUST** be the composition `machine_to_setup` × `product_to_machine`.
+`product_to_machine` and `machine_to_setup` store the **result** of a resolution, not a universal kinematic rule. Each, when set, **MUST** be 16 floats, column-major. Empty **MUST** mean unresolved. Readers **MUST NOT** treat an empty transform as identity.
 
-In v0 the tool axis is **+Z of the machine frame**. A consumer that draws the tool on the ideal product **MUST** resolve that axis into the product frame with the inverse rotation of `product_to_machine`, then the setup: the axis in the product frame is the inverse of (`machine_to_setup` × `product_to_machine`) applied to machine +Z. `TOOL_LENGTH_WEAR` is a length along this axis.
+| Field | Resolved placement |
+|-------|--------------------|
+| `GammeVariant.product_to_machine` | Product model positioned in that gamme’s machine |
+| `Setup.machine_to_setup` | That machine positioned on the setup |
 
-When the instruction dialect is specified, coordinates in a program **MUST** be expressed in the setup frame of that operation’s `setup_id`. v0 has no syntax for those coordinates yet. `SETUP_SHIFT_X` / `Y` / `Z` translate the **machine** frame along its own axes before `machine_to_setup` is applied.
+Tool axis, the direction of `TOOL_LENGTH_WEAR`, and the axes of `SETUP_SHIFT_*` are outputs of the same resolution. v0 **MUST NOT** freeze them (no implicit machine +Z, no fixed order “shift then setup”). The instruction dialect, when it exists, **MUST** use the frames that resolution produced. v0 has no syntax for those coordinates yet.
 
 ---
 
@@ -129,8 +129,8 @@ Manufacturing **declares** the knobs. Control does not invent them.
 
 | Quantity | Target | Meaning of `nominal` |
 |----------|--------|----------------------|
-| `TOOL_LENGTH_WEAR` | `TOOL` | Length added along the tool axis (machine +Z, resolved as in §3.1). 0 = no wear. Negative shortens the tool |
-| `SETUP_SHIFT_X` / `Y` / `Z` | `SETUP` | Translation of the machine frame along that machine axis, before `machine_to_setup` (§3.1) |
+| `TOOL_LENGTH_WEAR` | `TOOL` | Length correction of the tool. 0 = no wear. The axis and the sign are those of the resolved methodology (§3.1), not a fixed machine +Z |
+| `SETUP_SHIFT_X` / `Y` / `Z` | `SETUP` | Named translation of the setup. Which frame and which direction are resolved with the methodology (§3.1), not frozen in the file |
 | `STOCK_ALLOWANCE` | `OPERATION` or `SETUP` | Extra stock left on the blank for that target |
 
 Rules:
@@ -165,4 +165,4 @@ Worked example: [`fixtures/cadomfab/example-face-and-contour.md`](../../fixtures
 
 | Version | Date | Notes |
 |---------|------|-------|
-| 0.0 | 2026-11-20 | Initial draft: variants inherited from the ideal definition; product→machine→setup frames; stock, tools, parameters; instruction program reserved (`opencad.fab.instr.unspecified`) (#97) |
+| 0.0 | 2026-11-20 | Initial draft: variants inherited from the ideal definition; placement of the product in the machine and the setup is resolved from the user methodology, not a static frame convention; instruction program reserved (`opencad.fab.instr.unspecified`) (#97) |
