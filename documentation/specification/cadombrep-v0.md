@@ -136,7 +136,7 @@ See [`packages/cadombrep-proto/cadombrep.proto`](../../packages/cadombrep-proto/
 
 ## 10. Relation to kernel badge
 
-Export of `.cadombrep` is part of the OpenCAD Kernel track (see [`../sprint-kernel-k3.md`](../sprint-kernel-k3.md) K3-8). The first Required rebuild badge **MAY** ship mesh goldens before cadombrep goldens; **Complete** product claims **MUST NOT** be made without a cadombrep writer that satisfies this stub’s provenance rules.
+Export of `.cadombrep` is part of the OpenCAD Kernel track (see [`../sprint-kernel-k3.md`](../sprint-kernel-k3.md) K3-8). `@opencad/kernel` on `develop` ships `ecrireCadombrep` (`OCCT_BREP` + snapshot topo ids). **Complete** product claims **MUST NOT** be made without a cadombrep writer that satisfies this stub’s provenance rules. `OPENCAD_NATIVE` remains undefined.
 
 ---
 

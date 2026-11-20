@@ -9,3 +9,5 @@ Logical examples + binary `.cadom` (O4-2, regenerated via `pnpm --filter @openca
 | C — opaque extension | [example-c-passthrough-extension.md](example-c-passthrough-extension.md) | [cadom/example-c-passthrough-extension.cadom](cadom/example-c-passthrough-extension.cadom) |
 
 UUIDs are fixed for documentation and SDK tests.
+
+Manufacturing and control examples (logical YAML, not binary): [cadomfab/example-face-and-contour.md](cadomfab/example-face-and-contour.md), [cadomctrl/example-wear-and-shift.md](cadomctrl/example-wear-and-shift.md).

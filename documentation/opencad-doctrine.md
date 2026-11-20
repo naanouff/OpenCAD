@@ -28,6 +28,8 @@ Neither is a second-class add-on for a **Complete** OpenCAD product.
 | Exact solid (runtime) | **OpenCAD kernel** rebuild of cadompart |
 | Exact solid (**dead** / exchange / metrology / archive) | **`.cadombrep`** — frozen B-Rep snapshot produced by the kernel |
 | Exchange / viz without kernel | `.cadomesh` (and optionally glTF/GLB) under role `MESH` |
+| Nominal manufacturing process | `.cadomfab` — stock, tools, setups, neutral instruction program (dialect not defined yet; machine code is a post-process), adjustable parameters |
+| Control adjustments | `.cadomctrl` — values for parameters declared by `.cadomfab`; does not edit the gamme |
 | STEP / AP242 | **Out of the OpenCAD truth model** — import sas only; never normative exact |
 
 **B3′:** viz without kernel = cadomesh. Exact *runtime* = kernel. Exact *persisted exchange* = `.cadombrep` (dead envelope). STEP is not OpenCAD exact.  
@@ -41,8 +43,12 @@ Neither is a second-class add-on for a **Complete** OpenCAD product.
 | **Viz** | Graph + `MESH` (cadomesh / glTF) |
 | **Design** | Graph + `PARAMETRIC` + **OpenCAD kernel** |
 | **Complete** | Graph + `PARAMETRIC` + `MESH` + **`EXACT` (`.cadombrep`)** + kernel to refresh mesh and brep |
+| **Control** | Graph + `EXACT` + **`CONTROL` (`.cadomctrl`)** on occurrences that publish inspection feedback |
+| **Manufacturing** | Graph + `EXACT` + **`MANUFACTURING` (`.cadomfab`)** |
 
 A `.cadom` document alone **MAY** be valid as a graph. A **Complete OpenCAD product** **MUST** provide parametric intent, display mesh, and **dead exact B-Rep** on part occurrences that claim geometric completeness.
+
+The graph and its `.cadompart` / `.cadombrep` are a **definition version**: the product in its ideal intent. **Manufacturing** inherits that definition and proposes **variants**, one per gamme, adapted to the process (stock, setups, program). Each gamme places the product model in its machine and its setups by the matrix-to-matrix transposition the user wrote in the file. The default view stays the ideal definition; variants are for manufacturing. Control and manufacturing **MAY** each be present without the other; the consumer resolves only the data that is there. A gamme over several parts of an assembly is later. Those variants **MUST NOT** replace the ideal definition. **Control** measures the ideal exact solid and writes adjustment values onto a variant. It **MUST NOT** rewrite the gamme. A consumer that has both bindings **MUST** apply `.cadomctrl` values over that variant’s nominals before showing, replaying, or posting steps from the variant stock toward the ideal `EXACT`. Neither profile is a subset of Complete. Specs: [`specification/cadomfab-v0.md`](specification/cadomfab-v0.md), [`specification/cadomctrl-v0.md`](specification/cadomctrl-v0.md). Material-removal simulation is a later consumer of those files, not part of the v0 schema.
 
 ---
 
@@ -52,6 +58,7 @@ A `.cadom` document alone **MAY** be valid as a graph. A **Complete OpenCAD prod
 > Intent lives in **cadompart**; exactness at runtime lives in the **kernel**; exactness for exchange, metrology, and archive lives in **`.cadombrep`** (dead B-Rep).  
 > Kernel-free visualization uses **cadomesh**.  
 > A **Complete** OpenCAD product binds graph + parametric + mesh + cadombrep.  
+> **Manufacturing** inherits that ideal definition and binds process variants (`.cadomfab`), one per gamme. **Control** binds adjustments (`.cadomctrl`) for a variant’s parameter ids, without editing the gamme or the definition.  
 > STEP/AP242 are not part of the OpenCAD truth model.
 
 ---
@@ -77,7 +84,7 @@ Normative kernel work (separate specs / packages, later issues) **MUST** cover:
 5. **Dead B-Rep export to `.cadombrep`** (B2 / #55).
 6. Distribution as an OpenCAD product dependency — **K3-1 decided** ([`specification/opencad-kernel-v0.md`](specification/opencad-kernel-v0.md)): bootstrap **`occt-kernel`** (`@naanouff/occt-wasm`); OCCT **LGPL-2.1**.
 
-Until the extracted OpenCAD kernel package exists (O2), cadompart §11.4 points here: **reference engine = OpenCAD Kernel (K3)**; bootstrap on OCCT is documented; the **product contract** remains OpenCAD’s kernel, not “bring your own”.
+`@opencad/kernel` exists on `develop` (K3-2…K3-8 and O2-1…O2-15). cadompart §11.4 points here: **reference engine = OpenCAD Kernel (K3)**; bootstrap on OCCT is documented; the **product contract** remains OpenCAD’s kernel, not “bring your own”. The package rebuilds a history DTO and golden intents; it does not yet decode `.cadompart` bytes.
 
 ---
 
@@ -87,14 +94,16 @@ Until the extracted OpenCAD kernel package exists (O2), cadompart §11.4 points 
 |-------|---------|
 | Spec hygiene | Purge STEP-as-truth; align fil rouge (#51) |
 | Dead exact | `.cadombrep` stub + Complete MUST EXACT (#55) |
-| Kernel backlog | [`sprint-kernel-k3.md`](sprint-kernel-k3.md) |
+| Kernel | K3-0…K3-8 **done** on `develop` — [`sprint-kernel-k3.md`](sprint-kernel-k3.md); graph SDK O4 **done** — `@opencad/cadom` |
 | P1 assembly | `.cadomz`, occurrence PLM, multi-reps, mates as extension — still accepted |
 | P3 viz | Face groups / LOD; CAD-friendly cadomat defaults — accepted; PMI without AP242 |
+| Control / Manufacturing | Spec v0 **done** (#97): `.cadomfab` + `.cadomctrl`. Removal simulation not started |
 
 ---
 
 ## 7. Proto / role note
 
 - `AssetKind.CADOMBREP` + role `EXACT` **are** part of the OpenCAD truth model for **Complete** (dead envelope).
+- `AssetKind.CADOMFAB` + role `MANUFACTURING`, and `AssetKind.CADOMCTRL` + role `CONTROL`, are the process loop (#97). They are not geometry truth. Writers **MUST NOT** put the gamme or the adjustments in an `Extension` or in STEP.
 - `AssetKind.STEP` remains **LEGACY** on the wire for round-trip only. OpenCAD writers **MUST NOT** emit STEP as product truth; normative prose **MUST NOT** present STEP as OpenCAD exact geometry.
 - Binding `EXACT` → `STEP` **MUST NOT** be written by OpenCAD product writers; readers **MAY** warn and still round-trip.

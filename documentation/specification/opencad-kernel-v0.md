@@ -1,6 +1,6 @@
 # OpenCAD Kernel — specification stub v0
 
-**Status:** draft stub (K3-0)  
+**Status:** draft stub (K3-0). Identity and K3-1 stay normative here. API and goldens K3-2…K3-8 **shipped** in `@opencad/kernel` on `develop` (see [`../sprint-kernel-k3.md`](../sprint-kernel-k3.md)).
 **Doctrine:** [`../opencad-doctrine.md`](../opencad-doctrine.md)  
 **Backlog:** [`../sprint-kernel-k3.md`](../sprint-kernel-k3.md)  
 **Issue:** [#57](https://github.com/naanouff/OpenCAD/issues/57)
@@ -9,7 +9,7 @@
 
 The **OpenCAD Kernel** rebuilds Required `.cadompart` features into an exact solid at runtime, tessellates to `.cadomesh`, and (Complete) exports dead `.cadombrep`.
 
-This stub defines identity, non-goals, and the **K3-1** implementation base. Normative API and goldens follow in K3-2…K3-8.
+This stub defines identity, non-goals, and the **K3-1** implementation base. The API and goldens for K3-2…K3-8 live in `@opencad/kernel` (not restated here).
 
 ## 2. Identity
 
@@ -32,7 +32,7 @@ This stub defines identity, non-goals, and the **K3-1** implementation base. Nor
 | OpenCAD specs / protos / this stub | **MIT** (repo OpenCAD) |
 | Alternative engines | Best-effort only; not Required conformance |
 
-Rationale: OpenCadEditor already ships the bootstrap; O2 will extract the editor pipeline (historique → wires → `runBatch`) into an OpenCAD package that consumes the same artefact.
+Rationale: OpenCadEditor already shipped the bootstrap. O2-1…O2-15 extracted the editor pipeline (historique → wires → `runBatch`, GCS, compiler) into `@opencad/kernel`, which consumes the same artefact.
 
 ## 4. Required rebuild scope (first badge)
 
@@ -65,9 +65,11 @@ Rules:
 
 API: `listerTopo` / `listerTopoPlaque` in `@opencad/kernel`.
 
-## 7. Outbound writers (later)
+## 7. Outbound writers
 
-| Writer | Backlog |
-|--------|---------|
-| `.cadomesh` | K3-7 |
-| `.cadombrep` | K3-8 |
+Shipped in `@opencad/kernel` on `develop`:
+
+| Writer | Status |
+|--------|--------|
+| `.cadomesh` | **Done** (K3-7) — `ecrireCadomesh` / `lireCadomesh`. No tessellation provenance fields yet (P0-K.4) |
+| `.cadombrep` | **Done** (K3-8) — `ecrireCadombrep`, encoding `OCCT_BREP`, snapshot topo ids |

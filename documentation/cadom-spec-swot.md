@@ -1,6 +1,6 @@
 # Rapport SWOT expert — spécifications CADOM (renouvellement)
 
-**Statut :** document de process (non normatif) — **analyse courante**  
+**Statut :** document de process (non normatif) — analyse du **2026-09-15** ; l’avancement au **2026-11-20** est dans la section suivante  
 **Date :** 2026-09-15  
 **Issue :** [#53](https://github.com/naanouff/OpenCAD/issues/53)  
 **Révision :** SWOT-2 (remplace les conclusions de SWOT-1 là où elles conflictent)  
@@ -10,6 +10,21 @@
 **Référentiels :** CATIA V5 / 3DEXPERIENCE, Creo, NX, JT, 3DXML, USD, STEP AP242, glTF 2.0, Open CASCADE / FreeCAD
 
 Ce document n’est **pas** un contrat de format. Les specs normatives restent en anglais sous [`documentation/specification/`](specification/README.md).
+
+## Mise à jour d’avancement (2026-11-20)
+
+Le corps qui suit décrit le dépôt au **2026-09-15**, quand le kernel n’était qu’un backlog. Sur `develop` (octobre 2026) :
+
+| Risque SWOT-2 | État |
+|---------------|------|
+| Kernel non shippé (P0-K, W-K, T-K) | **Clos** — `@opencad/kernel` K3-2…K3-8, badges Required v0 et Complete export v0, suite O2-1…O2-15 |
+| Pas d’exact persisté (W-B3) | **Clos** comme trou de format — writer `.cadombrep` `OCCT_BREP` (K3-8). `OPENCAD_NATIVE` reste non défini |
+| SDK graphe absent | **Clos** — `@opencad/cadom` O4-1…O4-3, fixtures binaires, `lintWriterTruth` (P0-K.5) |
+| Provenance de tessellation (P0-K.4) | **Ouvert** — `cadomesh.proto` n’a pas `kernel_id`, version, ni hash de la source |
+| P1 assemblage, P3 viz | **Ouverts** |
+| Branche `main` | Dernier sync : PR #80 (jusqu’à O2-5). O2-6…O2-15 et O4 ne sont pas sur `main` |
+
+Le verdict « Complete = kernel qui n’existe pas » ne décrit plus `develop`. Il décrit encore une release `main` antérieure à ce kernel, et tout produit qui n’embarque pas ces paquets. Le kernel ne décode pas les octets `.cadompart` : il exécute un DTO d’historique et des goldens.
 
 ---
 

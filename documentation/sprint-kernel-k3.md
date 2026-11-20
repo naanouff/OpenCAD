@@ -1,6 +1,7 @@
 # Sprint backlog — OpenCAD Kernel (K3)
 
-**Status:** process backlog  
+**Status:** complete on `develop` — Required v0 (K3-3…K3-5 + K3-7) and Complete export v0 (+ K3-8) are in `@opencad/kernel`. Issues #59–#71 are closed. O2-1…O2-15 (pipeline extract) is recorded in [`packages/kernel/README.md`](../packages/kernel/README.md). Not on `main` past O2-5 (last release sync: PR #80).
+
 **Doctrine:** [`opencad-doctrine.md`](opencad-doctrine.md) (B3′)  
 **Issue seeds:** [#51](https://github.com/naanouff/OpenCAD/issues/51), [#55](https://github.com/naanouff/OpenCAD/issues/55)
 
@@ -16,7 +17,7 @@ Ship an **OpenCAD B-Rep kernel** as a first-class product component that rebuild
 - STEP import/export as truth
 - Assembly mates solver
 
-## Suggested issues (create when starting work)
+## Issues
 
 | ID | Title | Notes |
 |----|-------|-------|

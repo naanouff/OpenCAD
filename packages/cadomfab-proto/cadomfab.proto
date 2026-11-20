@@ -1,0 +1,131 @@
+syntax = "proto3";
+
+package cadomfab.v0;
+
+option java_package = "dev.opencad.cadomfab.v0";
+option csharp_namespace = "OpenCad.Cadomfab.V0";
+
+// CADOMFAB v0 — manufacturing variants inherited from the ideal definition.
+// The node’s cadompart / cadombrep stay the definition. Each variant is one gamme.
+// Control corrections live in .cadomctrl and MUST NOT be written here.
+// Entire file body MUST be a serialized CadomfabFile message.
+
+enum LengthUnit {
+  LENGTH_UNIT_UNSPECIFIED = 0;
+  LENGTH_UNIT_METRES = 1;
+  LENGTH_UNIT_MILLIMETRES = 2;
+  LENGTH_UNIT_INCHES = 3;
+}
+
+enum UpAxis {
+  UP_AXIS_UNSPECIFIED = 0;
+  UP_AXIS_Y = 1;
+  UP_AXIS_Z = 2;
+}
+
+enum ToolKind {
+  TOOL_KIND_UNSPECIFIED = 0;
+  TOOL_KIND_END_MILL = 1;
+  TOOL_KIND_BALL_MILL = 2;
+  TOOL_KIND_DRILL = 3;
+  TOOL_KIND_FACE_MILL = 4;
+}
+
+enum AdjustmentTarget {
+  ADJUSTMENT_TARGET_UNSPECIFIED = 0;
+  ADJUSTMENT_TARGET_TOOL = 1;
+  ADJUSTMENT_TARGET_SETUP = 2;
+  ADJUSTMENT_TARGET_OPERATION = 3;
+}
+
+enum AdjustmentQuantity {
+  ADJUSTMENT_QUANTITY_UNSPECIFIED = 0;
+  ADJUSTMENT_QUANTITY_TOOL_LENGTH_WEAR = 1;
+  ADJUSTMENT_QUANTITY_SETUP_SHIFT_X = 2;
+  ADJUSTMENT_QUANTITY_SETUP_SHIFT_Y = 3;
+  ADJUSTMENT_QUANTITY_SETUP_SHIFT_Z = 4;
+}
+
+message BoxStock {
+  double size_x = 1;
+  double size_y = 2;
+  double size_z = 3;
+}
+
+message CylinderStock {
+  double diameter = 1;
+  double height = 2;
+}
+
+message Stock {
+  // Placement of the blank in the product frame (column-major 4x4).
+  // Empty means unresolved, not identity. No fixed world axis.
+  repeated float frame = 1 [packed = true];
+  oneof blank {
+    string cadombrep_uri = 2;
+    BoxStock box = 3;
+    CylinderStock cylinder = 4;
+  }
+}
+
+message Tool {
+  string id = 1;
+  string name = 2;
+  ToolKind kind = 3;
+  double diameter = 4;
+  double corner_radius = 5;
+  double flute_length = 6;
+}
+
+message Setup {
+  string id = 1;
+  string name = 2;
+  // Resolved placement, machine frame to setup frame (column-major 4x4).
+  // Empty means unresolved, not identity. The axes come from the user methodology.
+  repeated float machine_to_setup = 3 [packed = true];
+  string fixture = 4;
+}
+
+message Operation {
+  string id = 1;
+  string name = 2;
+  string setup_id = 3;
+  string tool_id = 4;
+  // Neutral machine-instruction dialect. Not defined in v0.
+  // Machine-specific output is a post-process, not stored here.
+  // Writers MUST set "opencad.fab.instr.unspecified" and leave instructions empty.
+  string instruction_dialect = 5;
+  bytes instructions = 6;
+}
+
+message AdjustableParameter {
+  string id = 1;
+  string name = 2;
+  AdjustmentTarget target = 3;
+  string target_id = 4; // tool, setup, or operation id
+  AdjustmentQuantity quantity = 5;
+  double nominal = 6;
+}
+
+// One gamme adapted from the inherited ideal definition.
+message GammeVariant {
+  string id = 1;
+  string name = 2;
+  Stock stock = 3;
+  repeated Setup setups = 4;
+  repeated Operation operations = 5; // document order
+  repeated AdjustableParameter parameters = 6;
+  // Resolved placement of the product model in this gamme's machine (column-major 4x4).
+  // Empty means unresolved, not identity. Not a static axis convention.
+  repeated float product_to_machine = 7 [packed = true];
+}
+
+message CadomfabFile {
+  uint32 version_major = 1; // v0 writers MUST set 0
+  uint32 version_minor = 2; // v0 writers MUST set 0
+  string name = 3;
+  LengthUnit units = 4;
+  UpAxis up_axis = 5;
+  repeated Tool tools = 6; // shared by variants
+  repeated GammeVariant variants = 7;
+}
