@@ -61,8 +61,21 @@ Media type **SHOULD** be `application/vnd.opencad.cadomfab`.
 
 - If `units` or `up_axis` is unspecified, consumers **MUST** inherit them from the referencing `.cadom` document.
 - Stock sizes, tool diameters, flute lengths, parameter values, and path coordinates **MUST** use this file’s length unit.
-- `Setup.part_to_setup`, when present, **MUST** contain 16 floats (column-major mat4) taking part coordinates into the setup frame. Empty **MUST** mean identity.
-- When the instruction dialect is specified, coordinates in a program **MUST** be expressed in the setup frame of that operation’s `setup_id`. v0 has no syntax for those coordinates yet.
+
+### 3.1 Frames
+
+Three frames are distinct. The product frame is the definition frame of the occurrence (the ideal part). The machine frame belongs to the gamme. The setup frame is the posage on that machine. They **MUST NOT** be assumed equal.
+
+| Transform | Maps | Field |
+|-----------|------|-------|
+| `product_to_machine` | Product frame → machine frame of the variant | `GammeVariant.product_to_machine` |
+| `machine_to_setup` | Machine frame → setup frame | `Setup.machine_to_setup` |
+
+Each transform, when present, **MUST** be 16 floats, column-major. Empty **MUST** mean identity. The product→setup map **MUST** be the composition `machine_to_setup` × `product_to_machine`.
+
+In v0 the tool axis is **+Z of the machine frame**. A consumer that draws the tool on the ideal product **MUST** resolve that axis into the product frame with the inverse rotation of `product_to_machine`, then the setup: the axis in the product frame is the inverse of (`machine_to_setup` × `product_to_machine`) applied to machine +Z. `TOOL_LENGTH_WEAR` is a length along this axis.
+
+When the instruction dialect is specified, coordinates in a program **MUST** be expressed in the setup frame of that operation’s `setup_id`. v0 has no syntax for those coordinates yet. `SETUP_SHIFT_X` / `Y` / `Z` translate the **machine** frame along its own axes before `machine_to_setup` is applied.
 
 ---
 
@@ -116,8 +129,8 @@ Manufacturing **declares** the knobs. Control does not invent them.
 
 | Quantity | Target | Meaning of `nominal` |
 |----------|--------|----------------------|
-| `TOOL_LENGTH_WEAR` | `TOOL` | Length correction added to the tool, 0 = no wear |
-| `SETUP_SHIFT_X` / `Y` / `Z` | `SETUP` | Translation of the setup frame along that part axis |
+| `TOOL_LENGTH_WEAR` | `TOOL` | Length added along the tool axis (machine +Z, resolved as in §3.1). 0 = no wear. Negative shortens the tool |
+| `SETUP_SHIFT_X` / `Y` / `Z` | `SETUP` | Translation of the machine frame along that machine axis, before `machine_to_setup` (§3.1) |
 | `STOCK_ALLOWANCE` | `OPERATION` or `SETUP` | Extra stock left on the blank for that target |
 
 Rules:
@@ -152,4 +165,4 @@ Worked example: [`fixtures/cadomfab/example-face-and-contour.md`](../../fixtures
 
 | Version | Date | Notes |
 |---------|------|-------|
-| 0.0 | 2026-11-20 | Initial draft: variants inherited from the ideal definition; stock, tools, setups, parameters; instruction program reserved (`opencad.fab.instr.unspecified`) (#97) |
+| 0.0 | 2026-11-20 | Initial draft: variants inherited from the ideal definition; product→machine→setup frames; stock, tools, parameters; instruction program reserved (`opencad.fab.instr.unspecified`) (#97) |

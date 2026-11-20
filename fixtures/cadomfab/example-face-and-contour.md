@@ -18,12 +18,14 @@ tools:
 variants:
   - id: "gamme-face"
     name: "face from bar"
+    # Product datum and machine datum differ. Identity here is only a placeholder.
+    product_to_machine: []
     stock:
       box: { size_x: 120, size_y: 80, size_z: 12 }
     setups:
       - id: "setup-top"
         name: "top vise"
-        part_to_setup: []   # identity
+        machine_to_setup: []   # identity: setup aligned with the machine frame
         fixture: "vise on datum A"
     operations:
       - id: "op-face"
