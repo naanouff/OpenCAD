@@ -1,8 +1,16 @@
 # OpenCAD / CADOM
 
+<p align="center">
+  <img src="documentation/graphique/kit/svg/wordmark-opencad-light.svg" alt="openCAD" width="320" />
+</p>
+
 Open-source **CAD platform**: assembly orchestration (**CADOM**) + parametric rebuild on the **OpenCAD B-Rep kernel**, released under the [MIT License](LICENSE).
 
 Doctrine (binding for product direction): [`documentation/opencad-doctrine.md`](documentation/opencad-doctrine.md)
+
+## Brand / graphic charter
+
+Identity board, palette, and logo kit: [`documentation/graphique/`](documentation/graphique/) — charter [`charte.md`](documentation/graphique/charte.md), assets [`kit/`](documentation/graphique/kit/).
 
 | Capability | Truth |
 |------------|--------|

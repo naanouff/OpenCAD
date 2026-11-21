@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" role="img" aria-label="icon-opencad-std-light">
+<g xmlns="http://www.w3.org/2000/svg" id="icon-opencad-std-light" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M 24 6 V 24 M 24 24 L 9 32.5 M 24 24 L 39 32.5" fill="none" stroke="#94a3b8" stroke-width="2.2" stroke-dasharray="2.5 3.5" />
+      <path d="M 24 6 L 39 14.5 V 32.5 L 24 41 L 9 32.5 V 14.5 Z" fill="none" stroke="#0284c7" stroke-width="2.6" />
+      <path d="M 9 14.5 L 24 23 L 39 14.5 M 24 23 V 41" fill="none" stroke="#0369a1" stroke-width="2.6" />
+      <path d="M 39 14.5 L 31.5 28 L 24 41" fill="none" stroke="#0284c7" stroke-width="2.6" />
+      <circle cx="9" cy="14.5" r="2.6" fill="#ffffff" stroke="#0284c7" stroke-width="2.4" />
+      <circle cx="39" cy="14.5" r="2.6" fill="#ffffff" stroke="#0284c7" stroke-width="2.4" />
+      <circle cx="31.5" cy="28" r="2.6" fill="#ffffff" stroke="#0284c7" stroke-width="2.4" />
+      <circle cx="24" cy="41" r="2.6" fill="#ffffff" stroke="#0284c7" stroke-width="2.4" />
+    </g>
+
+    
+    
+    
+    
+</svg>
