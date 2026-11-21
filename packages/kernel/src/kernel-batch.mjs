@@ -93,6 +93,14 @@ export function runBatch(occt, ops) {
           occt._free(ptr);
           break;
         }
+        case 'make_wire_arcs': {
+          const { ptr, count } = writeDoubles(occt, args[0]);
+          const kinds = writeI32(occt, args[1]);
+          value = occt._occt_make_wire_arcs(ptr, count, kinds);
+          occt._free(ptr);
+          occt._free(kinds);
+          break;
+        }
         case 'make_face_from_wire':
           value = occt._occt_make_face_from_wire(args[0]);
           break;
@@ -110,6 +118,9 @@ export function runBatch(occt, ops) {
             args[6],
             args[7],
           );
+          break;
+        case 'sweep_helix':
+          value = occt._occt_sweep_helix(...args.slice(0, 13));
           break;
         case 'boolean_fuse':
           value = occt._occt_boolean_fuse(args[0], args[1]);

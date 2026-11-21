@@ -22,7 +22,30 @@ export function cercleDe(poly: Polyline3): CercleExact | undefined {
   return cerclesExacts.get(poly)
 }
 
-/** Translation d’une polyligne ; le cercle exact suit. */
+const milieuxArcs = new WeakMap<Polyline3, number[]>()
+
+/**
+ * Retient que certains sommets de `poly` sont des milieux d’arc : `genres[i] === 1` fait passer
+ * un arc vrai par le sommet i, entre ses deux voisins.
+ */
+export function marquerArcs(poly: Polyline3, genres: number[]): Polyline3 {
+  if (genres.length !== poly.length / 3) throw new Error('un genre par sommet')
+  if (genres.some((g) => g === 1)) milieuxArcs.set(poly, genres)
+  return poly
+}
+
+export function arcsDe(poly: Polyline3): number[] | undefined {
+  return milieuxArcs.get(poly)
+}
+
+function opFil(polyline: Polyline3, as: string): KernelBatchOp {
+  const genres = milieuxArcs.get(polyline)
+  return genres
+    ? { op: 'make_wire_arcs', args: [polyline, genres], as }
+    : { op: 'make_wire_polyline', args: [polyline], as }
+}
+
+/** Translation d’une polyligne ; le cercle exact et les arcs suivent. */
 export function decalerPolyline(poly: Polyline3, dx: number, dy: number, dz: number): Polyline3 {
   const out: number[] = []
   for (let i = 0; i < poly.length; i += 3) out.push(poly[i]! + dx, poly[i + 1]! + dy, poly[i + 2]! + dz)
@@ -31,6 +54,8 @@ export function decalerPolyline(poly: Polyline3, dx: number, dy: number, dz: num
     const [cx, cy, cz] = cercle.centre
     cerclesExacts.set(out, { centre: [cx + dx, cy + dy, cz + dz], radial: cercle.radial })
   }
+  const genres = milieuxArcs.get(poly)
+  if (genres) milieuxArcs.set(out, genres)
   return out
 }
 
@@ -84,7 +109,7 @@ export function opsExtrude(
   const s = `s${uid}`
   return {
     ops: [
-      { op: 'make_wire_polyline', args: [polyline], as: w },
+      opFil(polyline, w),
       { op: 'make_face_from_wire', args: [{ handle: w }], as: f },
       { op: 'extrude', args: [{ handle: f }, direction[0], direction[1], direction[2]], as: s },
     ],
@@ -99,7 +124,7 @@ export function opsRevolution(polyline: Polyline3, uid: string): { ops: KernelBa
   const s = `s${uid}`
   return {
     ops: [
-      { op: 'make_wire_polyline', args: [polyline], as: w },
+      opFil(polyline, w),
       { op: 'make_face_from_wire', args: [{ handle: w }], as: f },
       { op: 'revolve', args: [{ handle: f }, 0, 0, 0, 0, 1, 0, Math.PI * 2], as: s },
     ],
@@ -144,6 +169,20 @@ export function opsFillet(
   const as = `fillet${uid}`
   return {
     ops: [{ op: 'fillet_edges', args: [{ handle: solidAs }, rayon, indices], as }],
+    solidAs: as,
+  }
+}
+
+/** Chanfrein sur arêtes (indices locaux, ou `null` = toutes). */
+export function opsChanfrein(
+  solidAs: string,
+  distance: number,
+  indices: number[] | null,
+  uid: string,
+): { ops: KernelBatchOp[]; solidAs: string } {
+  const as = `chamfer${uid}`
+  return {
+    ops: [{ op: 'chamfer_edges', args: [{ handle: solidAs }, distance, indices], as }],
     solidAs: as,
   }
 }
