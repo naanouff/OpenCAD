@@ -35,12 +35,14 @@ export {
 } from './sketchSolve.ts'
 export { geometriePlan, type PlanCorne } from './geometriePlanCorne.ts'
 export { opsElevationCornes } from './elevationCornes.ts'
+export { opsFilet, type CotesFilet } from './filetHelice.ts'
 export { rebuildExtrudeFromRectangle } from './extrudeFromSketch.ts'
 export {
   opsExtrude,
   opsRevolution,
   opsCouper,
   opsFillet,
+  opsChanfrein,
   accrocherSolide,
   type Polyline3,
   type DirectionExtrusion,

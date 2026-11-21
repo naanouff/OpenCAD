@@ -12,6 +12,7 @@
     "./datums": "./src/datumsKernel.ts",
     "./barrettes": "./src/barrettesKernel.ts",
     "./elevation": "./src/elevationCornes.ts",
+    "./filet": "./src/filetHelice.ts",
     "./cadomesh": "./src/writeCadomesh.ts"
   },
   "scripts": {

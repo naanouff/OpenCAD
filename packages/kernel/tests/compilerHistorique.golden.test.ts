@@ -121,11 +121,16 @@ describe('O2-3/O2-4 compiler historique', () => {
     expect(out.bbox.xmax - out.bbox.xmin).toBeCloseTo(100, 0)
   }, 120_000)
 
-  it('O2-15: pas hybride — 1re révolution omise, tête + Pozi OCCT', async () => {
+  it('O2-15: pas — corps fileté en hélice OCCT, tête + Pozi', async () => {
     const occt = await chargerKernel()
     const compilation = compilerHistorique(
       [
         { type: 'param', nom: 'longueur', expression: '30' },
+        { type: 'param', nom: 'diametre', expression: '6' },
+        { type: 'param', nom: 'diametre_ame', expression: '3.5' },
+        { type: 'param', nom: 'pas', expression: '2.6' },
+        { type: 'param', nom: 'angle_filet', expression: '40' },
+        { type: 'param', nom: 'angle_pointe', expression: '30' },
         { type: 'ouvrir', support: 'plan.12h' },
         { type: 'segment', id: 's0' },
         { type: 'cote', cible: 'rayon', expression: '0' },
@@ -166,15 +171,31 @@ describe('O2-3/O2-4 compiler historique', () => {
       ],
       { unite: 'mm' },
     )
-    expect(compilation.pas).toBe(true)
+    expect(compilation.pas).toBe(false)
     expect(compilation.entitesPas).toHaveLength(4)
     expect(compilation.solidAs).toBeTruthy()
     const out = tessellerSolide(occt, compilation.ops, compilation.solidAs!)
     expect(out.ok).toBe(true)
     if (!out.ok) return
-    // Tête seule (corps omis) : hauteur ≈ 3 mm, rayon max ≈ 6
-    expect(out.bbox.ymax - out.bbox.ymin).toBeCloseTo(3, 0)
+    expect(out.bbox.ymax - out.bbox.ymin).toBeCloseTo(30, 0)
     expect(Math.max(Math.abs(out.bbox.xmax), Math.abs(out.bbox.xmin))).toBeCloseTo(6, 0)
+    // Fût fileté : crête au Ø 6, fond sur l'âme Ø 3,5.
+    let rMin = Infinity
+    let rMax = 0
+    const p = out.mesh.positions
+    for (let i = 0; i < p.length; i += 3) {
+      const y = p[i + 1]!
+      if (y < 10 || y > 20) continue
+      const r = Math.hypot(p[i]!, p[i + 2]!)
+      rMin = Math.min(rMin, r)
+      rMax = Math.max(rMax, r)
+    }
+    expect(rMax).toBeCloseTo(3, 1)
+    expect(rMin).toBeCloseTo(1.75, 1)
+    // Sous la tête, rien ne dépasse la crête.
+    for (let i = 0; i < p.length; i += 3) {
+      if (p[i + 1]! < 26.9) expect(Math.hypot(p[i]!, p[i + 2]!)).toBeLessThan(3.06)
+    }
   }, 120_000)
 
   it('O2-14: cornes + élévation (plongee) après anneau', async () => {

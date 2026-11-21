@@ -1,6 +1,7 @@
 import { opsBarrettesPedagogiques } from './barrettesKernel.ts'
 import { opsElevationCornes } from './elevationCornes.ts'
 import { evaluer } from './evaluateur.ts'
+import { opsFilet, type CotesFilet } from './filetHelice.ts'
 import {
   CHEVAUCHE_TUBE,
   datumParId,
@@ -79,9 +80,9 @@ export type CompilationKernel = {
   ops: KernelBatchOp[]
   solidAs: string | null
   parametres: Map<string, string>
-  /** `pas` : 1re revolution omise cote OCCT (filet Session). */
+  /** Toujours `false` : le filet de `pas` est balayé en OCCT (`opsFilet`), l’hôte n’ajoute rien. */
   pas: boolean
-  /** Segments du 1er profil revolution quand `pas` (pour filetHote). */
+  /** Segments du 1er profil de révolution. */
   entitesPas: ProfilPas[] | null
   yMin: number
   yMax: number
@@ -180,7 +181,7 @@ export type OptionsCompilation = {
 
 /**
  * Compile un préfixe d’historique (param / esquisse / extrude / revolution / pas / enlever / fillet)
- * en batch occt-kernel. `pas` : corps omis en OCCT, profil exposé pour filet hôte.
+ * en batch occt-kernel. `pas` : le 1er corps de révolution est fileté en hélice.
  */
 export function compilerHistorique(
   historique: OperationKernel[],
@@ -408,12 +409,13 @@ export function compilerHistorique(
           rayon: s.rayon,
           hauteur: s.hauteur,
         }))
-        if (!pas) {
-          ops.push(...feat.ops)
-          const attach = accrocherSolide(solidAs, feat.as, String(uid++))
-          ops.push(...attach.ops)
-          solidAs = attach.solidAs
-        }
+        const corps = pas
+          ? opsFilet(profil, cotesFilet(parametres, scale), () => String(uid++))
+          : feat
+        ops.push(...corps.ops)
+        const attach = accrocherSolide(solidAs, corps.as, String(uid++))
+        ops.push(...attach.ops)
+        solidAs = attach.solidAs
       } else {
         ops.push(...feat.ops)
         const attach = accrocherSolide(solidAs, feat.as, String(uid++))
@@ -501,5 +503,16 @@ export function compilerHistorique(
     }
   }
 
-  return { ops, solidAs, parametres, pas, entitesPas, yMin, yMax }
+  return { ops, solidAs, parametres, pas: false, entitesPas, yMin, yMax }
+}
+
+function cotesFilet(parametres: Map<string, string>, scale: number): CotesFilet {
+  const lire = (nom: string) => evaluer(nom, parametres)
+  return {
+    rayonCrete: (lire('diametre') * scale) / 2,
+    rayonAme: (lire('diametre_ame') * scale) / 2,
+    pas: lire('pas') * scale,
+    angleFilet: lire('angle_filet'),
+    anglePointe: lire('angle_pointe'),
+  }
 }
