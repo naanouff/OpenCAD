@@ -8,9 +8,10 @@ import {
 } from './datumsKernel.ts'
 import {
   accrocherSolide,
+  decalerPolyline,
   opsCouper,
-  opsExtrude,
   opsFillet,
+  opsProfil,
   opsRevolution,
   type Polyline3,
 } from './opsDepuisFonction.ts'
@@ -165,13 +166,7 @@ function decalageTube(
 
 function decalerPolylines(polys: Polyline3[], dx: number, dy: number, dz: number): Polyline3[] {
   if (dx === 0 && dy === 0 && dz === 0) return polys
-  return polys.map((poly) => {
-    const out: number[] = []
-    for (let i = 0; i < poly.length; i += 3) {
-      out.push(poly[i]! + dx, poly[i + 1]! + dy, poly[i + 2]! + dz)
-    }
-    return out
-  })
+  return polys.map((poly) => decalerPolyline(poly, dx, dy, dz))
 }
 
 export type OptionsCompilation = {
@@ -349,7 +344,7 @@ export function compilerHistorique(
       const profilCorne = esquisse.segments.some((s) => s.ecart !== undefined)
       if (!anneau) {
         for (const poly of polys) {
-          const feat = opsExtrude(poly, dir, String(uid++))
+          const feat = opsProfil(poly, dir, String(uid++))
           ops.push(...feat.ops)
           const attach = accrocherSolide(solidAs, feat.as, String(uid++))
           ops.push(...attach.ops)
@@ -365,13 +360,13 @@ export function compilerHistorique(
           .map((poly) => ({ poly, r: rayonApprox(poly) }))
           .sort((a, b) => b.r - a.r)
         const exterieur = classes[0]!
-        const feat = opsExtrude(exterieur.poly, dir, String(uid++))
+        const feat = opsProfil(exterieur.poly, dir, String(uid++))
         ops.push(...feat.ops)
         const attach = accrocherSolide(solidAs, feat.as, String(uid++))
         ops.push(...attach.ops)
         solidAs = attach.solidAs
         for (const interieur of classes.slice(1)) {
-          const outil = opsExtrude(
+          const outil = opsProfil(
             interieur.poly,
             [dir[0], dir[1] + Math.sign(dir[1] || 1) * 0.4, dir[2]],
             String(uid++),
@@ -485,7 +480,7 @@ export function compilerHistorique(
         polys = decalerPolylines(polys, dx, dy, dz)
       }
       for (const poly of polys) {
-        const outil = opsExtrude(poly, dir, String(uid++))
+        const outil = opsProfil(poly, dir, String(uid++))
         ops.push(...outil.ops)
         const cut = opsCouper(solidAs, outil.as, String(uid++))
         ops.push(...cut.ops)
